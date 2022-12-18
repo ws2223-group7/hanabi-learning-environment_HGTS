@@ -23,14 +23,12 @@ from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 ### g7_BEGINN ###
 from hanabi_learning_environment.agents.hatrec_agent import HatRecAgent
-from hanabi_learning_environment.agents.hatinfo_agent import HatInfoAgent
 from hanabi_learning_environment.rl_env import Agent
 
 AGENT_CLASSES = {'SimpleAgent': SimpleAgent, 
                  'RandomAgent': RandomAgent, 
 ### g7_BEGINN ###            
-                 'HatRecAgent': HatRecAgent,
-                 'HatInfoAgent': HatInfoAgent}
+                 'HatRecAgent': HatRecAgent}
 ### g7_ENDE ###   
 #          
 class Runner(object):
@@ -61,6 +59,7 @@ class Runner(object):
       agents = [self.agent_class(self.agent_config)
                 for _ in range(self.flags['players'])]
       
+          
       # done is bool for gameOver or Win
       done = False
 
@@ -75,6 +74,12 @@ class Runner(object):
         for agent_id, agent in enumerate(agents):
           observation = observations['player_observations'][agent_id]
           action = agent.act(observation)
+
+          # If hint is given calculate the corresponding hat  
+          if action[type] == 'REVEAL_COLOR' or action[type] == 'REVEAL_HINT':
+             for agent in agents:
+                 agent.setGivenHat(action, agent_id)
+
           if observation['current_player'] == agent_id:
             assert action is not None
             current_player_action = action
