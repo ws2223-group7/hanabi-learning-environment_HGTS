@@ -22,13 +22,13 @@ from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 ### g7_BEGINN ###
-from hanabi_learning_environment.agents.hatrec_agent import HatRecAgent
+from hanabi_learning_environment.agents.htgs_agent import HTGSAgent 
 from hanabi_learning_environment.rl_env import Agent
 
 AGENT_CLASSES = {'SimpleAgent': SimpleAgent, 
                  'RandomAgent': RandomAgent, 
 ### g7_BEGINN ###            
-                 'HatRecAgent': HatRecAgent}
+                 'HTGSAgent' : HTGSAgent}
 ### g7_ENDE ###   
 #          
 class Runner(object):
@@ -101,10 +101,9 @@ class Runner(object):
 
 
 if __name__ == "__main__":
-### g7_BEGINN ###    
-  flags = {'players': 5, 'num_episodes': 1, 'agent_class': 'HatRecAgent'}
-#  flags = {'players': 5, 'num_episodes': 1, 'agent_class': 'HatInfoAgent'}
-### g7_ENDE ###  
+ 
+  flags = {'players': 5, 'num_episodes': 1, 'agent_class': 'HTGSAgent'}
+
   options, arguments = getopt.getopt(sys.argv[1:], '',
                                      ['players=',
                                       'num_episodes=',
@@ -118,8 +117,6 @@ if __name__ == "__main__":
     flag = flag[2:]  # Strip leading --.
     flags[flag] = type(flags[flag])(value)
   runner = Runner(flags)
-  if runner.agent_class == HatRecAgent: 
-    runner.run()
-  elif  runner.agent_class == HatInfoAgent:
+  if runner.agent_class == HTGSAgent: 
     runner.run()
   else: sys.exit('Wrong Agent Class!\n')

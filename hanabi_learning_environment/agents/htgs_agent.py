@@ -9,6 +9,7 @@ class HTGSAgent(Agent):
     self.endodeHint = None
     self.idxCluer = None
 
+
     # Get Hat to recomm 
     self.encodeActToHat = {None}
     
