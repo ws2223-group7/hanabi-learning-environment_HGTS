@@ -78,22 +78,26 @@ class Htgs(Agent):
       return rcdAct
 
 
-  def calHint():
-      sum = 0
-      rules = [rule1, rule2, rule3, rule4, rule5]
+  def calHatSumMod8():
+      hatSumPlayer = 0
+      
       for player in range(1, NrPlayer)
-        for rule in rules
+          hatPlayer = calHatPlayer(player.Hand)
+          hatSumPlayer += hatPlayer
 
-            # Überprüfe ob die regel für die Hand gilt
-            if (rule(Player.Hand, Firework) is not None):
-              rcd = rule(Player.Hand, Firework)
-              sum += calHatToMove(rcd)
-              break
+      hatSumMod8 = hatSumPlayer % 8
 
-      hint = sum % 8
+      return hatSumMod8
 
-      return hint
+  def calHatPlayer(playerHand)
+      rules = [rule1, rule2, rule3, rule4, rule5]
+      for rule in rules
+          if (rule(playerHand, Firework) is not None):
+              hat = rule(Player.Hand, Firework)
+              return hat
 
+      
+      
   def calOwnHat():
       # ri: ownHat
       # r1: givenHint
@@ -113,9 +117,10 @@ class Htgs(Agent):
       return ownHat
 
 
-  def hatToHint(hat)
-      if (hat < 4)
-           idxPly = hat + 1
+  def encodeHint(hatSumMod8)
+      hatSumMod8 = calHatSumMod8()
+      if (hatSumMod8 < 4)
+           idxPly = hatSumMod8 + 1
            firstCardInHandIdxPly = handPlyIdxPly[0]
            rank = firstCardInHandIdxPly.rank
 
@@ -141,8 +146,8 @@ class Htgs(Agent):
 
 
   def giveHint():
-      sum = calHatSumMod8()
-      return dict[sum]
+      actHint = encodeHint()
+      return actHint
 
   def rule1(playerHand):
       # Recommend playable Card Rank 5 with lowest Index
@@ -200,6 +205,4 @@ class Htgs(Agent):
 
 
 
-def GetAct(actType, idxCard):
-    if actType = 'play'
-      ....
+
