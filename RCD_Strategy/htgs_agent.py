@@ -8,8 +8,8 @@ class HTGSAgent(Agent):
     """Initialize the agent."""
     self.config = config
   
-    self.givenHint = None  
-    self.sinceHintPlayedCard = False
+    self.given_hint = None  
+    self.since_hint_plyd_card = False
     self.rcd_card_plyd = False
 
 
@@ -54,40 +54,40 @@ class HTGSAgent(Agent):
       return dsc_c1 
 
 
-  def giveHint(self):
+  def give_hint(self):
     pass 
             
-  def encodeHint(self):
+  def encode_hint(self):
     pass
 
-  def calHatSumMod8(self):
+  def cal_hat_sum_mod8(self):
     pass
 
-  def calHatPlayer(self, playerHand):
+  def cal_hat_player(self, player_hand):
     pass
 
-  def rule1HatPlayerValue(self, playerHand):
+  def rule1_hat_player_value(self, player_hand):
     pass
 
-  def rule2HatPlayerValue(self, playerHand):
+  def rule2_hat_player_value(self, player_hand):
     pass
 
-  def rule3HatPlayerValue(self, playerHand):
+  def rule3_hat_player_value(self, player_hand):
     pass
 
-  def rule4HatPlayerValue(self, playerHand):
+  def rule4_hat_player_value(self, player_hand):
     pass
 
-  def rule5HatPlayerValue(self, playerHand):
+  def rule5_hat_player_value(self, player_hand):
     pass    
     
-  def decodeHint(self):
+  def decode_hint(self):
     pass
 
-  def calOwnHat(self):
+  def cal_own_hat(self):
     pass
 
-  def checkCardAvailable(self):
+  def check_card_available(self):
     pass 
 
   def playable_card(self, card, fireworks):
