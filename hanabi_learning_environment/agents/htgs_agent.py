@@ -6,75 +6,64 @@ class HTGSAgent(Agent):
   def __init__(self, config, *args, **kwargs):
     """Initialize the agent."""
     self.config = config
-    self.endodeHint = None
-    self.idxCluer = None
+  
+    self.givenHint = None  
+    self.sinceHintPlayedCard = False
 
 
     # Get Hat to recomm 
-    self.encodeActToHat = {None}
-    
-    # Extract max info tokens or set default to 8.
-    self.max_information_tokens = config.get('information_tokens', 8)
-
-
-
-
-
-  @staticmethod
-  def playable_card(card, fireworks):
-    """A card is playable if it can be placed on the fireworks pile."""
-    return card['rank'] == fireworks[card['color']]
+    self.encodeActToHat = {0: {'action_type': 'PLAY', 'card_index': 0},
+                           1: {'action_type': 'PLAY', 'card_index': 1},
+                           2: {'action_type': 'PLAY', 'card_index': 2},
+                           3: {'action_type': 'PLAY', 'card_index': 3},
+                           4: {'action_type': 'DISCARD', 'card_index': 0},
+                           5: {'action_type': 'DISCARD', 'card_index': 1},
+                           6: {'action_type': 'DISCARD', 'card_index': 2},
+                           7: {'action_type': 'DISCARD', 'card_index': 3}}
 
   def act(self, observation):
     """Act based on an observation."""
-    if observation['current_player_offset'] != 0:
-      return None
+    pass
 
-    # Sobald Hint Color oder Rank spiele gehinted Karte 
-    # observation['card_knowledge'][0] : Eigene Karten
-
-    # Iterien über eigene Karten (Also durch die Hinweise)
-    for card_index, card in enumerate(observation['card_knowledge'][0]):
-
-      # Prüfe ob die Karte vollständig bekannt  
-      if card['color'] is not None and card['rank'] is not None:
-        
-        # Prüfe ob vollständig bekannte Karte spielbar
-        if (self.playable_card(card)):
-
-            cardPlayable = True 
-            # Prüfe ob irgendeinanderer Sieler die selbe (spielbare)
-            # Karte hat 
-            for playerHand in range(1, observation['num_player']):
-                if cardPlayable: 
-                    numberCardsPerPlayer = len(observation['observed_hands'][0])
-                    for numCardInHand in range(numberCardsPerPlayer):
-                        if cardPlayable: 
-                            # Karte 
-                            handCardOtherPlayer = observation['observed_hands'][playerHand][numCardInHand]
-                            
-                            #Prüfe ob Karte gleich spielbarer Karte ist 
-                            if (handCardOtherPlayer == card):
-                                
-                                # Spiele Karte nicht
-                                cardPlayable = False
-                                # ggf. doppelter 
+  def giveHint(self):
+    pass 
             
-            if cardPlayable:
-                return {
-                'action_type': 'Play',
-                'color': card['color'],
-                'target_offset': player
-            }
+  def encodeHint(self):
+    pass
+
+  def calHatSumMod8(self):
+    pass
+
+  def calHatPlayer(self, playerHand):
+    pass
+
+  def rule1HatPlayerValue(self, playerHand):
+    pass
+
+  def rule2HatPlayerValue(self, playerHand):
+    pass
+
+  def rule3HatPlayerValue(self, playerHand):
+    pass
+
+  def rule4HatPlayerValue(self, playerHand):
+    pass
+
+  def rule5HatPlayerValue(self, playerHand):
+    pass    
     
-    def calHint():
-        None
+  def decodeHint(self):
+    pass
 
-    def giveHint():
-        None 
-            
-        
-            
+  def calOwnHat():
+    pass 
+
+
+
+
+  def playable_card(self, card, fireworks):
+    """A card is playable if it can be placed on the fireworks pile."""
+    return card['rank'] == fireworks[card['color']]
             
 
 
