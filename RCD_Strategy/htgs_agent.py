@@ -1,3 +1,4 @@
+
 from hanabi_learning_environment.rl_env import Agent
 
 class HTGSAgent(Agent):
@@ -9,6 +10,7 @@ class HTGSAgent(Agent):
   
     self.givenHint = None  
     self.sinceHintPlayedCard = False
+    self.rcd_card_plyd = False
 
 
     # Get Hat to recomm 
@@ -23,7 +25,34 @@ class HTGSAgent(Agent):
 
   def act(self, observation):
     """Act based on an observation."""
-    pass
+    rcd_act = self.decode_hint()
+
+    if (rcd_act['action_type'] == 'PLAY' and self.rcd_card_not_plyd):
+      
+      # PlayRule 1
+      if (self.since_hint_played_card):
+        self.rcd_card_plyd = True
+        return rcd_act
+
+      # PlayRule 2
+      else:
+        if (observation >= 1):
+          self.rcd_card_plyd = True
+          return rcd_act
+
+    # PlayRule 3
+    elif (NrHintToken != 0):
+      return self.give_Hint()
+
+    # PlayRule 4
+    elif (rcd_act['action_type'] == 'DISCARD'):
+      return rcd_act
+
+    # PlayRule 5
+    else:
+      dsc_c1 = {'action_type': 'DISCARD', 'card_index': 0}
+      return dsc_c1 
+
 
   def giveHint(self):
     pass 
@@ -55,11 +84,11 @@ class HTGSAgent(Agent):
   def decodeHint(self):
     pass
 
-  def calOwnHat():
+  def calOwnHat(self):
+    pass
+
+  def checkCardAvailable(self):
     pass 
-
-
-
 
   def playable_card(self, card, fireworks):
     """A card is playable if it can be placed on the fireworks pile."""
@@ -69,36 +98,3 @@ class HTGSAgent(Agent):
 
 
         
-
-    
-    ### Ab hier Regeln Hat Agent ### 
-
-    # Check if it's possible to hint a card to your colleagues.
-    fireworks = observation['fireworks']
-    if observation['information_tokens'] > 0:
-
-      # Check if there are any playable cards in the hands of the opponents.
-      for player_offset in range(1, observation['num_players']):
-        player_hand = observation['observed_hands'][player_offset]
-        player_hints = observation['card_knowledge'][player_offset]
-
-        # Check if the card in the hand of the opponent is playable
-        # and if it is playable and the color is not hinted hint the color 
-        for card, hint in zip(player_hand, player_hints):
-          if HatInfoAgent.playable_card(card,
-                                       fireworks) and hint['color'] is None:
-            return {
-                'action_type': 'REVEAL_COLOR',
-                'color': card['color'],
-                'target_offset': player_offset
-            }
-
-    # If no card is hintable then discard or play.
-    if observation['information_tokens'] < self.max_information_tokens:
-      return {'action_type': 'DISCARD', 'card_index': 0}
-    else:
-      return {'action_type': 'PLAY', 'card_index': 0}
-
-  def playable_card(self, card, fireworks):
-    """A card is playable if it can be placed on the fireworks pile."""
-    return card['rank'] == fireworks[card['color']]
