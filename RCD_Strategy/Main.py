@@ -17,6 +17,11 @@ from __future__ import print_function
 
 import sys
 import getopt
+import os
+
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
 
 from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
