@@ -36,12 +36,12 @@ class HTGSAgent(Agent):
 
       # PlayRule 2
       else:
-        if (observation >= 1):
+        if (observation['life_tokens'] >= 1):
           self.rcd_card_plyd = True
           return rcd_act
 
     # PlayRule 3
-    elif (NrHintToken != 0):
+    elif (observation['information_tokens'] != 0):
       return self.give_Hint()
 
     # PlayRule 4
