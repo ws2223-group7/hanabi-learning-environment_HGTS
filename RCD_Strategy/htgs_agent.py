@@ -7,7 +7,7 @@ class HTGSAgent(Agent):
   def __init__(self, config, *args, **kwargs):
     """Initialize the agent."""
     self.config = config
-  
+
     self.given_hint = None  
     self.since_hint_plyd_card = False
     self.rcd_card_plyd = False
@@ -23,10 +23,25 @@ class HTGSAgent(Agent):
                               5: {'action_type': 'DISCARD', 'card_index': 1},
                               6: {'action_type': 'DISCARD', 'card_index': 2},
                               7: {'action_type': 'DISCARD', 'card_index': 3}}
+    
+    self.decode_act_to_hat_sum_mod8 = {
+                                      ('REVEAL_RANK', 0) : 0,
+                                      ('REVEAL_RANK', 1) : 1,
+                                      ('REVEAL_RANK', 2) : 2,
+                                      ('REVEAL_RANK', 3) : 3,
+                                      ('REVEAL_COLOR', 0) : 4,
+                                      ('REVEAL_COLOR', 1) : 5,
+                                      ('REVEAL_COLOR', 2) : 6,
+                                      ('REVEAL_COLOR', 3) : 7
+                                      }
 
   def act(self, observation):
     """Act based on an observation."""
     self.observation = observation
+
+    # Wenn kein 
+    if self.given_Hint == None:
+      return self.give_hint()
 
     rcd_act = self.decode_hint()
 
@@ -45,7 +60,7 @@ class HTGSAgent(Agent):
 
     # PlayRule 3
     elif (observation['information_tokens'] != 0):
-      return self.give_Hint(observation)
+      return self.give_hint()
 
     # PlayRule 4
     elif (rcd_act['action_type'] == 'DISCARD' and self.rcd_card_not_plyd):
@@ -63,7 +78,7 @@ class HTGSAgent(Agent):
     return act_hint
             
   def encode_hint(self):
-      hatSumMod8 = self.calHatSumMod8()
+      hatSumMod8 = self.cal_hat_sum_mod8()
 
       # if hatSumMod8 < 4 give hint rank (See Paper Cox)
       if (hatSumMod8 < 4):
@@ -87,7 +102,7 @@ class HTGSAgent(Agent):
 
       return hat_sum_mod8
 
-  def hint_hat_sum_smaller_4(self, hat_sum_mod8):
+  def get_hint_hat_sum_smaller_4(self, hat_sum_mod8):
     # See Paper Cox for calculation 
     idxPly = hat_sum_mod8 + 1
 
@@ -103,7 +118,7 @@ class HTGSAgent(Agent):
 
     return hint
   
-  def get_hint_hat_bigger_3(self, hatSumMod8):
+  def get_hint_hat_sum_bigger_3(self, hatSumMod8):
     # See Paper Cox for calculation 
     idx_ply = hatSumMod8 - 3
 
@@ -135,8 +150,8 @@ class HTGSAgent(Agent):
   def rule1_hat_player_value(self, player_hand):
     # Recommend playable Card Rank 5 with lowest Index
     for idx_card, card in enumerate(player_hand):
-        if card['Rank'] == 4:
-            if self.card_is_playable(card):
+        if card['rank'] == 4:
+            if self.playable_card(card):
                 # Der Hat ist gleich der KartenIndex (Siehe Paper)
                 hat = idx_card
                 return hat
@@ -146,7 +161,7 @@ class HTGSAgent(Agent):
     min_rank = 999
     idx_ply_card = 5
     for idx_card, card in enumerate(player_hand):
-      if (self.card_is_playable(card) and card['rank'] < min_rank):
+      if (self.playable_card(card) and card['rank'] < min_rank):
         min_rank = card['rank']
         idx_ply_card = idx_card
 
@@ -158,7 +173,7 @@ class HTGSAgent(Agent):
 
   def rule3_hat_player_value(self, player_hand):
     for idx_card,card in enumerate(player_hand):
-      if (self.cardIsDead(card)):
+      if (self.dead_card(card)):
           hat = idx_card
           return hat
 
@@ -180,44 +195,43 @@ class HTGSAgent(Agent):
 
   def rule5_hat_player_value(self, player_hand):
     return 0    
-    
-  def decode_hint(self):
-    # Spielanfang kein encodedHint vorhanden
-      # => Gebe Hint
-      if (self.encode_hint == None):
-          if (self.observation['information_tokens'] >= 1):
-              rcd_act = self.give_hint()
-              
-          else:
-              rcd_act = {'action_type': 'DISCARD', 'card_index': 0}
-              
 
-      else:
-        hat = self.cal_own_hat()
-        rcd_act = self.encode_act_to_hat[hat]
 
-      return rcd_act
+  def decode_hint(self, act):
+    # Spielanfang kein Hint wurde gegeben
+    # => given_hint == None
+    # => gebe hint
 
-  def cal_own_hat(self):
-    # given_hint := r1 (Paper Cox)
+    act_type = act['action_type']
+    ply_idx = act['target_offset']
+    given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8[(act_type, ply_idx)]
+    own_hat = self.cal_own_hat(given_hat_sum_mod8)
+    rcd_act = self.encode_act_to_hat[own_hat]
+
+    return rcd_act
+
+  def cal_own_hat(self, given_hat_sum_mod8):
+    # given_hat_sum_mod8 := r1 (Paper Cox)
     # hat_sum_mod8 := ri (Paper Cox)
     # own_hat := ci (Paper Cox)
     hat_sum_mod8 = self.cal_hat_sum_mod8()
-    own_hat = self.give_hint - hat_sum_mod8
+    own_hat = given_hat_sum_mod8 - hat_sum_mod8
     return own_hat
 
-  def playable_card(self, card, fireworks):
+  def playable_card(self, card):
     """A card is playable if it can be placed on the fireworks pile."""
+    fireworks = self.observation['fireworks']
     return card['rank'] == fireworks[card['color']]
 
-  def dead_card(self, card, firework):
+  def dead_card(self, card):
+    firework = self.observation['fireworks']
     if (card['rank'] < firework[card['color']]):
         return True
     
     # Max Karten pro Rank die abgeworfen sein dürfen 
-    max_card_per_rank = {3,2,2,2}
+    max_card_per_rank = [3,2,2,2]
 
-    cards_in_dsc_pile = {0,0,0,0}
+    cards_in_dsc_pile = [0,0,0,0]
     
     for card_dsc_pile in self.observation['discard_pile']:
       # Prüfe alle Karten im dsc_pile mit der selben Farbe und
@@ -238,7 +252,7 @@ class HTGSAgent(Agent):
 
     # Anzahl der verbleiben Karten
     # in Deck, Firework und Händen   
-    nr_rem_card_in_deck = {3,2,2,2,1}
+    nr_rem_card_in_deck = [3,2,2,2,1]
     
     for card_dsc_pile in self.observation['discard_pile']:
       # Prüfe alle Karten im dsc_pile mit der selben Farbe und
