@@ -42,6 +42,8 @@ class HTGSAgent(Agent):
 
     # Wenn kein 
     if self.rcd_act == None:
+      if observation['information_tokens'] == 0:
+        print("Try to give hint with 0 Token")
       return self.give_hint()
 
     
@@ -161,6 +163,7 @@ class HTGSAgent(Agent):
     return None
 
   def rule2_hat_player_value(self, player_hand):
+    # Überprüft
     min_rank = 999
     idx_ply_card = 5
     for idx_card, card in enumerate(player_hand):
@@ -180,7 +183,7 @@ class HTGSAgent(Agent):
           hat = idx_card
           return hat
 
-      return None
+    return None
 
   def rule4_hat_player_value(self, player_hand):
     max_rank = -1
