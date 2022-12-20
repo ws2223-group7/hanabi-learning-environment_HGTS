@@ -8,7 +8,8 @@ class HTGSAgent(Agent):
     """Initialize the agent."""
     self.config = config
 
-    self.given_hint = None  
+    self.rcd_act = None 
+
     self.since_hint_plyd_card = False
     self.rcd_card_plyd = False
 
@@ -40,32 +41,32 @@ class HTGSAgent(Agent):
     self.observation = observation
 
     # Wenn kein 
-    if self.given_hint == None:
+    if self.rcd_act == None:
       return self.give_hint()
 
-    rcd_act = self.decode_hint()
+    
 
-    if (rcd_act['action_type'] == 'PLAY' and self.rcd_card_not_plyd):
+    if (self.rcd_act['action_type'] == 'PLAY' and not self.rcd_card_plyd):
       
       # PlayRule 1
-      if (self.since_hint_played_card):
+      if (self.since_hint_plyd_card):
         self.rcd_card_plyd = True
-        return rcd_act
+        return self.rcd_act
 
       # PlayRule 2
       else:
         if (observation['life_tokens'] >= 1):
           self.rcd_card_plyd = True
-          return rcd_act
+          return self.rcd_act
 
     # PlayRule 3
     elif (observation['information_tokens'] != 0):
       return self.give_hint()
 
     # PlayRule 4
-    elif (rcd_act['action_type'] == 'DISCARD' and self.rcd_card_not_plyd):
+    elif (self.rcd_act['action_type'] == 'DISCARD' and self.rcd_card_not_plyd):
       self.rcd_card_plyd = True
-      return rcd_act
+      return self.rcd_act
       
 
     # PlayRule 5
@@ -206,11 +207,12 @@ class HTGSAgent(Agent):
     ply_idx = act['target_offset']
     given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8[(act_type, ply_idx)]
     own_hat = self.cal_own_hat(given_hat_sum_mod8)
-    rcd_act = self.encode_act_to_hat[own_hat]
-
-    self.given_hint = True
-
-    return rcd_act
+    
+    # rcd_act is der decoded Hint also der empfolene move
+    self.rcd_act = self.encode_act_to_hat[own_hat]
+    
+    self.rcd_card_plyd = False
+    
 
   def cal_own_hat(self, given_hat_sum_mod8):
     # given_hat_sum_mod8 := r1 (Paper Cox)
