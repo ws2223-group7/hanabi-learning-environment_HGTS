@@ -83,9 +83,12 @@ class Runner(object):
           action = agent.act(observation)
 
           # If hint is given calculate the corresponding hat  
-          if action[type] == 'REVEAL_COLOR' or action[type] == 'REVEAL_HINT':
-             for agent in agents:
-                 agent.setGivenHat(action, agent_id)
+          if (action['action_type'] == 'REVEAL_COLOR' 
+             or action['action_type'] == 'REVEAL_HINT'):
+             
+             for agent_id2, agent in enumerate(agents):
+                 agent.observation = observations['player_observations'][agent_id2]
+                 agent.decode_hint(action)
 
           if observation['current_player'] == agent_id:
             assert action is not None
@@ -93,14 +96,15 @@ class Runner(object):
           else:
             assert action is None
 
-        # Make an environment step.
-        print('Agent: {} action: {}'.format(observation['current_player'],
-                                            current_player_action))
-        
-        observations, reward, done, unused_info = self.environment.step(
-            current_player_action)
-        
-        episode_reward += reward
+          # Make an environment step.
+          print('Agent: {} action: {}'.format(observation['current_player'],
+                                              current_player_action))
+          
+          observations, reward, done, unused_info = self.environment.step(
+              current_player_action)
+          
+          episode_reward += reward
+          
       rewards.append(episode_reward)
       print('Running episode: %d' % episode)
       print('Max Reward: %.3f' % max(rewards))

@@ -40,7 +40,7 @@ class HTGSAgent(Agent):
     self.observation = observation
 
     # Wenn kein 
-    if self.given_Hint == None:
+    if self.given_hint == None:
       return self.give_hint()
 
     rcd_act = self.decode_hint()
@@ -112,7 +112,7 @@ class HTGSAgent(Agent):
     first_hand_card = hand_player[0]
     rank = first_hand_card['rank']
 
-    hint =  {'action_type': 'REVEAL_Rank',
+    hint =  {'action_type': 'REVEAL_RANK',
             'rank': rank,
             'target_offset': idxPly } 
 
@@ -130,7 +130,7 @@ class HTGSAgent(Agent):
 
   
     hint =  {'action_type': 'REVEAL_COLOR',
-            'Color': color,
+            'color': color,
             'target_offset': idx_ply }
 
     return hint
@@ -207,6 +207,8 @@ class HTGSAgent(Agent):
     given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8[(act_type, ply_idx)]
     own_hat = self.cal_own_hat(given_hat_sum_mod8)
     rcd_act = self.encode_act_to_hat[own_hat]
+
+    self.given_hint = True
 
     return rcd_act
 
