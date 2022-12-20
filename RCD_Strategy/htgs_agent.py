@@ -14,7 +14,6 @@ class HTGSAgent(Agent):
 
     self.observation = None
 
-
     # Get Hat to recomm 
     self.encode_act_to_hat = {0: {'action_type': 'PLAY', 'card_index': 0},
                               1: {'action_type': 'PLAY', 'card_index': 1},
@@ -58,7 +57,6 @@ class HTGSAgent(Agent):
     else:
       dsc_c1 = {'action_type': 'DISCARD', 'card_index': 0}
       return dsc_c1 
-
 
   def give_hint(self):
     act_hint = self.encode_hint()
@@ -121,7 +119,6 @@ class HTGSAgent(Agent):
             'target_offset': idx_ply }
 
     return hint
-
 
   def cal_hat_player(self, player_hand):
     rules = [self.rule1_hat_player_value,
@@ -202,10 +199,12 @@ class HTGSAgent(Agent):
       return rcd_act
 
   def cal_own_hat(self):
-    pass
-
-
-
+    # given_hint := r1 (Paper Cox)
+    # hat_sum_mod8 := ri (Paper Cox)
+    # own_hat := ci (Paper Cox)
+    hat_sum_mod8 = self.cal_hat_sum_mod8()
+    own_hat = self.give_hint % 8
+    return own_hat
 
   def playable_card(self, card, fireworks):
     """A card is playable if it can be placed on the fireworks pile."""
