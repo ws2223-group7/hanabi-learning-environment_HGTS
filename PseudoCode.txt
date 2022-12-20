@@ -80,7 +80,7 @@ class Htgs(Agent):
 
   def calHatSumMod8():
       hatSumPlayer = 0
-      
+
       for player in range(1, NrPlayer)
           hatPlayer = calHatPlayer(player.Hand)
           hatSumPlayer += hatPlayer
@@ -96,8 +96,8 @@ class Htgs(Agent):
               hat = rule(Player.Hand, Firework)
               return hat
 
-      
-      
+
+
   def calOwnHat():
       # ri: ownHat
       # r1: givenHint
@@ -154,8 +154,9 @@ class Htgs(Agent):
       for idxCard, card in enumerate(playerHand)
           if card.Rank == 4
               if cardIsPlayable(card)
-                 rcdAct = GetAct('play', idxCard)
-                 return rcdAct
+                 # Der Hat ist gleich der KartenIndex (Siehe Paper)
+                 hat = idxCard
+                 return hat
       return None
 
   def rule2(playerHand)
@@ -199,10 +200,3 @@ class Htgs(Agent):
 
   def rule5(playerHand):
       return GetAct('discard', 0)
-
-
-
-
-
-
-
