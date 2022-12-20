@@ -1,0 +1,202 @@
+Pseudocode Act recommendation strategy
+
+rcd : Recent recommendation
+ply : Player
+cal : Calculate
+dsc : Discard
+nr  : Number
+
+class Htgs(Agent):
+  def __init__():
+      idxCluer = None;
+
+      #r1: givenHint (Siehe Paper Cox)
+      givenHint = None;
+      sinceHintPlayedCard = False;
+
+      hatToRcdAct = {0: {'action_type': 'PLAY', 'card_index': 0},
+                     1: {'action_type': 'PLAY', 'card_index': 1},
+                     2: {'action_type': 'PLAY', 'card_index': 2},
+                     3: {'action_type': 'PLAY', 'card_index': 3},
+                     4: {'action_type': 'DISCARD', 'card_index': 0},
+                     5: {'action_type': 'DISCARD', 'card_index': 1},
+                     6: {'action_type': 'DISCARD', 'card_index': 2},
+                     7: {'action_type': 'DISCARD', 'card_index': 3}}
+
+
+  def setGivenHat(act, idxPly):
+      if act[Tpye] == REVEAL_RANK
+         hat = act[target_offset] - 1
+      else
+         hat = act[target_offset] + 3
+
+      sinceHintPlayedCard = False
+      return hat
+
+  def setCardPlaySinceHint():
+      sinceHintPlayedCard = True
+
+
+  def act():
+    rcdAct = DecodeHint()
+
+      IF (rcdAct[Type] == PlayCard And checkCardAvailable(RcdCard))
+        # PlayRule 1
+        IF (NoOtherPlyPlayedCard)
+          Return rcdAct
+
+        # PlayRule 2
+        Else
+          IF (NrLifeToken >= 1)
+            Return rcdAct
+
+      # PlayRule 3
+      ElseIF (NrHintToken != 0)
+        Return giveHint()
+
+      # PlayRule 4
+      ElseIF (rcdAct[typ] == Discard)
+        Return DscRcdCard
+
+      # PlayRule 5
+      Else
+        Return DscC1
+
+  def DecodeHint():
+      # Spielanfang kein encodedHint vorhanden
+      # => Gebe Hint
+      if (encodedHint == None):
+          IF (NrLifeToken >= 1)
+              rcdAct = giveHint()
+          Else
+              Return DscC1
+
+      else
+        hat = calOwnHat()
+        rcdAct = hatToRcdAct[hat]
+
+      return rcdAct
+
+
+  def calHatSumMod8():
+      hatSumPlayer = 0
+
+      for player in range(1, NrPlayer)
+          hatPlayer = calHatPlayer(player.Hand)
+          hatSumPlayer += hatPlayer
+
+      hatSumMod8 = hatSumPlayer % 8
+
+      return hatSumMod8
+
+  def calHatPlayer(playerHand)
+      rules = [rule1, rule2, rule3, rule4, rule5]
+      for rule in rules
+          if (rule(playerHand, Firework) is not None):
+              hat = rule(Player.Hand, Firework)
+              return hat
+
+
+
+  def calOwnHat():
+      # ri: ownHat
+      # r1: givenHint
+      sum = 0
+      rules = [rule1, rule2, rule3, rule4, rule5]
+      for player in range(1, NrPlayer)
+          if (player != idxCluer)
+            for rule in rules
+                # Überprüfe ob die regel für die Hand gilt
+                if (rule(Player.Hand, Firework) is not None)
+                  rcd = rule(Player.Hand, Firework)
+                  sum += calHatToMove(rcd)
+                  break
+
+      ownHat = givenHint - (sum % 8)
+
+      return ownHat
+
+
+  def encodeHint(hatSumMod8)
+      hatSumMod8 = calHatSumMod8()
+      if (hatSumMod8 < 4)
+           idxPly = hatSumMod8 + 1
+           firstCardInHandIdxPly = handPlyIdxPly[0]
+           rank = firstCardInHandIdxPly.rank
+
+           hint =  {'action_type': 'REVEAL_Rank',
+                    'rank': rank,
+                    'target_offset': idxPly }
+
+           return hint
+
+       else
+           idxPly = hat - 3
+           firstCardInHandIdxPly = handPlyIdxPly[0]
+           color = firstCardInHandIdxPly.color
+
+           hint =  {'action_type': 'REVEAL_COLOR',
+                    'Color': color,
+                    'target_offset': idxPly }
+
+           return hint
+
+
+
+
+
+  def giveHint():
+      actHint = encodeHint()
+      return actHint
+
+  def rule1(playerHand):
+      # Recommend playable Card Rank 5 with lowest Index
+      for idxCard, card in enumerate(playerHand)
+          if card.Rank == 4
+              if cardIsPlayable(card)
+                 # Der Hat ist gleich der KartenIndex (Siehe Paper)
+                 hat = idxCard
+                 return hat
+      return None
+
+  def rule2(playerHand)
+
+      minRank = 999
+      idxPlyCard = 5
+      for idxCard, card in enumerate(playerHand)
+          if (cardIsPlayable(card) and card.Rank < minRank):
+             minRank = card.Rank
+             idxPlyCard = idxCard
+
+      if (minRank == 999)
+          return None
+
+      rcdAct = GetAct('play', idxCard)
+      return rcdAct
+
+
+  def rule3(playerHand)
+      for idxCard,card in enumerate(playerHand)
+          if (cardIsDead(card))
+             rcdAct = GetAct('discard', idxCard)
+             return rcdAct
+
+      return None
+
+  def rule4(playerHand)
+      maxRank = -1
+      idxPlyCard = 5
+      for idxCard, card in enumerate(playerHand)
+          if (!cardIsIndespensable(card) and card.Rank > maxRank):
+             maxRank = card.Rank
+             idxPlyCard = idxCard
+
+      if (maxRank == -1)
+          return None
+
+      rcdAct = GetAct('discard', idxCard)
+      return rcdAct
+
+
+  def rule5(playerHand):
+      return GetAct('discard', 0)
