@@ -21,8 +21,15 @@ import getopt
 from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
+
 ### g7_BEGINN ###
-from hanabi_learning_environment.agents.htgs_agent import HTGSAgent 
+
+# Import Error
+# from hanabi_learning_environment.agents.test_agent import HTGSAgent 
+from htgs_agent import HTGSAgent
+
+
+
 from hanabi_learning_environment.rl_env import Agent
 
 AGENT_CLASSES = {'SimpleAgent': SimpleAgent, 
