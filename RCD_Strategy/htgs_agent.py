@@ -203,7 +203,7 @@ class HTGSAgent(Agent):
     # hat_sum_mod8 := ri (Paper Cox)
     # own_hat := ci (Paper Cox)
     hat_sum_mod8 = self.cal_hat_sum_mod8()
-    own_hat = self.give_hint % 8
+    own_hat = self.give_hint - hat_sum_mod8
     return own_hat
 
   def playable_card(self, card, fireworks):
