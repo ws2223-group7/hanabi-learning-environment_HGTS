@@ -26,14 +26,14 @@ class HTGSAgent(Agent):
                               7: {'action_type': 'DISCARD', 'card_index': 3}}
     
     self.decode_act_to_hat_sum_mod8 = {
-                                      ('REVEAL_RANK', 0) : 0,
-                                      ('REVEAL_RANK', 1) : 1,
-                                      ('REVEAL_RANK', 2) : 2,
-                                      ('REVEAL_RANK', 3) : 3,
-                                      ('REVEAL_COLOR', 0) : 4,
-                                      ('REVEAL_COLOR', 1) : 5,
-                                      ('REVEAL_COLOR', 2) : 6,
-                                      ('REVEAL_COLOR', 3) : 7
+                                      ('REVEAL_RANK', 1) : 0,
+                                      ('REVEAL_RANK', 2) : 1,
+                                      ('REVEAL_RANK', 3) : 2,
+                                      ('REVEAL_RANK', 4) : 3,
+                                      ('REVEAL_COLOR', 1) : 4,
+                                      ('REVEAL_COLOR', 2) : 5,
+                                      ('REVEAL_COLOR', 3) : 6,
+                                      ('REVEAL_COLOR', 4) : 7
                                       }
 
   def act(self, observation):
@@ -76,6 +76,8 @@ class HTGSAgent(Agent):
 
   def give_hint(self):
     act_hint = self.encode_hint()
+    if act_hint == None:
+      a = 1
     return act_hint
             
   def encode_hint(self):
@@ -219,7 +221,7 @@ class HTGSAgent(Agent):
     # hat_sum_mod8 := ri (Paper Cox)
     # own_hat := ci (Paper Cox)
     hat_sum_mod8 = self.cal_hat_sum_mod8()
-    own_hat = given_hat_sum_mod8 - hat_sum_mod8
+    own_hat = (given_hat_sum_mod8 - hat_sum_mod8) % 8
     return own_hat
 
   def playable_card(self, card):

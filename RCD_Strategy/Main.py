@@ -97,6 +97,13 @@ class Runner(object):
             assert action is None
 
           # Make an environment step.
+          print("\nFirework")
+          print(observation['fireworks'])
+          
+          print("\nAgentHand")
+          print(observations['player_observations'][agent_id-1]['observed_hands'][1])
+          
+
           print('Agent: {} action: {}'.format(observation['current_player'],
                                               current_player_action))
           
@@ -104,7 +111,7 @@ class Runner(object):
               current_player_action)
           
           episode_reward += reward
-          
+
       rewards.append(episode_reward)
       print('Running episode: %d' % episode)
       print('Max Reward: %.3f' % max(rewards))
@@ -113,7 +120,7 @@ class Runner(object):
 
 if __name__ == "__main__":
  
-  flags = {'players': 5, 'num_episodes': 1, 'agent_class': 'HTGSAgent'}
+  flags = {'players': 5, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
 
   options, arguments = getopt.getopt(sys.argv[1:], '',
                                      ['players=',
