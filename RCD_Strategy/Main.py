@@ -75,6 +75,7 @@ class Runner(object):
       ### End Init Episodes / Rounds ###
 
       # Play as long its not gameOver or Win
+      print("\n\n\n------------------------------ New Episode -------------------------")
       while not done:
 
         # Loop over all agents 
@@ -96,20 +97,37 @@ class Runner(object):
           else:
             assert action is None
 
-          # Make an environment step.
+          
           print("\nFirework")
           print(observation['fireworks'])
           
-          print("\nAgentHand")
-          print(observations['player_observations'][agent_id-1]['observed_hands'][1])
-          
-
-          print('Agent: {} action: {}'.format(observation['current_player'],
+          print('\nAgent: {} action: {}'.format(observation['current_player'],
                                               current_player_action))
+
+          print("\nHand Playing Agent")
+          print(observations['player_observations'][agent_id-1]['observed_hands'][1])
+
+          print("\n1.st Hand Agent ")
+          print(observations['player_observations'][agent_id]['observed_hands'][1])
+
+          print("\n2.st Hand Agent")
+          print(observations['player_observations'][agent_id]['observed_hands'][2])
+
+          print("\n3.st Hand Agent")
+          print(observations['player_observations'][agent_id]['observed_hands'][3])
+
+          print("\n4.st Hand Agent ")
+          print(observations['player_observations'][agent_id]['observed_hands'][4])
           
+          # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(
               current_player_action)
+
+          print('\n Reward ', reward)
           
+          
+          print('\n---Next Agent ---\n')
+          print('\n\n\n')
           episode_reward += reward
 
       rewards.append(episode_reward)
