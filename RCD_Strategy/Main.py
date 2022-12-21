@@ -16,21 +16,20 @@
 from __future__ import print_function
 
 import sys
+import os
 import getopt
 
-from hanabi_learning_environment import rl_env
-from hanabi_learning_environment.agents.random_agent import RandomAgent
-from hanabi_learning_environment.agents.simple_agent import SimpleAgent
-
-### g7_BEGINN ###
-
-# Import Error
 # from hanabi_learning_environment.agents.test_agent import HTGSAgent 
 from htgs_agent import HTGSAgent
 
 
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
 
-from hanabi_learning_environment.rl_env import Agent
+from hanabi_learning_environment import rl_env
+from hanabi_learning_environment.agents.random_agent import RandomAgent
+from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 
 AGENT_CLASSES = {'SimpleAgent': SimpleAgent, 
                  'RandomAgent': RandomAgent, 
