@@ -10,7 +10,7 @@ class HTGSAgent(Agent):
 
     self.rcd_act = None 
 
-    self.since_hint_plyd_card = False
+    self.nr_card_ply_since_hint = 0 
     self.rcd_card_plyd = False
 
     self.observation = None
@@ -36,7 +36,7 @@ class HTGSAgent(Agent):
                                       ('REVEAL_COLOR', 4) : 7
                                       }
 
-  def act(self, observation):
+  def act(self, observation, ply_hand):
     """Act based on an observation."""
     self.observation = observation
 
@@ -47,26 +47,32 @@ class HTGSAgent(Agent):
       return self.give_hint()
 
     
-
-    if (self.rcd_act['action_type'] == 'PLAY' and not self.rcd_card_plyd):
+    # PlayRule1 
+    if (self.rcd_act['action_type'] == 'PLAY' 
+        and not self.rcd_card_plyd
+        and (self.nr_card_ply_since_hint == 0)):
       
-      # PlayRule 1
-      if (self.since_hint_plyd_card):
-        self.rcd_card_plyd = True
-        return self.rcd_act
+      self.rcd_card_plyd = True
+      return self.rcd_act
+      
+      
 
-      # PlayRule 2
-      else:
-        if (observation['life_tokens'] >= 1):
-          self.rcd_card_plyd = True
-          return self.rcd_act
-
+  # PlayRule 2
+    elif (self.rcd_act['action_type'] == 'PLAY' 
+          and not self.rcd_card_plyd 
+          and (self.nr_card_ply_since_hint == 1)
+          and self.observation['life_tokens'] > 1):
+      
+      self.rcd_card_plyd = True
+      return self.rcd_act
+  
+      
     # PlayRule 3
     elif (observation['information_tokens'] != 0):
       return self.give_hint()
 
     # PlayRule 4
-    elif (self.rcd_act['action_type'] == 'DISCARD' and self.rcd_card_not_plyd):
+    elif (self.rcd_act['action_type'] == 'DISCARD' and not self.rcd_card_plyd):
       self.rcd_card_plyd = True
       return self.rcd_act
       
@@ -108,6 +114,7 @@ class HTGSAgent(Agent):
       return hat_sum_mod8
 
   def get_hint_hat_sum_smaller_4(self, hat_sum_mod8):
+    # Überprüftr
     # See Paper Cox for calculation 
     idxPly = hat_sum_mod8 + 1
 
@@ -196,11 +203,11 @@ class HTGSAgent(Agent):
     if (max_rank == -1):
         return None
     
-    hat = idx_ply_card
+    hat = idx_ply_card + 4
     return hat
 
   def rule5_hat_player_value(self, player_hand):
-    return 0    
+    return 4    
 
 
   def decode_hint(self, act):
@@ -211,21 +218,42 @@ class HTGSAgent(Agent):
     act_type = act['action_type']
     ply_idx = act['target_offset']
     given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8[(act_type, ply_idx)]
+
     own_hat = self.cal_own_hat(given_hat_sum_mod8)
     
     # rcd_act is der decoded Hint also der empfolene move
     self.rcd_act = self.encode_act_to_hat[own_hat]
     
     self.rcd_card_plyd = False
+    self.nr_card_ply_since_hint = 0
     
 
   def cal_own_hat(self, given_hat_sum_mod8):
     # given_hat_sum_mod8 := r1 (Paper Cox)
     # hat_sum_mod8 := ri (Paper Cox)
     # own_hat := ci (Paper Cox)
-    hat_sum_mod8 = self.cal_hat_sum_mod8()
-    own_hat = (given_hat_sum_mod8 - hat_sum_mod8) % 8
+
+    idx_cur_ply = self.observation['current_player_offset']
+    hand_cur_ply = self.observation['observed_hands'][idx_cur_ply]
+    
+
+    hat_sum = self.cal_hat_sum()
+    hat_hinted_ply = self.cal_hat_player(hand_cur_ply)
+    own_hat = (given_hat_sum_mod8 - (hat_sum - hat_hinted_ply)) % 8
+
     return own_hat
+  
+  def cal_hat_sum(self):
+      hat_sum_player = 0
+      
+      for idx_ply in range(1, self.observation['num_players']):
+          hand_player = self.observation['observed_hands'][idx_ply]
+          hat_player = self.cal_hat_player(hand_player)
+          hat_sum_player += hat_player
+
+      hat_sum_mod8 = hat_sum_player % 8
+
+      return hat_sum_mod8
 
   def playable_card(self, card):
     """A card is playable if it can be placed on the fireworks pile."""

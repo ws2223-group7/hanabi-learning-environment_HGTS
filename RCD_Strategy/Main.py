@@ -48,6 +48,61 @@ class Runner(object):
     self.environment = rl_env.make('Hanabi-Full', num_players=flags['players'])
     self.agent_class = AGENT_CLASSES[flags['agent_class']]
 
+  def env_out(self,st,agents, observations,e,action,reward):
+    #e = flags['num_episodes']
+    p = flags['players']
+    if flags['agent_class'] == "HTGSAgent":
+      c="HATG"
+
+    l = self.environment.state.life_tokens()
+    info = self.environment.state.information_tokens()
+
+    d = observations['player_observations'][0]['deck_size']
+
+    fd = observations['player_observations'][0]['fireworks']
+    fl_k = list(fd.keys())
+    fl_v = list(fd.values())
+
+    f=""
+    for i in range(len(fl_v)):
+      hilf = fl_k[i]+(str)(fl_v[i])
+      f+=hilf
+
+    h=""
+    cnt=0
+    j=0
+    for agent_id, agent in enumerate(agents):
+        observation = observations['player_observations'][agent_id]
+        cp = observation['current_player']
+        hd = observation['observed_hands'][j]
+        for m in hd:
+          if m['rank']!=-1:
+            color = m['color']
+            rank = m['rank']
+            h+=(color+str(rank))
+        if j>0 and j<p-1:
+          h+='_'  
+        j+=1
+    ato=''
+    if action != None:
+      ac = action['action_type']
+      if ac == 'REVEAL_RANK':
+        at = action['rank']
+        ato = action['target_offset']  
+      if ac == 'REVEAL_COLOR': 
+        at = action['color']
+        ato = action['target_offset']  
+      if ac == 'PLAY': 
+        at = action['card_index']
+      if ac == 'DISCARD': 
+        at = action['card_index']
+      print('|{}|EP{:4d}|NP{:1d}|{:4s}|LT{}|IT{}|DS{:2d}|{}|REW{:2d}|CP{}|{}|ACT:{}|{}|{}|'.format(st,e,p,c,l,info,d,f,reward,cp,h,ac,at,ato))
+    else:    
+      print('|{}|EP{:4d}|NP{:1d}|{:4s}|LT{}|IT{}|DS{:2d}|{}|REW{:2d}|CP{}|{}|'.format(st,e,p,c,l,info,d,f,reward,cp,h))
+    return
+
+  
+  
   def run(self):
     """Run episodes."""
     rewards = []
@@ -71,6 +126,7 @@ class Runner(object):
       done = False
 
       episode_reward = 0
+      self.env_out('S',agents,observations,0,None,episode_reward)
 
       ### End Init Episodes / Rounds ###
 
@@ -81,15 +137,29 @@ class Runner(object):
         # Loop over all agents 
         for agent_id, agent in enumerate(agents):
           observation = observations['player_observations'][agent_id]
-          action = agent.act(observation)
+          hand_plying_agent = observations['player_observations'][agent_id-1]['observed_hands'][1]
+          action = agent.act(observation, hand_plying_agent)
+          
+          #Ausgabe des aktuellen Spiels vor Aktion:
+          self.env_out('V',agents,observations,episode,action,episode_reward)
 
           # If hint is given calculate the corresponding hat  
           if (action['action_type'] == 'REVEAL_COLOR' 
-             or action['action_type'] == 'REVEAL_HINT'):
+             or action['action_type'] == 'REVEAL_RANK'):
              
-             for agent_id2, agent in enumerate(agents):
-                 agent.observation = observations['player_observations'][agent_id2]
-                 agent.decode_hint(action)
+             for agent_id2, agent2 in enumerate(agents):
+              if agent_id == agent_id2:
+                continue 
+
+              # Setze Observation von Spielern die hint bekommen    
+              agent2.observation = observations['player_observations'][agent_id2]
+              agent2.decode_hint(action)
+          
+          if (action['action_type'] == 'PLAY'):
+            for agent3 in agents:
+              agent3.nr_card_ply_since_hint += 1
+
+          
 
           if observation['current_player'] == agent_id:
             assert action is not None
@@ -97,7 +167,7 @@ class Runner(object):
           else:
             assert action is None
 
-          
+          """
           print("\nFirework")
           print(observation['fireworks'])
           
@@ -118,17 +188,22 @@ class Runner(object):
 
           print("\n4.st Hand Agent ")
           print(observations['player_observations'][agent_id]['observed_hands'][4])
-          
+          """
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(
               current_player_action)
 
+          """
           print('\n Reward ', reward)
           
           
           print('\n---Next Agent ---\n')
           print('\n\n\n')
+          """
+
           episode_reward += reward
+
+          self.env_out('N',agents,observations,episode,current_player_action,episode_reward)
 
       rewards.append(episode_reward)
       print('Running episode: %d' % episode)
@@ -156,3 +231,5 @@ if __name__ == "__main__":
   if runner.agent_class == HTGSAgent: 
     runner.run()
   else: sys.exit('Wrong Agent Class!\n')
+
+  
