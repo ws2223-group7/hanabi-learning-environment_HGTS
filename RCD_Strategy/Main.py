@@ -48,8 +48,8 @@ class Runner(object):
 
   def env_out(self,datei,st,agents, observations,e,action,reward):
       #e = flags['num_episodes']
-      p = flags['players']
-      if flags['agent_class'] == "HTGSAgent":
+      p = self.flags['players']
+      if self.flags['agent_class'] == "HTGSAgent":
         c="HATG"
 
       l = self.environment.state.life_tokens()
@@ -112,7 +112,7 @@ class Runner(object):
     if output: datei = open('HAT_log.txt','w')
     
     # Loop over all Episodes / Rounds 
-    for episode in range(flags['num_episodes']):
+    for episode in range(self.flags['num_episodes']):
 
       ### Begin Init Episodes / Rounds ###
 
@@ -192,9 +192,7 @@ class Runner(object):
       if output: datei.close()
     return rewards
 
-
-if __name__ == "__main__":
- 
+def main():
   flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
 
   options, arguments = getopt.getopt(sys.argv[1:], '',
@@ -213,5 +211,8 @@ if __name__ == "__main__":
   if runner.agent_class == HTGSAgent: 
     runner.run()
   else: sys.exit('Wrong Agent Class!\n')
+
+if __name__ == "__main__":
+  main()
 
   
