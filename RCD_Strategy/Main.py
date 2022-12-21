@@ -189,7 +189,7 @@ class Runner(object):
       print("Total Reward ", total_reward)
       print('Running episode: %d' % episode)
       print('Max  Reward: %.3f' % max(rewards))
-      print('Avg. Reward: {:%.3f}', total_reward/(episode+1))
+      print('Avg. Reward: ', format(total_reward/(episode+1),'.3f'))
       if output: datei.close()
     return rewards
 
