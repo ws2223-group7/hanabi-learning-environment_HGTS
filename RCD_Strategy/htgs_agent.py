@@ -187,7 +187,7 @@ class HTGSAgent(Agent):
   def rule3_hat_player_value(self, player_hand):
     for idx_card,card in enumerate(player_hand):
       if (self.dead_card(card)):
-          hat = idx_card
+          hat = idx_card + 4
           return hat
 
     return None
@@ -210,7 +210,7 @@ class HTGSAgent(Agent):
     return 4    
 
 
-  def decode_hint(self, act):
+  def decode_hint(self, act, ply_hand):
     # Spielanfang kein Hint wurde gegeben
     # => given_hint == None
     # => gebe hint
@@ -223,6 +223,21 @@ class HTGSAgent(Agent):
     
     # rcd_act is der decoded Hint also der empfolene move
     self.rcd_act = self.encode_act_to_hat[own_hat]
+
+
+    rcd_type = self.rcd_act['action_type']
+    rcd_card_index = self.rcd_act['card_index']
+
+    rcd_card = ply_hand[rcd_card_index]
+    firework = self.observation['fireworks']
+
+    if rcd_type == 'PLAY':
+       if (not self.playable_card(rcd_card)):
+        print("-------------- ")
+
+
+
+    self.playable_card
     
     self.rcd_card_plyd = False
     self.nr_card_ply_since_hint = 0

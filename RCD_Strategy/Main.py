@@ -71,18 +71,19 @@ class Runner(object):
     h=""
     cnt=0
     j=0
-    for agent_id, agent in enumerate(agents):
-        observation = observations['player_observations'][agent_id]
-        cp = observation['current_player']
-        hd = observation['observed_hands'][j]
-        for m in hd:
-          if m['rank']!=-1:
-            color = m['color']
-            rank = m['rank']
-            h+=(color+str(rank))
-        if j>0 and j<p-1:
-          h+='_'  
-        j+=1
+
+    cp = observations['player_observations'][0]['current_player']
+    hdl = observations['player_observations'][cp]['observed_hands']
+    for hd in hdl:
+      for m in hd:
+        if m['rank']!=-1:
+          color = m['color']
+          rank = m['rank']
+          h+=(color+str(rank))
+      if j>0 and j<p-1:
+        h+='_'  
+      j+=1
+
     ato=''
     if action != None:
       ac = action['action_type']
@@ -96,16 +97,18 @@ class Runner(object):
         at = action['card_index']
       if ac == 'DISCARD': 
         at = action['card_index']
-      print('|{}|EP{:4d}|NP{:1d}|{:4s}|LT{}|IT{}|DS{:2d}|{}|REW{:2d}|CP{}|{}|ACT:{}|{}|{}|'.format(st,e,p,c,l,info,d,f,reward,cp,h,ac,at,ato))
+      print('|{}|EP{:4d}|NP{:1d}|{:4s}|LT{}|IT{}|DS{:2d}|{}|REW{:2d}|CP{}|{}|ACT:{:12}|{:1}|{:1}|'.format(st,e,p,c,l,info,d,f,reward,cp,h,ac,at,ato))
     else:    
       print('|{}|EP{:4d}|NP{:1d}|{:4s}|LT{}|IT{}|DS{:2d}|{}|REW{:2d}|CP{}|{}|'.format(st,e,p,c,l,info,d,f,reward,cp,h))
     return
+
 
   
   
   def run(self):
     """Run episodes."""
     rewards = []
+    total_reward = 0
     
     # Loop over all Episodes / Rounds 
     for episode in range(flags['num_episodes']):
@@ -127,6 +130,7 @@ class Runner(object):
 
       episode_reward = 0
       self.env_out('S',agents,observations,0,None,episode_reward)
+      
 
       ### End Init Episodes / Rounds ###
 
@@ -153,7 +157,8 @@ class Runner(object):
 
               # Setze Observation von Spielern die hint bekommen    
               agent2.observation = observations['player_observations'][agent_id2]
-              agent2.decode_hint(action)
+              agent2_hand = observations['player_observations'][agent_id2-1]['observed_hands'][1]
+              agent2.decode_hint(action, agent2_hand)
           
           if (action['action_type'] == 'PLAY'):
             for agent3 in agents:
@@ -202,18 +207,25 @@ class Runner(object):
           """
 
           episode_reward += reward
+          
 
-          self.env_out('N',agents,observations,episode,current_player_action,episode_reward)
+          # self.env_out('N',agents,observations,episode,current_player_action,episode_reward)
 
       rewards.append(episode_reward)
+      total_reward += episode_reward
+      print("Total Reward ", total_reward)
       print('Running episode: %d' % episode)
-      print('Max Reward: %.3f' % max(rewards))
+      print('Max  Reward: %.3f' % max(rewards))
+      print('Avg. Reward: {:%.3f}', total_reward/(episode+1))
+      print('Running episode: %d' % episode)
+      print('Max  Reward: %.3f' % max(rewards))
+      print('Avg. Reward: {:%.3f}', total_reward/(episode+1))
     return rewards
 
 
 if __name__ == "__main__":
  
-  flags = {'players': 5, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
+  flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
 
   options, arguments = getopt.getopt(sys.argv[1:], '',
                                      ['players=',

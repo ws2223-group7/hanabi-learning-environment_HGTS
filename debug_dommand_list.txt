@@ -1,0 +1,1 @@
+hand_plying_agent =  observations['player_observations'][observations['player_observations'][0]['current_player']-1]['observed_hands'][1]
