@@ -5,11 +5,11 @@ class Table(list):
         super().__init__(self.init_table(observation))
     
     def init_table(self, observation):
+
         num_players = observation['num_players']
-        num_cards_per_hand = len(observation['observed_hands'])
-        num_cards_per_hand = 4
-        num_color = 5
-        num_ranks = 5 
+        num_cards_per_hand = len(observation['observed_hands'][0])
+
+
 
         rep_color = [1,1,1,1,1]
 
@@ -19,7 +19,7 @@ class Table(list):
                      'WHITE': rep_color,
                      'YELLOW': rep_color,}
 
-        table = [[rep_hand]*num_players for i in range (num_players)]
+        table = [[rep_hand]*num_cards_per_hand for i in range (num_players)]
 
         return table
 
