@@ -16,21 +16,19 @@
 from __future__ import print_function
 
 import sys
+import os
 import getopt
+
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
 
 from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 
-### g7_BEGINN ###
-
-# Import Error
 # from hanabi_learning_environment.agents.test_agent import HTGSAgent 
-from htgs_agent import HTGSAgent
-
-
-
-from hanabi_learning_environment.rl_env import Agent
+from RCD_Strategy.htgs_agent import HTGSAgent
 
 AGENT_CLASSES = {'SimpleAgent': SimpleAgent, 
                  'RandomAgent': RandomAgent, 
@@ -50,8 +48,8 @@ class Runner(object):
 
   def env_out(self,datei,st,agents, observations,e,action,reward):
       #e = flags['num_episodes']
-      p = flags['players']
-      if flags['agent_class'] == "HTGSAgent":
+      p = self.flags['players']
+      if self.flags['agent_class'] == "HTGSAgent":
         c="HATG"
 
       l = self.environment.state.life_tokens()
@@ -114,7 +112,7 @@ class Runner(object):
     if output: datei = open('HAT_log.txt','w')
     
     # Loop over all Episodes / Rounds 
-    for episode in range(flags['num_episodes']):
+    for episode in range(self.flags['num_episodes']):
 
       ### Begin Init Episodes / Rounds ###
 
@@ -190,13 +188,11 @@ class Runner(object):
       print("Total Reward ", total_reward)
       print('Running episode: %d' % episode)
       print('Max  Reward: %.3f' % max(rewards))
-      print('Avg. Reward: {:%.3f}', total_reward/(episode+1))
+      print('Avg. Reward: ', format(total_reward/(episode+1),'.3f'))
       if output: datei.close()
     return rewards
 
-
-if __name__ == "__main__":
- 
+def main():
   flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
 
   options, arguments = getopt.getopt(sys.argv[1:], '',
@@ -215,5 +211,8 @@ if __name__ == "__main__":
   if runner.agent_class == HTGSAgent: 
     runner.run()
   else: sys.exit('Wrong Agent Class!\n')
+
+if __name__ == "__main__":
+  main()
 
   

@@ -13,11 +13,11 @@ class Table(list):
 
         rep_color = [1,1,1,1,1]
 
-        rep_hand =  {'BLUE': rep_color,
-                     'GREEN': rep_color,
-                     'RED': rep_color,
-                     'WHITE': rep_color,
-                     'YELLOW': rep_color,}
+        rep_hand =  {'BLUE': rep_color.copy(),
+                     'GREEN': rep_color.copy(),
+                     'RED': rep_color.copy(),
+                     'WHITE': rep_color.copy(),
+                     'YELLOW': rep_color.copy(),}
 
         table = [[rep_hand]*num_cards_per_hand for i in range (num_players)]
 
