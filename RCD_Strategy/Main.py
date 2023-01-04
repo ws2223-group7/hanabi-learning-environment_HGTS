@@ -150,10 +150,6 @@ class Runner(object):
           #Ausgabe des aktuellen Spiels vor Aktion:
           if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
           
-          # Update Possibilty table 
-          for agent3 in enumerate(agents):
-            agent3.update_table(action)
-
           # If hint is given calculate the corresponding hat  
           if (action['action_type'] == 'REVEAL_COLOR' 
              or action['action_type'] == 'REVEAL_RANK'):

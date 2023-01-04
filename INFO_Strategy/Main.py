@@ -151,18 +151,9 @@ class Runner(object):
           if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
 
           
-          # If hint is given calculate the corresponding hat  
-          if (action['action_type'] == 'REVEAL_COLOR' 
-             or action['action_type'] == 'REVEAL_RANK'):
-             
-             for agent_id2, agent2 in enumerate(agents):
-              if agent_id == agent_id2:
-                continue 
-
-              # Setze Observation von Spielern die hint bekommen    
-              agent2.observation = observations['player_observations'][agent_id2]
-              agent2_hand = observations['player_observations'][agent_id2-1]['observed_hands'][1]
-              agent2.decode_hint(action, agent2_hand)
+          # Update Possibilty table 
+          for agent3 in enumerate(agents):
+            agent3.update_table(action)
           
           if (action['action_type'] == 'PLAY'):
             for agent3 in agents:
