@@ -26,7 +26,7 @@ from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 
 # Import Error
 # from hanabi_learning_environment.agents.test_agent import HTGSAgent 
-from htgs_agent import HTGSAgent
+from htgs_info_agent import HTGSAgent
 
 
 
@@ -147,7 +147,7 @@ class Runner(object):
           hand_plying_agent = observations['player_observations'][agent_id-1]['observed_hands'][1]
           action = agent.act(observation, hand_plying_agent)
 
-          #Ausgabe des aktuellen Spiels vor Aktion:
+          # Ausgabe des aktuellen Spiels vor Aktion:
           if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
 
           
@@ -158,8 +158,6 @@ class Runner(object):
           if (action['action_type'] == 'PLAY'):
             for agent3 in agents:
               agent3.nr_card_ply_since_hint += 1
-
-          
 
           if observation['current_player'] == agent_id:
             assert action is not None
