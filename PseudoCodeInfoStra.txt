@@ -1,0 +1,29 @@
+class Htgs(Agent):
+  def __init__():
+    
+    
+    
+
+
+
+    def act(self):
+
+        if (self.playableCard is not None):
+            return self.playableCard
+
+    def playable_card_in_hand(self, player_hand):
+    """ Return als Action die erste spielbare Karte mit dem kleinsten Index 
+        Wenn keine Karte spielbar ist return None""" 
+    
+        // Prüfe jede Karte ob sie spielbar ist 
+        for index, card in enumerate(player_hand):
+            // Wenn Kartespielbar dann return als Action play
+            if (self.playable_card(card):
+                act = {'action_type': 'PLAY', 'card_index': index}
+                return act    
+    
+    def playable_card(self, card):
+    """ Return True wenn Karte spielbar sonst False"
+
+        // Prüfe ob Karte eindeutig bestimmt ist
+        if (self.get_Ti(Card))
