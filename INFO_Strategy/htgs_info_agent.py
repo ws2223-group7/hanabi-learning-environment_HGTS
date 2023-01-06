@@ -25,31 +25,40 @@ class HTGSAgent(Agent):
 
     def act(self):
         
+        hand_table = self.table.get_hand_table(0) 
+
         # Rule 1.
-        player_hand = self.table.get_hand_table(0) 
-        act_playable_card = self.playable_card_in_hand(player_hand)
-        if (act_playable_card is not None):
-            return act_playable_card
+        playable_card_idx = self.playable_card_in_hand(hand_table)
+        if (playable_card_idx is not None):
+            act = {'action_type': 'PLAY','card_index': playable_card_idx}
+            return act
 
         # Rule 2.
-        if (len(self.observation['discard_pile']) < 5 and self.dead_card_in_hand(player_hand)):
-            return self.dead_card_in_hand(player_hand)
+        dead_card_idx = self.dead_card_in_hand(hand_table)
+        if (len(self.observation['discard_pile']) < 5 and dead_card_idx is not None):
+            act = {'action_type': 'DISCARD','card_index': playable_card_idx}
+            return act
         
         # Rule 3.
         if (self.observation['information_tokens'] > 0):
             return self.give_hint()
         
         # Rule 4. 
-        if (self.dead_card_in_hand() is not None):
-            return self.dead_card_in_hand()
+        if (dead_card_idx is not None):
+            act = {'action_type': 'DISCARD','card_index': playable_card_idx}
+            return act
         
-        # Rule 5. 
-        if (self.duplicate_card_in_hand() is not None):
-            return self.duplicate_card_in_hand()
+        # Rule 5.
+        duplicate_card_idx = self.duplicate_card_in_hand(hand_table) 
+        if (dead_card_idx is not None):
+            act = {'action_type': 'DISCARD','card_index': duplicate_card_idx}
+            return act
         
         # Rule 6.
-        if (self.card_is_dispensable() is not None):
-            return self.self.card_is_dispensable()
+        dispensable_card_idx = self.duplicate_card_in_hand(hand_table) 
+        if (dispensable_card_idx is not None):
+            act = {'action_type': 'DISCARD','card_index': dispensable_card_idx}
+            return act
 
         # Rule 7
         else:
@@ -58,26 +67,46 @@ class HTGSAgent(Agent):
         
 
     def playable_card_in_hand(self):
-        """ Es wird überprüft ob eine Karte in der Hand spielbar ist"""
+        """ Return Index der ersten spielbaren Karte
+        wenn keine Karte spielbare return None"""
         hand_table = self.table.get_hand_table(0)
         
         
-        for idx, card in enumerate(hand_table):
+        for card_idx, card_table in enumerate(hand_table):
 
             #Prüfe ob eine Karte eindeutig identifizier bar ist
-            if (self.table.getTi(card) == 1):
-                card = self.table.get_card(0,idx)
+            if (self.table.getTi(card_table) == 1):
+                card = self.table.get_card(card_table)
 
                 # Prüfe ob diese Karte spielebar ist 
                 if (self.card_is_playable(card) is True):
-                    return card 
+                    return card_idx
+
+        return None 
+
+    def playable_card(self, card)-> bool:
+        """Return True wenn Karte spielbar sonst False"""
+        
+        fireworks = self.observation['fireworks']
+        return card['rank'] == fireworks[card['color']]
+    
 
 
+    def dead_card_in_hand(self, hand_table)->int:
+        """ Return index der ersten dead Kart
+        wenn keine dead Kart vorhanden return None"""
+        
+         
+        for card_idx, card_table in enumerate(hand_table):
+            # Prüfe ob Karte bekannt ist
+            if (self.table.get_ti(card_table) == 1):
+    
+                # Ermittele Karte  
+                card = self.table.get_card(card_table)
 
-    def dead_card_in_hand(self):
-        hand_table = self.table.get_hand_table()
-        for card in hand_table:
-            if self.table.
+                # Prüfe ob Karte tot 
+                if self.dead_card(card):
+                    return card_idx
 
     def dead_card(self, card):
         firework = self.observation['fireworks']
