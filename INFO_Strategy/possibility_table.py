@@ -26,20 +26,19 @@ class Table(list):
 
         return table
     
-    def get_card(self, player_idx, card_idx):
-        """ Wenn die Karte (player_idx, card_idx)
-        bekannt ist return Card sonst None"""
+    def get_card(self, card_table):
+        """ Wenn die Karte bekannt ist 
+        (ti=1) return Card sonst None"""
 
         # Prüfe ob Karte bekannt ist 
-        if(self.table.get_ti(0, card_idx) == 1):
+        if(self.table.get_ti(card_table) == 1):
             # Ermittel Karte von Table 
             pass 
 
-    def get_ti(self, player_idx:int, card_idx:int)-> int:
+    def get_ti(self, card_table)-> int:
         """ Bestimme ti (Anzahl von offene Möglichkeiten) 
         für eine bestimme Karte (player_idx, card_idx) """
         ti = 0
-        card_table = self.get_card_table(player_idx, card_idx)
         
         # Iteriere über alle Farben im Table und summiere liste
         # P=1 und N=0 ti ist die Anzahl der P's 
@@ -53,7 +52,10 @@ class Table(list):
         card_table = self[player_idx][card_idx] 
         return card_table
 
-    
+    def get_hand_table(self, player_idx:int)-> list:
+        """ Return hand_table"""
+        hand_table = self[player_idx]
+        return hand_table
 
 
     
