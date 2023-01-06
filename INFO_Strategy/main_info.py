@@ -22,7 +22,7 @@ from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 
-### g7_BEGINN ###
+
 
 # Import Error
 # from hanabi_learning_environment.agents.test_agent import HTGSAgent 
@@ -126,6 +126,11 @@ class Runner(object):
       # die Policy wo anderes gespeichert werden 
       agents = [self.agent_class(self.agent_config)
                 for _ in range(self.flags['players'])]
+
+      # Init Possibility Table 
+      for agent_id, agent in enumerate(agents):
+        observation = observations['player_observations'][agent_id]
+        agent.init_table(observation)
       
           
       # done is bool for gameOver or Win
