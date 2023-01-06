@@ -56,6 +56,27 @@ class Table(list):
         """ Return hand_table"""
         hand_table = self[player_idx]
         return hand_table
+    def get_part_table(self, observation, card_table):
+        """Return den partition table zu einem hand_table"""
+        
+        # Ermittle alle toten Karten im Spiel 
+        dead_cards_dict = self.get_dead_card_in_game(observation)
+
+        # Ermittle Anzahl der Singleton set 
+        single_hint_sets, seven_hint_sets = self.get_size_hint_sets(card_table, dead_cards_dict)
+
+        # Erzeuge neuen table der als partion table dient (wie Fig.6 Cox)
+        part_table = Table(observation)
+
+        # Setze alle Deadcards auf 0 
+        part_table = self.set_dead_hint_set(part_table, dead_cards_dict)
+
+        # Setze die single hint sets 
+        part_table = self.set_singleton_hint_sets(part_table, single_hint_sets)
+
+        # Setze zusätzliche (sieberer) hint sets
+        part_table = self.set_seven_hint_sets(part_table, seven_hint_sets) 
+
 
 
     
