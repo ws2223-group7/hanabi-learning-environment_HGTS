@@ -73,7 +73,7 @@ class Table(list):
         single_hint_sets, seven_hint_sets = self.get_size_hint_sets(card_table,dead_cards_in_game)
 
         # Erzeuge neuen table der als partion table dient (wie Fig.6 Cox)
-        part_table = Table(observation)[0][0]
+        part_table = self.init_part_table(card_table)
 
         # Setze alle Deadcards auf 0 
         part_table = self.set_dead_hint_set(part_table,dead_cards_in_game)
@@ -82,8 +82,8 @@ class Table(list):
         part_table = self.set_singleton_hint_sets(part_table, single_hint_sets)
 
         # Setze zusätzliche (sieberer) hint sets
-        part_table = self.set_seven_hint_sets(part_table, seven_hint_sets) 
-
+        part_table = self.set_seven_hint_sets(part_table, seven_hint_sets)
+    
 
     def get_deads_card(self, observation)->dict:
         """Return alle toten Karten im Spiel"""
@@ -101,7 +101,6 @@ class Table(list):
         
         return dead_cards
                 
-
     def dead_card(self, card, observation):
         """Return True wenn Karte tot sonst False"""
 
@@ -157,6 +156,18 @@ class Table(list):
 
         return single_hint_set, seven_hint_sets
 
+    def init_part_table(self, card_table):
+        part_table = {}
+
+        
+        for color, rank_list in card_table.items():
+            # Jedes P (also jede 1) wird zur -2 
+            # Jeder N (also jede 0) wird zur -1
+            idx_shifted_list =  [-2 if x==1 else -1 for x in rank_list]
+            part_table[color] = idx_shifted_list
+
+        
+        return part_table
 
     def set_dead_hint_set(self, part_table, dead_cards_in_game):
         """Return part_table mit gesetzer Partition für alle 
@@ -169,7 +180,32 @@ class Table(list):
     def set_singleton_hint_sets(self, part_table, single_hint_sets):
         """Return part_table mit gesetzen Partitionen 
         für single hint set"""
-        pass
+        
+        max_rank = 4
+        part_idx_single_hint = 1
+        
+        # Iteriere über jeden Rank und jede Farbe
+        for rank in range(max_rank + 1):
+            for color in self.colors():
+
+                # Überprüfe ob noch ein single hint set gesetzt wird
+                if (part_idx_single_hint > single_hint_sets):
+                    return part_table
+
+                # Wenn es sich nicht um eine Karte aus dem toten Set handelt 
+                # dann setze neue Partion für die Karte 
+                # Karte ist eigenes Singleton set
+                 
+                if (part_table[color][rank] != -1):
+                    part_table[color][rank] = part_idx_single_hint
+                    
+
+                    part_idx_single_hint += 1
+
+                    
+
+
+        
 
     def set_seven_hint_sets(self, part_table, seven_hint_sets):
         pass    
@@ -222,8 +258,10 @@ if __name__ == "__main__":
     observation = get_observation()
 
     testtable = Table(observation)
-    print()
+    dead_cards_in_game = testtable.get_deads_card(observation)
 
- 
+    card_table = testtable.get_card_table(0,0)
+    
+    part_table = testtable.get_part_table()
   
 
