@@ -130,11 +130,11 @@ class Table(list):
 
         return False
     
-    def get_size_hint_sets(self, card_table, dead_cards_dict):
+    def get_size_hint_sets(self, card_table,dead_cards_in_game):
         """Return die Anzahl an single hint sets  
         und die Anzahl der hint sets mit größe sieben"""
         
-        num_dead_card = len(dead_cards_dict)
+        num_dead_card = len(dead_cards_in_game)
 
         # Die max singleton_size hängt davon ob
         # ob eine Partition von Dead Cards belegt wird 
@@ -158,14 +158,20 @@ class Table(list):
         return single_hint_set, seven_hint_sets
 
 
-    def set_dead_hint_set(self, part_table, dead_cards_dict):
+    def set_dead_hint_set(self, part_table, dead_cards_in_game):
         """Return part_table mit gesetzer Partition für alle 
         dead cards"""
-        pass        
+        for dead_card in dead_cards_in_game:
+            part_table[dead_card['color']][dead_card['rank']] = 0
 
-    def set_singleton_hint_sets(part_table, single_hint_sets):
+        return part_table        
+
+    def set_singleton_hint_sets(self, part_table, single_hint_sets):
         """Return part_table mit gesetzen Partitionen 
         für single hint set"""
+        pass
+
+    def set_seven_hint_sets(self, part_table, seven_hint_sets):
         pass    
 
         
