@@ -67,16 +67,16 @@ class Table(list):
         """Return den partition table zu einem hand_table"""
         
         # Ermittle alle toten Karten im Spiel 
-        dead_cards_dict = self.get_dead_card_in_game(observation)
+        dead_cards_in_game = self.get_deads_card(observation)
 
         # Ermittle Anzahl der Singleton set 
-        single_hint_sets, seven_hint_sets = self.get_size_hint_sets(card_table, dead_cards_dict)
+        single_hint_sets, seven_hint_sets = self.get_size_hint_sets(card_table,dead_cards_in_game)
 
         # Erzeuge neuen table der als partion table dient (wie Fig.6 Cox)
-        part_table = Table(observation)
+        part_table = Table(observation)[0][0]
 
         # Setze alle Deadcards auf 0 
-        part_table = self.set_dead_hint_set(part_table, dead_cards_dict)
+        part_table = self.set_dead_hint_set(part_table,dead_cards_in_game)
 
         # Setze die single hint sets 
         part_table = self.set_singleton_hint_sets(part_table, single_hint_sets)
@@ -85,9 +85,8 @@ class Table(list):
         part_table = self.set_seven_hint_sets(part_table, seven_hint_sets) 
 
 
-    def get_deads_card_dict(self, observation)->dict:
-        """Return dict zu toten Karten im Spiel
-        Es wird der max. Rank der toten Karten übergeben"""
+    def get_deads_card(self, observation)->dict:
+        """Return alle toten Karten im Spiel"""
 
         # Erzeuge Liste mit allen Karten 
         max_rank = 4
