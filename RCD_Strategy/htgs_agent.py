@@ -42,7 +42,7 @@ class HTGSAgent(Agent):
                                       ('REVEAL_COLOR', 4) : 7
                                       }
 
-  def act(self, observation, ply_hand):
+  def act(self, observation):
     """Act based on an observation."""
     self.observation = observation
 
@@ -90,8 +90,7 @@ class HTGSAgent(Agent):
 
   def give_hint(self):
     act_hint = self.encode_hint()
-    if act_hint == None:
-      a = 1
+
     return act_hint
             
   def encode_hint(self):
@@ -229,22 +228,7 @@ class HTGSAgent(Agent):
     
     # rcd_act is der decoded Hint also der empfolene move
     self.rcd_act = self.encode_act_to_hat[own_hat]
-
-
-    rcd_type = self.rcd_act['action_type']
-    rcd_card_index = self.rcd_act['card_index']
-
-    rcd_card = ply_hand[rcd_card_index]
-    firework = self.observation['fireworks']
-
-    if rcd_type == 'PLAY':
-       if (not self.playable_card(rcd_card)):
-        print("-------------- ")
-
-
-
-    self.playable_card
-    
+   
     self.rcd_card_plyd = False
     self.nr_card_ply_since_hint = 0
     
@@ -258,23 +242,12 @@ class HTGSAgent(Agent):
     hand_cur_ply = self.observation['observed_hands'][idx_cur_ply]
     
 
-    hat_sum = self.cal_hat_sum()
+    hat_sum = self.cal_hat_sum_mod8()
     hat_hinted_ply = self.cal_hat_player(hand_cur_ply)
     own_hat = (given_hat_sum_mod8 - (hat_sum - hat_hinted_ply)) % 8
 
     return own_hat
-  
-  def cal_hat_sum(self):
-      hat_sum_player = 0
-      
-      for idx_ply in range(1, self.observation['num_players']):
-          hand_player = self.observation['observed_hands'][idx_ply]
-          hat_player = self.cal_hat_player(hand_player)
-          hat_sum_player += hat_player
 
-      hat_sum_mod8 = hat_sum_player % 8
-
-      return hat_sum_mod8
 
   def playable_card(self, card):
     """A card is playable if it can be placed on the fireworks pile."""
@@ -292,6 +265,7 @@ class HTGSAgent(Agent):
     cards_in_dsc_pile = [0,0,0,0]
     
     for card_dsc_pile in self.observation['discard_pile']:
+      
       # Prüfe alle Karten im dsc_pile mit der selben Farbe und
       # einem geringen Rank 
       if (card_dsc_pile['color'] == card['color'] 

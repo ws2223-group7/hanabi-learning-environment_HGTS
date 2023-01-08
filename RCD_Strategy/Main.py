@@ -142,8 +142,7 @@ class Runner(object):
         # Loop over all agents 
         for agent_id, agent in enumerate(agents):
           observation = observations['player_observations'][agent_id]
-          hand_plying_agent = observations['player_observations'][agent_id-1]['observed_hands'][1]
-          action = agent.act(observation, hand_plying_agent)
+          action = agent.act(observation)
 
           #Ausgabe des aktuellen Spiels vor Aktion:
           if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
