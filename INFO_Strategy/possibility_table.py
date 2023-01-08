@@ -1,6 +1,8 @@
 from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 
+import math
+
 class Table(list):
     def __init__(self, observation):
         super().__init__(self.init_table(observation))
@@ -82,7 +84,9 @@ class Table(list):
         part_table = self.set_singleton_hint_sets(part_table, single_hint_sets)
 
         # Setze zusätzliche (sieberer) hint sets
-        part_table = self.set_seven_hint_sets(part_table, seven_hint_sets)
+        part_table = self.set_seven_hint_sets(part_table, single_hint_sets)
+
+        return part_table
     
 
     def get_deads_card(self, observation)->dict:
@@ -132,29 +136,37 @@ class Table(list):
     def get_size_hint_sets(self, card_table,dead_cards_in_game):
         """Return die Anzahl an single hint sets  
         und die Anzahl der hint sets mit größe sieben"""
-        
-        num_dead_card = len(dead_cards_in_game)
+
+        ti = self.get_ti(card_table)
+
+        # Max Anzahl der Toten Karten in der Hand 
+        pos_dead_card = self.get_possible_dead_cards(card_table, dead_cards_in_game)
 
         # Die max singleton_size hängt davon ob
         # ob eine Partition von Dead Cards belegt wird 
-        max_single_hint_set = 7 if num_dead_card < 0 else 8
+        single_hint_set = 7 if pos_dead_card > 0 else 8
 
-        # Es können alle verbleiben Karten (ti - num_dead_card)
-        # als singleton realisiert werden wenn es nicht zu viele sind
-        single_hint_set = self.get_ti(card_table) - num_dead_card 
 
-        # Anzahl der zusätzlichen 7 hint sets 
-        seven_hint_sets = 0  
+        num_seven_hint_sets = 0 
         
-        # Solange es zu viele singleton gibt ziehe ein block der größe 7 ab 
-        while (single_hint_set > max_single_hint_set):
-            single_hint_set -= 7
-            seven_hint_sets += 1
+        # Idee [2,1,1,1,5,7,7]
+        # Max Anzahl der Karten in Singlehint + seven_hints + dead_set muss >= ti sein
+        while (ti > (pos_dead_card + single_hint_set + num_seven_hint_sets*7)):
+            single_hint_set -= 1
+            num_seven_hint_sets += 1
 
-            # Jedes zusätzliche Set reduziert
-            max_single_hint_set -= 1
+        return single_hint_set, num_seven_hint_sets        
 
-        return single_hint_set, seven_hint_sets
+    def get_possible_dead_cards(self, card_table, dead_cards_in_game): 
+        """Return die Anzahl der max. toten Karten in der Hand"""
+        max_rank = 4
+        num_pos_dead_cards = 0
+
+        for dead_card in dead_cards_in_game:
+            if (card_table[dead_card['color']][dead_card['rank']] == 1):
+                num_pos_dead_cards += 1
+
+        return num_pos_dead_cards
 
     def init_part_table(self, card_table):
         part_table = {}
@@ -173,7 +185,8 @@ class Table(list):
         """Return part_table mit gesetzer Partition für alle 
         dead cards"""
         for dead_card in dead_cards_in_game:
-            part_table[dead_card['color']][dead_card['rank']] = 0
+            if (part_table[dead_card['color']][dead_card['rank']] == -2):
+                part_table[dead_card['color']][dead_card['rank']] = 0
 
         return part_table        
 
@@ -186,29 +199,55 @@ class Table(list):
         
         # Iteriere über jeden Rank und jede Farbe
         for rank in range(max_rank + 1):
-            for color in self.colors():
+            for color in self.colors:
 
                 # Überprüfe ob noch ein single hint set gesetzt wird
                 if (part_idx_single_hint > single_hint_sets):
                     return part_table
 
-                # Wenn es sich nicht um eine Karte aus dem toten Set handelt 
-                # dann setze neue Partion für die Karte 
-                # Karte ist eigenes Singleton set
+                # Wenn es sich nicht um eine freie Karte handlet 
+                # (keine dead Kart), dann setze neue Partion
+                # für die Karte die ein eigenes Singleton set ist
                  
-                if (part_table[color][rank] != -1):
+                if (part_table[color][rank] == -2):
                     part_table[color][rank] = part_idx_single_hint
                     
-
                     part_idx_single_hint += 1
+
+        
+        return part_table
 
                     
 
 
         
 
-    def set_seven_hint_sets(self, part_table, seven_hint_sets):
-        pass    
+    def set_seven_hint_sets(self, part_table, single_hint_set):
+        
+        max_rank = 4
+        set_idx = single_hint_set + 1
+        number_in_set = 0
+
+        # Iteriere über jeden Rank und jede Farbe
+        for rank in range(max_rank + 1):
+            for color in self.colors:
+
+                # # Wenn es sich nicht um eine freie Karte handlet 
+                # (keine dead Kart oder singletonset), dann setze
+                # neue Karte in sevenhint set 
+                if (part_table[color][rank] == -2):
+                    part_table[color][rank] = set_idx
+
+                    number_in_set += 1
+
+                    # Bei sieben Karten im Set
+                    # mache neues Set  
+                    if (number_in_set == 7):
+                        number_in_set = 0
+                        set_idx += 1
+        
+        return part_table
+
 
         
 
@@ -258,10 +297,13 @@ if __name__ == "__main__":
     observation = get_observation()
 
     testtable = Table(observation)
+
     dead_cards_in_game = testtable.get_deads_card(observation)
 
     card_table = testtable.get_card_table(0,0)
     
-    part_table = testtable.get_part_table()
+    part_table = testtable.get_part_table(observation, card_table)
+    
+    print()
   
 
