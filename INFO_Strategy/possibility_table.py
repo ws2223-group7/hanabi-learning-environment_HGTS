@@ -159,7 +159,6 @@ class Table(list):
 
     def get_possible_dead_cards(self, card_table, dead_cards_in_game): 
         """Return die Anzahl der max. toten Karten in der Hand"""
-        max_rank = 4
         num_pos_dead_cards = 0
 
         for dead_card in dead_cards_in_game:
