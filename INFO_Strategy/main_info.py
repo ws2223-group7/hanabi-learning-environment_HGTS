@@ -145,24 +145,31 @@ class Runner(object):
       # Play as long its not gameOver or Win
       print("\n\n\n------------------------------ New Episode -------------------------")
       while not done:
+        
+        
 
         # Loop over all agents 
         for agent_id, agent in enumerate(agents):
-          observation = observations['player_observations'][agent_id]
-          hand_plying_agent = observations['player_observations'][agent_id-1]['observed_hands'][1]
-          action = agent.act(observation, hand_plying_agent)
+
+          # Update Observation and mc for all agents 
+          for agent_id, agent in enumerate(agents):
+              observation = observations['player_observations'][agent_id]
+              agent.update_observation()
+              agent.update_mc()
+              
+          
+          action = agent.act()
+
+
+
+          # Update all Card_Tables  
+          for agent in enumerate(agents):
+            agent.update_card_tables(action)
 
           # Ausgabe des aktuellen Spiels vor Aktion:
           if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
 
-          
-          # Update Possibilty table 
-          for agent3 in enumerate(agents):
-            agent3.update_table(action)
-          
-          if (action['action_type'] == 'PLAY'):
-            for agent3 in agents:
-              agent3.nr_card_ply_since_hint += 1
+
 
           if observation['current_player'] == agent_id:
             assert action is not None
@@ -174,10 +181,13 @@ class Runner(object):
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(
               current_player_action)
-
+        
           episode_reward += reward
+
+
           
           if output: self.env_out(datei,'N',agents,observations,episode,current_player_action,episode_reward)
+      
       if output: datei.write('Running episode: {} Reward {}\n'.format(episode, episode_reward))
           
       rewards.append(episode_reward)
