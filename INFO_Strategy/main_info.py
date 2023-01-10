@@ -112,9 +112,14 @@ class Runner(object):
           if (action['action_type'] == 'REVEAL_COLOR' or 
               action['action_type'] == 'REVEAL_RANK'):
 
+              
+
             for agent3 in agent: 
-              hats_player = agent3.decode_hint(action)
-              agent3.update_poss_tables(hats_player)
+              agent3.update_tables(action)
+
+              
+
+
           
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(action)
