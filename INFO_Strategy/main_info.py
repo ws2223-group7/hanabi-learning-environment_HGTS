@@ -95,15 +95,11 @@ class Runner(object):
 
           # Update Observation 
           for agent_id2, agent2 in enumerate(agents):
-            observation = observations['player_observations'][agent_id]
+            observation = observations['player_observations'][agent_id2]
             agent2.update_observation(observation)
             agent2.update_mc()
 
           action = agent.act()
-
-
-
-
 
           # Ausgabe des aktuellen Spiels vor Aktion:
           if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
