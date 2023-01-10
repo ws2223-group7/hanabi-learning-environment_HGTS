@@ -48,7 +48,90 @@ class Runner(object):
     self.environment = rl_env.make('Hanabi-Full', num_players=flags['players'])
     self.agent_class = AGENT_CLASSES[flags['agent_class']]
 
-  def env_out(self,datei,st,agents, observations,e,action,reward):
+  def run(self):
+    """Run episodes."""
+    rewards = []
+    total_reward = 0
+
+    output = False
+
+    if output: datei = open('HAT_log.txt','w')
+    
+    # Loop over all Episodes / Rounds 
+    for episode in range(flags['num_episodes']):
+
+      ### Begin Init Episodes / Rounds ###
+
+      #  At the Beginning of every round reset environment
+      observations = self.environment.reset() 
+
+      # Init all Agent with agent config 
+      # Nacharbeit: Wenn in jedem spiel neue Agent erstellt werden muss 
+      # die Policy wo anderes gespeichert werden 
+      agents = [self.agent_class(self.agent_config)
+                for _ in range(self.flags['players'])]
+
+      # Init Possibility Table 
+      for agent_id, agent in enumerate(agents):
+        observation = observations['player_observations'][agent_id]
+        agent.init_table(observation)
+      
+          
+      # done is bool for gameOver or Win
+      done = False
+
+      episode_reward = 0
+      if output: self.env_out(datei,'S',agents,observations,0,None,episode_reward)
+      
+
+      ### End Init Episodes / Rounds ###
+
+      # Play as long its not gameOver or Win
+      print("\n\n\n------------------------------ New Episode -------------------------")
+      while not done:
+
+        # Loop over all agents 
+        for agent_id, agent in enumerate(agents):
+
+          # Update Observation 
+          for agent_id2, agent2 in enumerate(agents):
+            observation = observations['player_observations'][agent_id]
+            agent2.update_observation(observation)
+            agent2.update_mc()
+
+          action = agent.act()
+
+
+
+
+
+          # Ausgabe des aktuellen Spiels vor Aktion:
+          if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
+
+          
+          # Update Possibilty table 
+          for agent3 in enumerate(agents):
+            agent3.update_table(action)
+             
+          # Make an environment step.
+          observations, reward, done, unused_info = self.environment.step(action)
+
+          episode_reward += reward
+          
+          if output: self.env_out(datei,'N',agents,observations,episode,action,episode_reward)
+      
+      if output: datei.write('Running episode: {} Reward {}\n'.format(episode, episode_reward))
+          
+      rewards.append(episode_reward)
+      total_reward += episode_reward
+      print("Total Reward ", total_reward)
+      print('Running episode: %d' % episode)
+      print('Max  Reward: %.3f' % max(rewards))
+      print('Avg. Reward: {:%.3f}', total_reward/(episode+1))
+      if output: datei.close()
+    return rewards
+
+def env_out(self,datei,st,agents, observations,e,action,reward):
       #e = flags['num_episodes']
       p = flags['players']
       if flags['agent_class'] == "HTGSAgent":
@@ -101,103 +184,6 @@ class Runner(object):
       else:    
         datei.write('|{}|EP{:4d}|NP{:1d}|{:4s}|LT{}|IT{}|DS{:2d}|{}|REW{:2d}|CP{}|{}|\n'.format(st,e,p,c,l,info,d,f,reward,cp,h))
       return
-
-  
-  
-  def run(self):
-    """Run episodes."""
-    rewards = []
-    total_reward = 0
-
-    output = False
-
-    if output: datei = open('HAT_log.txt','w')
-    
-    # Loop over all Episodes / Rounds 
-    for episode in range(flags['num_episodes']):
-
-      ### Begin Init Episodes / Rounds ###
-
-      #  At the Beginning of every round reset environment
-      observations = self.environment.reset() 
-
-      # Init all Agent with agent config 
-      # Nacharbeit: Wenn in jedem spiel neue Agent erstellt werden muss 
-      # die Policy wo anderes gespeichert werden 
-      agents = [self.agent_class(self.agent_config)
-                for _ in range(self.flags['players'])]
-
-      # Init Possibility Table 
-      for agent_id, agent in enumerate(agents):
-        observation = observations['player_observations'][agent_id]
-        agent.init_table(observation)
-      
-          
-      # done is bool for gameOver or Win
-      done = False
-
-      episode_reward = 0
-      if output: self.env_out(datei,'S',agents,observations,0,None,episode_reward)
-      
-
-      ### End Init Episodes / Rounds ###
-
-      # Play as long its not gameOver or Win
-      print("\n\n\n------------------------------ New Episode -------------------------")
-      while not done:
-        
-        
-
-        # Loop over all agents 
-        for agent_id, agent in enumerate(agents):
-
-          # Update Observation and mc for all agents 
-          for agent_id, agent in enumerate(agents):
-              observation = observations['player_observations'][agent_id]
-              agent.update_observation()
-              agent.update_mc()
-              
-          
-          action = agent.act()
-
-
-
-          # Update all Card_Tables  
-          for agent in enumerate(agents):
-            agent.update_card_tables(action)
-
-          # Ausgabe des aktuellen Spiels vor Aktion:
-          if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
-
-
-
-          if observation['current_player'] == agent_id:
-            assert action is not None
-            current_player_action = action
-          else:
-            assert action is None
-
-          
-          # Make an environment step.
-          observations, reward, done, unused_info = self.environment.step(
-              current_player_action)
-        
-          episode_reward += reward
-
-
-          
-          if output: self.env_out(datei,'N',agents,observations,episode,current_player_action,episode_reward)
-      
-      if output: datei.write('Running episode: {} Reward {}\n'.format(episode, episode_reward))
-          
-      rewards.append(episode_reward)
-      total_reward += episode_reward
-      print("Total Reward ", total_reward)
-      print('Running episode: %d' % episode)
-      print('Max  Reward: %.3f' % max(rewards))
-      print('Avg. Reward: {:%.3f}', total_reward/(episode+1))
-      if output: datei.close()
-    return rewards
 
 
 if __name__ == "__main__":
