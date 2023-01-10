@@ -81,7 +81,8 @@ class Runner(object):
       done = False
 
       episode_reward = 0
-      if output: self.env_out(datei,'S',agents,observations,0,None,episode_reward)
+      if output: self.env_out(datei,'S',agents,observations,
+                              0,None,episode_reward)
       
 
       ### End Init Episodes / Rounds ###
@@ -102,21 +103,29 @@ class Runner(object):
           action = agent.act()
 
           # Ausgabe des aktuellen Spiels vor Aktion:
-          if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
+          if output: self.env_out(datei,'V',agents,
+                                  observations,episode,
+                                  action,episode_reward)
 
           
-          # Update Possibilty table 
-          for agent3 in enumerate(agents):
-            agent3.update_table(action)
-             
+          # Update Possibilty table auf Basis vom Hint
+          if (action['action_type'] == 'REVEAL_COLOR' or 
+              action['action_type'] == 'REVEAL_RANK'):
+
+            for agent3 in agent: 
+              hats_player = agent3.decode_hint(action)
+              agent3.update_poss_tables(hats_player)
+          
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(action)
 
           episode_reward += reward
           
-          if output: self.env_out(datei,'N',agents,observations,episode,action,episode_reward)
+          if output: self.env_out(datei,'N',agents,observations,
+                                  episode,action,episode_reward)
       
-      if output: datei.write('Running episode: {} Reward {}\n'.format(episode, episode_reward))
+      if output: datei.write('Running episode: {} Reward {}\n'.
+                              format(episode, episode_reward))
           
       rewards.append(episode_reward)
       total_reward += episode_reward
