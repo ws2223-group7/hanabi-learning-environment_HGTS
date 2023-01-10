@@ -5,9 +5,33 @@ class HTGSAgent(Agent):
     def __init__(self, config, *args, **kwargs):
         self.config = config
 
+         
         self.mc = self.init_mc()
         self.observation = None
         self.table = None
+
+        self.colors = ['B', 'G', 'R', 'W', 'Y']
+
+        # Get Hat to recomm 
+        self.encode_act_to_hat = {0: {'action_type': 'PLAY', 'card_index': 0},
+                                  1: {'action_type': 'PLAY', 'card_index': 1},
+                                  2: {'action_type': 'PLAY', 'card_index': 2},
+                                  3: {'action_type': 'PLAY', 'card_index': 3},
+                                4: {'action_type': 'DISCARD', 'card_index': 0},
+                                5: {'action_type': 'DISCARD', 'card_index': 1},
+                                6: {'action_type': 'DISCARD', 'card_index': 2},
+                                7: {'action_type': 'DISCARD', 'card_index': 3}}
+        
+        self.decode_act_to_hat_sum_mod8 = {
+                                        ('REVEAL_RANK', 1) : 0,
+                                        ('REVEAL_RANK', 2) : 1,
+                                        ('REVEAL_RANK', 3) : 2,
+                                        ('REVEAL_RANK', 4) : 3,
+                                        ('REVEAL_COLOR', 1) : 4,
+                                        ('REVEAL_COLOR', 2) : 5,
+                                        ('REVEAL_COLOR', 3) : 6,
+                                        ('REVEAL_COLOR', 4) : 7
+                                        }
     
     def init_table(self, observation):
         self.table = Table(observation)
@@ -65,18 +89,16 @@ class HTGSAgent(Agent):
             act = {'action_type': 'DISCARD', 'card_index': 0}
             return act
         
-
-    def playable_card_in_hand(self):
+    def playable_card_in_hand(self, hand_table):
         """ Return Index der ersten spielbaren Karte
         wenn keine Karte spielbare return None"""
-        hand_table = self.table.get_hand_table(0)
+       
         
-        
-        for card_idx, card_table in enumerate(hand_table):
+        for card_idx, poss_table in enumerate(hand_table):
 
             #Prüfe ob eine Karte eindeutig identifizier bar ist
-            if (self.table.getTi(card_table) == 1):
-                card = self.table.get_card(card_table)
+            if (self.table.get_ti(poss_table) == 1):
+                card = self.table.get_card(poss_table)
 
                 # Prüfe ob diese Karte spielebar ist 
                 if (self.card_is_playable(card) is True):
@@ -90,19 +112,17 @@ class HTGSAgent(Agent):
         fireworks = self.observation['fireworks']
         return card['rank'] == fireworks[card['color']]
     
-
-
     def dead_card_in_hand(self, hand_table)->int:
         """ Return index der ersten dead Kart
         wenn keine dead Kart vorhanden return None"""
         
          
-        for card_idx, card_table in enumerate(hand_table):
+        for card_idx, poss_table in enumerate(hand_table):
             # Prüfe ob Karte bekannt ist
-            if (self.table.get_ti(card_table) == 1):
+            if (self.table.get_ti(poss_table) == 1):
     
                 # Ermittele Karte  
-                card = self.table.get_card(card_table)
+                card = self.table.get_card(poss_table)
 
                 # Prüfe ob Karte tot 
                 if self.dead_card(card):
@@ -134,8 +154,314 @@ class HTGSAgent(Agent):
 
         return False
 
+    def give_hint(self):
+        act_hint = self.encode_hint()
+
+        return act_hint
+                
+    def encode_hint(self):
+        hatSumMod8 = self.cal_hat_sum_mod8()
+
+        # if hatSumMod8 < 4 give hint rank (See Paper Cox)
+        if (hatSumMod8 < 4):
+            hint = self.get_hint_hat_sum_smaller_4(hatSumMod8)
+            return hint 
+
+        # if hatSumMod8 > 3 give hint color (See Paper Cox) 
+        else:
+            hint = self.get_hint_hat_sum_bigger_3(hatSumMod8)
+            return hint
+
+    def cal_hat_sum_mod8(self):
+        hat_sum_player = 0
+        
+        for agent_idx in range(1, self.observation['num_players']):
+            hat_player = self.cal_hat_player(agent_idx)
+            hat_sum_player += hat_player
+
+        hat_sum_mod8 = hat_sum_player % 8
+
+        return hat_sum_mod8
+    
+    def cal_hat_player(self, agent_idx):
+        """Return hat vom Spieler """ 
+        
+        target_card, target_card_idx = self.get_target_card(agent_idx)
+        
+        poss_table = self.table.get_poss_table(agent_idx, target_card_idx)
+        part_table = self.table.get_part_table(self.observation, poss_table)
+        
+        rank_target_card = target_card['rank']
+        color_target_card = target_card['color']
+        hat = part_table[color_target_card][rank_target_card]
+
+        return hat 
+
+    def get_target_card(self, agent_idx):
+        """Return Target Card und Index der Target Card in Hand"""
+
+        hand_table = self.table.get_hand_table(agent_idx)
+        sum_mc_Ti_cards, sum_mc_Ti_cut_Si_cards = self.get_sum_mc_Ti_and_sum_mc_Ti_cut_Si(
+                                                        hand_table)
+        pb_playable_cards = self.get_pb_playable_cards(sum_mc_Ti_cards, 
+                                                       sum_mc_Ti_cut_Si_cards)
+        
+        target_card_idx = pb_playable_cards.index(max(pb_playable_cards))
+        player_hand = self.observation['observed_hands'][agent_idx]
+        target_card = player_hand[target_card_idx]
+
+        return target_card, target_card_idx
+
+    def get_sum_mc_Ti_and_sum_mc_Ti_cut_Si(self, hand_table):
+        """Return Nenner und Zahler von Formel S3"""
+        max_rank = 4
+        sum_mc_Ti_cut_Si_cards = []
+        sum_mc_Ti_cards = []
+
+        for poss_table in hand_table:
+
+            sum_mc_Ti_cut_Si = 0
+            sum_mc_Ti = 0    
+            
+            for rank in range(max_rank+1):
+                for color in self.colors:
+                    card = {'color': color, 'rank': rank}
+                    
+                    # Alle Ti in 
+                    if(poss_table[color][rank] == 1):
+                        sum_mc_Ti += self.mc[color][rank]
+
+
+                    if (self.playable_card(card) and poss_table[color][rank] == 1):
+                        sum_mc_Ti_cut_Si += self.mc[color][rank]
+        
+            sum_mc_Ti_cards.append(sum_mc_Ti)
+            sum_mc_Ti_cut_Si_cards.append(sum_mc_Ti_cut_Si)
+        
+        return sum_mc_Ti_cards, sum_mc_Ti_cut_Si_cards
+      
+    def get_pb_playable_cards(self, sum_mc_Ti_cards, sum_mc_Ti_cut_Si_cards):
+
+        pb_playable_cards = []
+
+        for sum_mc_Ti, sum_mc_Ti_cut_Si in zip(sum_mc_Ti_cards, sum_mc_Ti_cut_Si_cards):
+            try:
+                pb_playable_cards.append(sum_mc_Ti_cut_Si / sum_mc_Ti)
+            except ZeroDivisionError:
+                print("Zero Division Error")
+                raise ZeroDivisionError
+        
+        return pb_playable_cards
+
+    def get_hint_hat_sum_smaller_4(self, hat_sum_mod8):
+        # Überprüftr
+        # See Paper Cox for calculation 
+        idxPly = hat_sum_mod8 + 1
+
+        # Get a random rank to hint from player (idxPly)
+        # which get the hint 
+        hand_player = self.observation['observed_hands'][idxPly]
+        first_hand_card = hand_player[0]
+        rank = first_hand_card['rank']
+
+        hint =  {'action_type': 'REVEAL_RANK',
+                'rank': rank,
+                'target_offset': idxPly } 
+
+        return hint
+
+    def get_hint_hat_sum_bigger_3(self, hatSumMod8):
+        # See Paper Cox for calculation 
+        idx_ply = hatSumMod8 - 3
+
+        # Get a random color to hint from player (idxPly)
+        # which get the hint 
+        hand_ply = self.observation['observed_hands'][idx_ply]
+        first_hand_card = hand_ply[0]
+        color = first_hand_card['color']
+
+
+        hint =  {'action_type': 'REVEAL_COLOR',
+                'color': color,
+                'target_offset': idx_ply }
+
+        return hint        
+
     def duplicate_card_in_hand(self):
         pass
 
     def card_is_dispensable(self):
+
         pass
+
+    def update_mc(self):
+        """Based on the Public Information we calculate mc
+        For each card we find in public information (card_knowledge,
+        discard_pile and firework) we reduce max number by one"""
+
+        self.mc = self.init_mc()
+
+        self.update_mc_based_on_card_knowledge()
+
+        self.update_mc_based_on_discard_pile()
+
+        self.update_mc_based_on_firework()
+        
+    def update_mc_based_on_firework(self):
+        """ Update mc based on Firework"""
+
+        # Jede Karte die im Firework liegt kann nicht 
+        # mehr auf der Hand eines Spieles sein  
+        firework = self.observation['fireworks']
+        for color, max_rank in firework.items():
+            for rank in range(max_rank):
+                self.mc[color][rank] -= 1
+    
+    def update_mc_based_on_card_knowledge(self):
+        """Update mc based on card_knowledge """
+        
+        card_knowledge = self.observation['card_knowledge']
+        
+        # Prüfe alle Karten in card_knowledge
+        for player_card_knowledge in card_knowledge:
+            for card in player_card_knowledge:
+
+                # Wenn eine Karte vollständig bekannt dann reduziere mc
+                # Diese Karte kann ja nicht mehr einer anderen Hand sein
+                if (card['rank'] is not None and  
+                    card['color'] is not None):
+
+                    self.mc[card['color']][card['rank']] -= 1
+
+    def update_mc_based_on_discard_pile(self): 
+        """Update mc based on discard_pile """
+
+        # Jede Karte die im Discard Pile ist kann nicht mehr in der Hand 
+        # eines anderen Spieler sein 
+        discard_pile = self.observation['discard_pile']
+        for card in discard_pile:
+            self.mc[card['color']][card['rank']] -= 1   
+        
+    def update_poss_tables_based_card_knowledge(self):
+        """Updaten den Possibilty Table auf Basis der card_knowledge
+        (Also der Informationen die NUR aus einem hint entstehen, also nicht
+        aus dem Hatguessig"""
+
+        card_knowledge = self.observation['card_knowledge']
+
+        for agent_idx, player_card_knowledge in enumerate(card_knowledge):
+            for card_idx, card in enumerate(player_card_knowledge):
+
+                # Update possibility table based on card 
+                self.update_poss_tables_based_card(card, agent_idx, card_idx)
+
+    def update_poss_tables_based_card(self, card, agent_idx, card_idx):
+        """Update poss table based on card from card_knowledge
+
+        Args:
+            card (list): card from card_knowledge
+            agent_idx (int): player index where the card came from
+            card_idx (int): card index in hand from player 
+
+        Returns:
+            None
+        """
+       
+        max_rank = 4
+        
+        # Wenn man Rank von Karte Kennt, kann ausgeschlossen
+        # werden das die Karte einen anderen Rank hat 
+        if (card['rank'] is not None):
+            
+            # Setze für jeden Rank außer den bekannten Rank
+            # Den Wert auf 0 für 
+            for rank in range(max_rank+1):
+            
+                if rank == card['rank']:
+                    continue
+
+                for color in self.colors:
+                    self.table[agent_idx][card_idx]\
+                              [color][rank] = 0
+            
+        if (card['color'] is not None):
+            
+            # Setze jede Karte einer anderen Farbe auf 0
+            for color in self.colors:
+                
+                # Überspringe die Farbe welche die Karte hat 
+                if color == card['colors']:
+                    continue
+
+                for rank in range(max_rank+1):
+                    self.table[agent_idx][card_idx]\
+                              [color][rank] = 0        
+
+    def update_observation(self, observation):
+        """Update Observation"""
+        self.observation = observation
+    
+    def update_tables(self, action):
+        hats_player = self.player_hats(action)
+        targeted_cards = self.targeted_cards()
+              
+        for agent_idx in range(self.observation['num_player']):
+            self.update_table(hats_player[agent_idx], 
+                              targeted_cards[agent_idx])
+
+    def player_hats(self, action):
+        player_hats = []
+
+        for agent_idx in range(self.observation['num_players']):
+           
+           player_hats.append(self.cal_hat_player(agent_idx))
+           
+
+
+    def decode_hint(self, act):
+        # Spielanfang kein Hint wurde gegeben
+        # => given_hint == None
+        # => gebe hint
+     
+        act_type = act['action_type']
+        ply_idx = act['target_offset']
+        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8 \
+                                  [(act_type, ply_idx)]
+
+        # Der eigene hat entspricht der Partition der targed_card
+        own_hat = self.cal_own_hat(given_hat_sum_mod8)
+        targed_card, target_card_idx = self.get_target_card(0)
+        
+        # Setze alle Karten die nicht in der Partion sind (own_hat)
+        # auf N also auf 0
+        max_rank = 4
+        for pos_table in self.table[0][target_card_idx]:
+            for color in self.colors:
+                for rank in range(max_rank +1):
+                    if pos_table[color][rank] != own_hat:
+                        pos_table[color][rank] = 0
+
+        num_player = len(self.observation['num_players'])  
+        
+        self.set_part_table(ply_idx, card_idx, partition)
+        
+    def cal_own_hat(self, given_hat_sum_mod8):
+        # given_hat_sum_mod8 := r1 (Paper Cox)
+        # hat_sum_mod8 := ri (Paper Cox)
+        # own_hat := ci (Paper Cox)
+
+        idx_cur_ply = self.observation['current_player_offset']
+
+
+        hat_sum = self.cal_hat_sum_mod8()
+        hat_hinted_ply = self.cal_hat_player(idx_cur_ply)
+        own_hat = (given_hat_sum_mod8 - (hat_sum - hat_hinted_ply)) % 8
+
+        return own_hat           
+
+
+
+
+
+
+
