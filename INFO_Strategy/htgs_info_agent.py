@@ -236,7 +236,7 @@ class HTGSAgent(Agent):
 
         target_card, target_card_idx = self.get_target_card(agent_idx)
         
-        poss_table_card = self.table.get_poss_table(agent_idx, target_card_idx)
+        poss_table_card = self.table.get_poss_table_card(agent_idx, target_card_idx)
         part_table = self.table.get_part_table(self.observation, poss_table_card)
         
         rank_target_card = target_card['rank']
@@ -262,7 +262,7 @@ class HTGSAgent(Agent):
 
     def get_sum_mc_Ti_and_sum_mc_Ti_cut_Si(self, poss_tables_hand):
         """Return Nenner und Zahler von Formel S3"""
-        max_rank = 4
+
         sum_mc_Ti_cut_Si_cards = []
         sum_mc_Ti_cards = []
 
@@ -271,7 +271,7 @@ class HTGSAgent(Agent):
             sum_mc_Ti_cut_Si = 0
             sum_mc_Ti = 0    
             
-            for rank in range(max_rank+1):
+            for rank in range(self.max_rank+1):
                 for color in self.colors:
                     card = {'color': color, 'rank': rank}
                     
@@ -361,8 +361,8 @@ class HTGSAgent(Agent):
         # Jede Karte die im Firework liegt kann nicht 
         # mehr auf der Hand eines Spieles sein  
         firework = self.observation['fireworks']
-        for color, max_rank in firework.items():
-            for rank in range(max_rank):
+        for color, self.max_rank in firework.items():
+            for rank in range(self.max_rank):
                 self.mc[color][rank] -= 1
     
     def update_mc_based_on_card_knowledge(self):
@@ -414,16 +414,13 @@ class HTGSAgent(Agent):
         Returns:
             None
         """
-       
-        max_rank = 4
-        
         # Wenn man Rank von Karte Kennt, kann ausgeschlossen
         # werden das die Karte einen anderen Rank hat 
         if (card['rank'] is not None):
             
             # Setze für jeden Rank außer den bekannten Rank
             # Den Wert auf 0 für 
-            for rank in range(max_rank+1):
+            for rank in range(self.max_rank+1):
             
                 if rank == card['rank']:
                     continue
@@ -441,7 +438,7 @@ class HTGSAgent(Agent):
                 if color == card['colors']:
                     continue
 
-                for rank in range(max_rank+1):
+                for rank in range(self.max_rank+1):
                     self.table[agent_idx][card_idx]\
                               [color][rank] = 0        
 
@@ -476,7 +473,7 @@ class HTGSAgent(Agent):
         part_table = self.table.get_part_table(self.observation, poss_table_card)
 
         for color in self.colors: 
-            for rank in range(self.max_rank + 1):
+            for rank in range(self.self.max_rank + 1):
                 if (part_table[color][rank] != player_hat):
                     self.table[agent_idx][color][rank] == -1
         
@@ -488,7 +485,7 @@ class HTGSAgent(Agent):
         idx_hinting_player = self.observation['current_player_offset']
 
         for agent_idx in range(self.observation['num_players']):
-           
+            
             # Der Spieler der den Hint gibt kann ja nicht seinen Hat wissen
             # Damit wird dieser auch nicht berechnet den es ist keine 
             # Public Information  
@@ -498,7 +495,7 @@ class HTGSAgent(Agent):
 
             # Für alle anderen Spieler 
             else: 
-           player_hats.append(self.cal_hat_player(agent_idx, action))
+                player_hats.append(self.cal_hat_player(agent_idx, action))
         
         return player_hats
     
@@ -523,6 +520,7 @@ class HTGSAgent(Agent):
                 targeted_cards_idx.append(target_idx)
         
         return targeted_cards_idx
+
            
     def decode_hint(self, act):
         """Return Partition und Card Idx 
@@ -532,11 +530,6 @@ class HTGSAgent(Agent):
                           throw exception
         
         """
-        # Spielanfang kein Hint wurde gegeben
-        # => given_hint == None
-        # => gebe hint
-     
-        
 
         # Der eigene hat entspricht der Partition der targed_card
         own_hat = self.cal_own_hat(act)
