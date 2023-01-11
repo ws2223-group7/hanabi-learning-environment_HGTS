@@ -5,7 +5,7 @@ class HTGSAgent(Agent):
     def __init__(self, config, *args, **kwargs):
         self.config = config
 
-         
+        self.max_rank = 4 
         self.mc = self.init_mc()
         self.observation = None
         self.table = None
@@ -49,7 +49,7 @@ class HTGSAgent(Agent):
 
     def act(self):
         
-        poss_tables_hand = self.table.get_poss_tables_hand(0) 
+        poss_tables_hand = self.table.get_poss_table_hand(0) 
 
         # Rule 1.
         playable_card_idx = self.playable_card_in_hand(poss_tables_hand)
@@ -173,6 +173,7 @@ class HTGSAgent(Agent):
             return hint
 
     def cal_hat_sum_mod8(self):
+        """Returns the sum of hats from all other player mod 8"""
         hat_sum_player = 0
         
         for agent_idx in range(1, self.observation['num_players']):
@@ -183,9 +184,56 @@ class HTGSAgent(Agent):
 
         return hat_sum_mod8
     
-    def cal_hat_player(self, agent_idx):
-        """Return hat vom Spieler """ 
+    def cal_hat_player(self, agent_idx, act = None):
+        """Return hat vom Spieler mit Index agent_idx
         
+        Parameter
+            action(dict): Wenn der eigene Hat berechnet werden soll
+                          muss die Action mit übergeben werden.
+                          Hierbei muss es sich natürlich um ein Hint handeln 
+        """
+
+        # Sonderfall wenn der eigene Hat berechnet werden soll 
+        # ! Hierfür muss der Hint übergeben werden 
+        if agent_idx == 0:
+            return self.cal_own_hat(act)
+
+        return self.cal_other_hat(agent_idx)
+
+    def cal_own_hat(self, act):
+        """Returned eigenen hat
+        
+        Parameters
+            action (dict): Die Action muss ein Hint sein 
+        """
+        
+        # Throw Exception wenn Action kein Hint ist 
+        if (act['action_type'] == 'PLAY' or 
+            act['action_type'] == 'DISCARD'):
+                raise Exception("In update_tables action must be a hint")
+
+        # given_hat_sum_mod8 := r1 (Paper Cox)
+        # hat_sum_mod8 := ri (Paper Cox)
+        # own_hat := ci (Paper Cox)
+        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8 \
+                                  [(act['action_type'], act['target_offset'])]
+
+        idx_cur_ply = self.observation['current_player_offset']
+
+        hat_sum = self.cal_hat_sum_mod8()
+        hat_hinted_ply = self.cal_hat_player(idx_cur_ply)
+        own_hat = (given_hat_sum_mod8 - (hat_sum - hat_hinted_ply)) % 8
+
+        return own_hat           
+    
+    def cal_other_hat(self, agent_idx):
+        """Returned hat von anderen Agent nicht dem eigenen"""
+
+        # Raise Expection wenn man den eigenen Hat berechnen will 
+        if (agent_idx == 0):
+            raise Exception("Es kann nur der Hat von anderen Spielern \
+                             berechnet werden")
+
         target_card, target_card_idx = self.get_target_card(agent_idx)
         
         poss_table_card = self.table.get_poss_table(agent_idx, target_card_idx)
@@ -195,12 +243,12 @@ class HTGSAgent(Agent):
         color_target_card = target_card['color']
         hat = part_table[color_target_card][rank_target_card]
 
-        return hat 
+        return hat
 
     def get_target_card(self, agent_idx):
         """Return Target Card und Index der Target Card in Hand"""
 
-        poss_tables_hand = self.table.get_poss_tables_hand(agent_idx)
+        poss_tables_hand = self.table.get_poss_table_hand(agent_idx)
         sum_mc_Ti_cards, sum_mc_Ti_cut_Si_cards = self.get_sum_mc_Ti_and_sum_mc_Ti_cut_Si(
                                                         poss_tables_hand)
         pb_playable_cards = self.get_pb_playable_cards(sum_mc_Ti_cards, 
@@ -402,62 +450,67 @@ class HTGSAgent(Agent):
         self.observation = observation
     
     def update_tables(self, action):
-        hats_player = self.player_hats(action)
-        targeted_cards = self.targeted_cards()
+        """Update the table based on hint
+        
+        Parameters
+        action (dict): Die Action muss ein Hint sein 
+        """
+        # Throw Exception wenn Action kein Hint ist 
+        if (action['action_type'] == 'PLAY' or 
+            action['action_type'] == 'DISCARD'):
+                raise Exception("In update_tables action must be a hint")
+        
+        # Berechne die Hütte aller Spieler (auch den eigenen)
+        # auf Basis vom hint
+        player_hats = self.player_hats(action)
+        target_cards_idx = self.targeted_cards_idx()
               
         for agent_idx in range(self.observation['num_player']):
-            self.update_table(hats_player[agent_idx], 
-                              targeted_cards[agent_idx])
+            self.update_table(agent_idx,
+                              player_hats[agent_idx], 
+                              target_cards_idx[agent_idx])
+    
+    def update_poss_table(self, agent_idx, player_hat, target_card_idx):
+
+        poss_table_card = self.table[agent_idx][target_card_idx]
+        part_table = self.table.get_part_table(self.observation, poss_table_card)
+
+        for color in self.colors: 
+            for rank in range(self.max_rank + 1):
+                if (part_table[color][rank] != player_hat):
+                    self.table[agent_idx][color][rank] == -1
+        
 
     def player_hats(self, action):
+        """Return list with hats off all Players"""
         player_hats = []
 
         for agent_idx in range(self.observation['num_players']):
            
-           player_hats.append(self.cal_hat_player(agent_idx))
+           player_hats.append(self.cal_hat_player(agent_idx, action))
+        
+        return player_hats
            
-
-
     def decode_hint(self, act):
+        """Return Partition und Card Idx 
+        
+        Parameter:
+            action(dict): action muss ein hint sein sonst 
+                          throw exception
+        
+        """
         # Spielanfang kein Hint wurde gegeben
         # => given_hint == None
         # => gebe hint
      
-        act_type = act['action_type']
-        ply_idx = act['target_offset']
-        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8 \
-                                  [(act_type, ply_idx)]
+        
 
         # Der eigene hat entspricht der Partition der targed_card
-        own_hat = self.cal_own_hat(given_hat_sum_mod8)
-        targed_card, target_card_idx = self.get_target_card(0)
+        own_hat = self.cal_own_hat(act)
+        _, target_card_idx = self.get_target_card(0)
         
-        # Setze alle Karten die nicht in der Partion sind (own_hat)
-        # auf N also auf 0
-        max_rank = 4
-        for pos_table in self.table[0][target_card_idx]:
-            for color in self.colors:
-                for rank in range(max_rank +1):
-                    if pos_table[color][rank] != own_hat:
-                        pos_table[color][rank] = 0
-
-        num_player = len(self.observation['num_players'])  
+        return own_hat, target_card_idx
         
-        self.set_part_table(ply_idx, card_idx, partition)
-        
-    def cal_own_hat(self, given_hat_sum_mod8):
-        # given_hat_sum_mod8 := r1 (Paper Cox)
-        # hat_sum_mod8 := ri (Paper Cox)
-        # own_hat := ci (Paper Cox)
-
-        idx_cur_ply = self.observation['current_player_offset']
-
-
-        hat_sum = self.cal_hat_sum_mod8()
-        hat_hinted_ply = self.cal_hat_player(idx_cur_ply)
-        own_hat = (given_hat_sum_mod8 - (hat_sum - hat_hinted_ply)) % 8
-
-        return own_hat           
 
 
 
