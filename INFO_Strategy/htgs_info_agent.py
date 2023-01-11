@@ -490,6 +490,27 @@ class HTGSAgent(Agent):
            player_hats.append(self.cal_hat_player(agent_idx, action))
         
         return player_hats
+    def targeted_cards_idx(self):
+        """Return list mit targed_cards von allen Agent
+        außer dem der aktuell dar ist. Also dem der gehintet hat"""
+
+        targeted_cards_idx = []
+        idx_hinting_player = self.observation['current_player_offset']
+
+        for agent_idx in range (self.observation['num_players']):
+
+            # Der Spieler der den Hint gibt kann ja nicht seinen Hat wissen
+            # Damit wird dieser auch nicht berechnet den es ist keine 
+            # Public Information  
+            if idx_hinting_player == agent_idx:
+                targeted_cards_idx.append(None)
+                continue
+        
+            else:
+                _, target_idx = self.get_target_card(agent_idx)
+                targeted_cards_idx.append(target_idx)
+        
+        return targeted_cards_idx
            
     def decode_hint(self, act):
         """Return Partition und Card Idx 
