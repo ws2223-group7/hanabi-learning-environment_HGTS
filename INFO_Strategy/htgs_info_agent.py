@@ -484,12 +484,24 @@ class HTGSAgent(Agent):
     def player_hats(self, action):
         """Return list with hats off all Players"""
         player_hats = []
+        # Der Spieler der den Hint gibt, also  
+        idx_hinting_player = self.observation['current_player_offset']
 
         for agent_idx in range(self.observation['num_players']):
            
+            # Der Spieler der den Hint gibt kann ja nicht seinen Hat wissen
+            # Damit wird dieser auch nicht berechnet den es ist keine 
+            # Public Information  
+            if idx_hinting_player == agent_idx:
+                player_hats.append(None)
+                
+
+            # Für alle anderen Spieler 
+            else: 
            player_hats.append(self.cal_hat_player(agent_idx, action))
         
         return player_hats
+    
     def targeted_cards_idx(self):
         """Return list mit targed_cards von allen Agent
         außer dem der aktuell dar ist. Also dem der gehintet hat"""
