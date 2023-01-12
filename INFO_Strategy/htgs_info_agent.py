@@ -1,5 +1,13 @@
+
+import os 
+import sys 
+
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
+
 from hanabi_learning_environment.rl_env import Agent
-from possibility_table import Table
+from INFO_Strategy.possibility_table import Table
 
 class HTGSAgent(Agent):
     def __init__(self, config, *args, **kwargs):
@@ -49,16 +57,16 @@ class HTGSAgent(Agent):
 
     def act(self):
         
-        poss_tables_hand = self.table.get_poss_table_hand(0) 
+        poss_hand_table = self.table.get_poss_table_hand(0) 
 
         # Rule 1.
-        playable_card_idx = self.playable_card_in_hand(poss_tables_hand)
+        playable_card_idx = self.playable_card_in_hand(poss_hand_table)
         if (playable_card_idx is not None):
             act = {'action_type': 'PLAY','card_index': playable_card_idx}
             return act
 
         # Rule 2.
-        dead_card_idx = self.dead_card_in_hand(poss_tables_hand)
+        dead_card_idx = self.dead_card_in_hand(poss_hand_table)
         if (len(self.observation['discard_pile']) < 5 and dead_card_idx is not None):
             act = {'action_type': 'DISCARD','card_index': playable_card_idx}
             return act
@@ -73,13 +81,13 @@ class HTGSAgent(Agent):
             return act
         
         # Rule 5.
-        duplicate_card_idx = self.duplicate_card_in_hand(poss_tables_hand) 
+        duplicate_card_idx = self.duplicate_card_in_hand(poss_hand_table) 
         if (dead_card_idx is not None):
             act = {'action_type': 'DISCARD','card_index': duplicate_card_idx}
             return act
         
         # Rule 6.
-        dispensable_card_idx = self.duplicate_card_in_hand(poss_tables_hand) 
+        dispensable_card_idx = self.duplicate_card_in_hand(poss_hand_table) 
         if (dispensable_card_idx is not None):
             act = {'action_type': 'DISCARD','card_index': dispensable_card_idx}
             return act
@@ -89,16 +97,16 @@ class HTGSAgent(Agent):
             act = {'action_type': 'DISCARD', 'card_index': 0}
             return act
         
-    def playable_card_in_hand(self, poss_tables_hand):
+    def playable_card_in_hand(self, poss_hand_table):
         """ Return Index der ersten spielbaren Karte
         wenn keine Karte spielbare return None"""
        
         
-        for card_idx, poss_table_card in enumerate(poss_tables_hand):
+        for card_idx, pass_card_table in enumerate(poss_hand_table):
 
             #Prüfe ob eine Karte eindeutig identifizier bar ist
-            if (self.table.get_ti(poss_table_card) == 1):
-                card = self.table.get_card(poss_table_card)
+            if (self.table.get_ti(pass_card_table) == 1):
+                card = self.table.get_card(pass_card_table)
 
                 # Prüfe ob diese Karte spielebar ist 
                 if (self.card_is_playable(card) is True):
@@ -112,17 +120,17 @@ class HTGSAgent(Agent):
         fireworks = self.observation['fireworks']
         return card['rank'] == fireworks[card['color']]
     
-    def dead_card_in_hand(self, poss_tables_hand)->int:
+    def dead_card_in_hand(self, poss_hand_table)->int:
         """ Return index der ersten dead Kart
         wenn keine dead Kart vorhanden return None"""
         
          
-        for card_idx, poss_table_card in enumerate(poss_tables_hand):
+        for card_idx, poss_card_table in enumerate(poss_hand_table):
             # Prüfe ob Karte bekannt ist
-            if (self.table.get_ti(poss_table_card) == 1):
+            if (self.table.get_ti(poss_card_table) == 1):
     
                 # Ermittele Karte  
-                card = self.table.get_card(poss_table_card)
+                card = self.table.get_card(poss_card_table)
 
                 # Prüfe ob Karte tot 
                 if self.dead_card(card):
@@ -335,11 +343,30 @@ class HTGSAgent(Agent):
 
         return hint        
 
-    def duplicate_card_in_hand(self):
-        pass
+    def duplicate_card_in_hand(self, poss_hand_table):
+        """Return First duplicate Cards in hands
+        if no card is duplicate return None"""
+        
+        for poss_card_table in poss_hand_table:
+            # Um zu bestimmen ob die Karte duplicate ist muss
+            # sie bekannt sein also ti = 1 
+            if self.table.get_ti(poss_card_table) == 1:
+                own_card = self.table.get_card(poss_card_table)
+                
+                # Betrachte nur die anderen Hände
+                other_hands = self.observation['observed_hands'][1:]
+                for other_hand in other_hands:
+                    for other_card in other_hand:
+                        if other_card == own_card: 
+                            return own_card
+
+        return None 
+
+
+        
+        
 
     def card_is_dispensable(self):
-
         pass
 
     def update_mc(self):
@@ -461,21 +488,30 @@ class HTGSAgent(Agent):
         # auf Basis vom hint
         player_hats = self.player_hats(action)
         target_cards_idx = self.targeted_cards_idx()
+
+        idx_hinting_player = self.observation['current_player_offset']
               
-        for agent_idx in range(self.observation['num_player']):
-            self.update_table(agent_idx,
+        for agent_idx in range(self.observation['num_players']):
+
+            # Vom Spieler der den Tipp gibt kann der Poss Table
+            # nicht upgedated werden 
+            if idx_hinting_player == agent_idx:
+                continue
+
+            self.update_poss_table(agent_idx,
                               player_hats[agent_idx], 
                               target_cards_idx[agent_idx])
     
     def update_poss_table(self, agent_idx, player_hat, target_card_idx):
+        """Update the poss_table for an agent"""
 
         poss_table_card = self.table[agent_idx][target_card_idx]
         part_table = self.table.get_part_table(self.observation, poss_table_card)
 
         for color in self.colors: 
-            for rank in range(self.self.max_rank + 1):
+            for rank in range(self.max_rank + 1):
                 if (part_table[color][rank] != player_hat):
-                    self.table[agent_idx][color][rank] == -1
+                    self.table[agent_idx][target_card_idx][color][rank] == -1
         
 
     def player_hats(self, action):
@@ -491,11 +527,10 @@ class HTGSAgent(Agent):
             # Public Information  
             if idx_hinting_player == agent_idx:
                 player_hats.append(None)
+                continue
                 
-
             # Für alle anderen Spieler 
-            else: 
-                player_hats.append(self.cal_hat_player(agent_idx, action))
+            player_hats.append(self.cal_hat_player(agent_idx, action))
         
         return player_hats
     
@@ -515,9 +550,9 @@ class HTGSAgent(Agent):
                 targeted_cards_idx.append(None)
                 continue
         
-            else:
-                _, target_idx = self.get_target_card(agent_idx)
-                targeted_cards_idx.append(target_idx)
+            
+            _, target_idx = self.get_target_card(agent_idx)
+            targeted_cards_idx.append(target_idx)
         
         return targeted_cards_idx
 
