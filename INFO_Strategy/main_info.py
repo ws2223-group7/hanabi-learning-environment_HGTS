@@ -58,8 +58,8 @@ class Runner(object):
     if output: datei = open('HAT_log.txt','w')
     
     # Loop over all Episodes / Rounds 
-    for episode in range(flags['num_episodes']):
 
+    for episode in range(flags['num_episodes']):
       ### Begin Init Episodes / Rounds ###
 
       #  At the Beginning of every round reset environment
@@ -112,15 +112,9 @@ class Runner(object):
           if (action['action_type'] == 'REVEAL_COLOR' or 
               action['action_type'] == 'REVEAL_RANK'):
 
-              
-
-            for agent3 in agent: 
+            for agent3 in agents: 
               agent3.update_tables(action)
 
-              
-
-
-          
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(action)
 
@@ -200,19 +194,8 @@ if __name__ == "__main__":
  
   flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
 
-  options, arguments = getopt.getopt(sys.argv[1:], '',
-                                     ['players=',
-                                      'num_episodes=',
-                                      'agent_class='])
-  if arguments:
-    sys.exit('usage: rl_env_example.py [options]\n'
-             '--players       number of players in the game.\n'
-             '--num_episodes  number of game episodes to run.\n'
-             '--agent_class   {}'.format(' or '.join(AGENT_CLASSES.keys())))
-  for flag, value in options:
-    flag = flag[2:]  # Strip leading --.
-    flags[flag] = type(flags[flag])(value)
   runner = Runner(flags)
+  
   if runner.agent_class == HTGSAgent: 
     runner.run()
   else: sys.exit('Wrong Agent Class!\n')
