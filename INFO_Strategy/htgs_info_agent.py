@@ -366,8 +366,42 @@ class HTGSAgent(Agent):
         
         
 
-    def card_is_dispensable(self):
-        pass
+    def dispensable_card_in_hand(self, poss_hand_table):
+        """Return dispensable card in hand mit lowest Index
+        Wenn keine Karte dispensable return None"""
+
+        for poss_card_table in poss_hand_table:
+            # Um zu bestimmen ob die Karte duplicate ist muss
+            # sie bekannt sein also ti = 1 
+            if self.table.get_ti(poss_card_table) == 1:
+                card = self.table.get_card(poss_card_table)
+
+                if (self.dispensable_card(card)):
+                    return card
+        
+        return None 
+        
+        
+        
+
+    def dispensable_card(self,card):
+
+        # Anzahl der verbleiben Karten
+        # in Deck, Firework und Händen   
+        nr_rem_card_in_deck = [3,2,2,2,1]
+        
+        for card_dsc_pile in self.observation['discard_pile']:
+            # Prüfe alle Karten im dsc_pile mit der selben Farbe und
+            # einem geringen Rank 
+            if card_dsc_pile['color'] == card['color']:
+                nr_rem_card_in_deck[card_dsc_pile['rank']] -= 1    
+
+        # Wenn die Karten nur noch einmal da ist
+        # dann return True (Karte ist ToT)
+        if nr_rem_card_in_deck[card['rank']] == 1:
+            return False
+
+        return True
 
     def update_mc(self):
         """Based on the Public Information we calculate mc
