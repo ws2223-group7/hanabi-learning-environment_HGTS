@@ -1,7 +1,7 @@
 from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 
-import math
+
 
 class Table(list):
     def __init__(self, observation):
@@ -24,26 +24,26 @@ class Table(list):
                      'W': rep_color.copy(),
                      'Y': rep_color.copy(),}
 
-        table = [[rep_hand]*num_cards_per_hand for i in range (num_players)]
+        table = [[rep_hand].copy() *num_cards_per_hand for i in range (num_players)]
 
         return table
     
-    def get_card(self, poss_table_card):
+    def get_card(self, poss_card_table):
         """ Wenn die Karte bekannt ist 
         (ti=1) return Card sonst None"""
 
         # Prüfe ob Karte bekannt ist 
-        if(self.get_ti(poss_table_card) == 1):
+        if(self.get_ti(poss_card_table) == 1):
             # Ermittel Karte von Table 
             for color in self.colors:
-                for rank, value in enumerate(poss_table_card[color]):
+                for rank, value in enumerate(poss_card_table[color]):
                     if value == 1:
                         card = {'color': color, 'rank': rank}
                         return card
 
         return None
 
-    def get_ti(self, poss_table_card)-> int:
+    def get_ti(self, poss_card_table)-> int:
         """ Bestimme ti (Anzahl von offene Möglichkeiten) 
         für eine bestimme Karte (agent_idx, card_idx) """
         ti = 0
@@ -51,31 +51,31 @@ class Table(list):
         # Iteriere über alle Farben im Table und summiere liste
         # P=1 und N=0 ti ist die Anzahl der P's 
         for color in self.colors: 
-            ti += sum(poss_table_card[color])
+            ti += sum(poss_card_table[color])
         
         return ti
 
-    def get_poss_table_card(self, agent_idx, card_idx)-> list:
-        """ Return poss_table_card"""
-        poss_table_card = self[agent_idx][card_idx] 
-        return poss_table_card
+    def get_poss_card_table(self, agent_idx, card_idx)-> list:
+        """ Return poss_card_table"""
+        poss_card_table = self[agent_idx][card_idx] 
+        return poss_card_table
 
-    def get_hand_table(self, agent_idx:int)-> list:
+    def get_poss_table_hand(self, agent_idx:int)-> list:
         """ Return hand_table"""
         hand_table = self[agent_idx]
         return hand_table
     
-    def get_part_table(self, observation, poss_table_card):
+    def get_part_table(self, observation, poss_card_table):
         """Return den partition table zu einem hand_table"""
         
         # Ermittle alle toten Karten im Spiel 
         dead_cards_in_game = self.get_deads_card(observation)
 
         # Ermittle Anzahl der Singleton set 
-        single_hint_sets, seven_hint_sets = self.get_size_hint_sets(poss_table_card,dead_cards_in_game)
+        single_hint_sets, seven_hint_sets = self.get_size_hint_sets(poss_card_table,dead_cards_in_game)
 
         # Erzeuge neuen table der als partion table dient (wie Fig.6 Cox)
-        part_table = self.init_part_table(poss_table_card)
+        part_table = self.init_part_table(poss_card_table)
 
         # Setze alle Deadcards auf 0 
         part_table = self.set_dead_hint_set(part_table,dead_cards_in_game)
@@ -88,7 +88,6 @@ class Table(list):
 
         return part_table
     
-
     def get_deads_card(self, observation)->dict:
         """Return alle toten Karten im Spiel"""
 
@@ -133,14 +132,14 @@ class Table(list):
 
         return False
     
-    def get_size_hint_sets(self, poss_table_card,dead_cards_in_game):
+    def get_size_hint_sets(self, poss_card_table,dead_cards_in_game):
         """Return die Anzahl an single hint sets  
         und die Anzahl der hint sets mit größe sieben"""
 
-        ti = self.get_ti(poss_table_card)
+        ti = self.get_ti(poss_card_table)
 
         # Max Anzahl der Toten Karten in der Hand 
-        pos_dead_card = self.get_possible_dead_cards(poss_table_card, dead_cards_in_game)
+        pos_dead_card = self.get_possible_dead_cards(poss_card_table, dead_cards_in_game)
 
         # Die max singleton_size hängt davon ob
         # ob eine Partition von Dead Cards belegt wird 
@@ -157,21 +156,21 @@ class Table(list):
 
         return single_hint_set, num_seven_hint_sets        
 
-    def get_possible_dead_cards(self, poss_table_card, dead_cards_in_game): 
+    def get_possible_dead_cards(self, poss_card_table, dead_cards_in_game): 
         """Return die Anzahl der max. toten Karten in der Hand"""
         num_pos_dead_cards = 0
 
         for dead_card in dead_cards_in_game:
-            if (poss_table_card[dead_card['color']][dead_card['rank']] == 1):
+            if (poss_card_table[dead_card['color']][dead_card['rank']] == 1):
                 num_pos_dead_cards += 1
 
         return num_pos_dead_cards
 
-    def init_part_table(self, poss_table_card):
+    def init_part_table(self, poss_card_table):
         part_table = {}
 
         
-        for color, rank_list in poss_table_card.items():
+        for color, rank_list in poss_card_table.items():
             # Jedes P (also jede 1) wird zur -2 
             # Jeder N (also jede 0) wird zur -1
             idx_shifted_list =  [-2 if x==1 else -1 for x in rank_list]
@@ -299,9 +298,9 @@ if __name__ == "__main__":
 
     dead_cards_in_game = testtable.get_deads_card(observation)
 
-    poss_table_card = testtable.get_poss_table_card(0,0)
+    poss_card_table = testtable.get_poss_card_table(0,0)
     
-    part_table = testtable.get_part_table(observation, poss_table_card)
+    part_table = testtable.get_part_table(observation, poss_card_table)
     
     print()
   
