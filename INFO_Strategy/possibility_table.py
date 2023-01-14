@@ -1,5 +1,6 @@
 from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
+import copy 
 
 
 
@@ -13,18 +14,21 @@ class Table(list):
 
         num_players = observation['num_players']
         num_cards_per_hand = len(observation['observed_hands'][0])
+        table = []
 
+        rep_card = {'B': [1,1,1,1,1],
+                    'G': [1,1,1,1,1],
+                    'R': [1,1,1,1,1],
+                    'W': [1,1,1,1,1],
+                    'Y': [1,1,1,1,1]}
 
+        rep_hand = [copy.deepcopy(rep_card) for _ in range (num_cards_per_hand)]
+        
+        
+        for _ in range(num_players):
+            table.append(copy.deepcopy(rep_hand)) 
 
-        rep_color = [1,1,1,1,1]
-
-        rep_hand =  {'B': rep_color.copy(),
-                     'G': rep_color.copy(),
-                     'R': rep_color.copy(),
-                     'W': rep_color.copy(),
-                     'Y': rep_color.copy(),}
-
-        table = [[rep_hand].copy() *num_cards_per_hand for i in range (num_players)]
+        # Wir brauchen eine Deep Copy von rep_color kein Alaising hat 
 
         return table
     
@@ -81,7 +85,7 @@ class Table(list):
         part_table = self.set_dead_hint_set(part_table,dead_cards_in_game)
 
         # Setze die single hint sets 
-        part_table = self.set_singleton_hint_sets(part_table, single_hint_sets)
+        part_table = self.set_singleton_hint_sets(dead_cards_in_game, part_table, single_hint_sets)
 
         # Setze zusätzliche (sieberer) hint sets
         part_table = self.set_seven_hint_sets(part_table, single_hint_sets)
@@ -188,12 +192,12 @@ class Table(list):
 
         return part_table        
 
-    def set_singleton_hint_sets(self, part_table, single_hint_sets):
+    def set_singleton_hint_sets(self, dead_cards_in_game, part_table, single_hint_sets):
         """Return part_table mit gesetzen Partitionen 
         für single hint set"""
         
         max_rank = 4
-        part_idx_single_hint = 1
+        part_idx_single_hint = 0 if len(dead_cards_in_game) == 0 else 1
         
         # Iteriere über jeden Rank und jede Farbe
         for rank in range(max_rank + 1):
@@ -214,11 +218,6 @@ class Table(list):
 
         
         return part_table
-
-                    
-
-
-        
 
     def set_seven_hint_sets(self, part_table, single_hint_set):
         

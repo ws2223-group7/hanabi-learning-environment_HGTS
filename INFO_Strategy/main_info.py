@@ -108,12 +108,9 @@ class Runner(object):
                                   action,episode_reward)
 
           
-          # Update Possibilty table auf Basis vom Hint
-          if (action['action_type'] == 'REVEAL_COLOR' or 
-              action['action_type'] == 'REVEAL_RANK'):
-
-            for agent3 in agents: 
-              agent3.update_tables(action)
+          # Update Table 
+          for agent3 in agents: 
+            agent3.update_tables(action)
 
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(action)
