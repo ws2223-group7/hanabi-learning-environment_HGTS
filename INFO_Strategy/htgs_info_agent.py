@@ -476,20 +476,44 @@ class HTGSAgent(Agent):
 
                 # Wenn eine Karte vollständig bekannt dann reduziere mc
                 # Diese Karte kann ja nicht mehr einer anderen Hand sein
-                if (card['rank'] is not None and  
+                if (card['rank'] is not None or  
                     card['color'] is not None):
 
                     self.update_table_based_on_card_from_cardknowledge(player_idx, card_idx, card)
 
     def update_table_based_on_card_from_cardknowledge(self, player_idx, card_idx, card):
         """Update table based on a card which is known due to cardknowledge"""
-        card_color = card['color']
-        card_rank = card['rank']
+ 
 
         for color in self.colors:
             for rank in range(self.max_rank + 1):
-                if (card_color != color or card_rank != rank):
-                    self.table[player_idx][card_idx][color][rank] = 0
+                
+                
+                if (card['rank'] is not None):
+                            
+                            # Setze für jeden Rank außer den bekannten Rank
+                            # Den Wert auf 0 für 
+                            for rank in range(self.max_rank + 1):
+                            
+                                if rank == card['rank']:
+                                    continue
+
+                                for color in self.colors:
+                                    self.table[player_idx][card_idx]\
+                                            [color][rank] = 0
+                        
+                if (card['color'] is not None):
+                    
+                    # Setze jede Karte einer anderen Farbe auf 0
+                    for color in self.colors:
+                        
+                        # Überspringe die Farbe welche die Karte hat 
+                        if color == card['color']:
+                            continue
+
+                        for rank in range(self.max_rank+1):
+                            self.table[player_idx][card_idx]\
+                                    [color][rank] = 0 
         
 
 
