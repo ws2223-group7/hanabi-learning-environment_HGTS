@@ -137,6 +137,7 @@ class HTGSAgent(Agent):
                     return card_idx
 
     def dead_card(self, card):
+        """Return True if card is dead, else False """
         firework = self.observation['fireworks']
         if (card['rank'] < firework[card['color']]):
             return True
@@ -350,6 +351,7 @@ class HTGSAgent(Agent):
         return hint
 
     def get_hint_hat_sum_bigger_3(self, hatSumMod8):
+        
         # See Paper Cox for calculation 
         idx_ply = hatSumMod8 - 3
 
@@ -396,18 +398,41 @@ class HTGSAgent(Agent):
         for card_idx, poss_card_table in enumerate(poss_hand_table):
             # Um zu bestimmen ob die Karte duplicate ist muss
             # sie bekannt sein also ti = 1 
+
+            card_color = self.observation['card_knowledge'][0][card_idx]['color']
+            card_rank = self.observation['card_knowledge'][0][card_idx]['rank']
+
             if self.table.get_ti(poss_card_table) == 1:
                 card = self.table.get_card(poss_card_table)
 
                 if (self.dispensable_card(card)):
                     return card_idx
-        
+
+            elif self.rest_poss_card_dispensable(poss_card_table):
+                return card_idx
+
         return None 
         
+    def rest_poss_card_dispensable(self, poss_card_table):
+        """Return true if all poss cards in hand are dispensable"""
+
         
+        for color in self.colors:
+            for rank in range(self.max_rank + 1):
+                card = {'color': color, 'rank': rank}
+                if self.dispensable_card(card) == False \
+                   and poss_card_table[color][rank]==1:
+                    
+                    return False
         
+        return True
+                
 
     def dispensable_card(self,card):
+        """Return True if Card is dispensable, else False"""
+
+        if (self.dead_card(card)):
+            return True
 
         # Anzahl der verbleiben Karten
         # in Deck, Firework und Händen   
@@ -417,7 +442,7 @@ class HTGSAgent(Agent):
             # Prüfe alle Karten im dsc_pile mit der selben Farbe und
             # einem geringen Rank 
             if card_dsc_pile['color'] == card['color']:
-                nr_rem_card_in_deck[card_dsc_pile['rank']] -= 1    
+                nr_rem_card_in_deck[card_dsc_pile['rank']] -= 1 
 
         # Wenn die Karten nur noch einmal da ist
         # dann return True (Karte ist ToT)
@@ -476,8 +501,8 @@ class HTGSAgent(Agent):
 
                 # Wenn eine Karte vollständig bekannt dann reduziere mc
                 # Diese Karte kann ja nicht mehr einer anderen Hand sein
-                if (card['rank'] is not None or  
-                    card['color'] is not None):
+                if (not (card['rank'] is None and   
+                         card['color'] is None)):
 
                     self.update_table_based_on_card_from_cardknowledge(player_idx, card_idx, card)
 

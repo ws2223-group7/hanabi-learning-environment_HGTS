@@ -72,9 +72,6 @@ class Table(list):
     def get_part_table(self, observation, poss_card_table):
         """Return den partition table zu einem hand_table"""
 
-        if self.get_ti(poss_card_table) == 1:
-            print()    
-
         # Ermittle alle toten Karten im Spiel 
         dead_cards_in_game = self.get_deads_card(observation,poss_card_table)
 
