@@ -243,10 +243,12 @@ class HTGSAgent(Agent):
                              berechnet werden")
 
         target_card, target_card_idx = self.get_target_card(agent_idx)
+
         
         poss_table_card = self.table.get_poss_card_table(agent_idx, target_card_idx)
         part_table = self.table.get_part_table(self.observation, poss_table_card)
         
+
         rank_target_card = target_card['rank']
         color_target_card = target_card['color']
         hat = part_table[color_target_card][rank_target_card]
@@ -262,9 +264,12 @@ class HTGSAgent(Agent):
         pb_playable_cards = self.get_pb_playable_cards(agent_idx, 
                                                     sum_mc_Ti_cards, 
                                                        sum_mc_Ti_cut_Si_cards)
-        
-        target_card_idx = pb_playable_cards.index(max(pb_playable_cards))
+
         player_hand = self.observation['observed_hands'][agent_idx]
+        num_cards_in_hand = len(self.observation['observed_hands'][agent_idx])
+        pb_playable_cards_in_hand = pb_playable_cards[0:num_cards_in_hand]
+        
+        target_card_idx = pb_playable_cards.index(max(pb_playable_cards_in_hand))
         target_card = player_hand[target_card_idx]
 
         return target_card, target_card_idx
@@ -313,17 +318,18 @@ class HTGSAgent(Agent):
                 # Wenn die Karte bekannt ist wird diese von mc abgezogen
                 # Daraus folgt das mc = 0 sein keint 
                 # Dies kann zur ZeroDivisionError führen 
-                print("Zero Division Error")
 
                 poss_table = self.table.get_poss_card_table(agent_idx, card_idx)
                 card = self.table.get_card(poss_table)
 
                 if (self.playable_card(card) == True):
                     pb_playable_cards.append(1)
-                
+            
                 else:
                     pb_playable_cards.append(0)
-                            
+
+             
+
         return pb_playable_cards
 
     def get_hint_hat_sum_smaller_4(self, hat_sum_mod8):
@@ -458,6 +464,35 @@ class HTGSAgent(Agent):
                     card['color'] is not None):
 
                     self.mc[card['color']][card['rank']] -= 1
+    
+    def update_poss_tables_based_on_card_knowledge(self):
+        """Update poss tables based on card knowledge"""
+
+        card_knowledge = self.observation['card_knowledge']
+        
+        # Prüfe alle Karten in card_knowledge
+        for player_idx, player_card_knowledge in enumerate(card_knowledge):
+            for card_idx, card in enumerate (player_card_knowledge):
+
+                # Wenn eine Karte vollständig bekannt dann reduziere mc
+                # Diese Karte kann ja nicht mehr einer anderen Hand sein
+                if (card['rank'] is not None and  
+                    card['color'] is not None):
+
+                    self.update_table_based_on_card_from_cardknowledge(player_idx, card_idx, card)
+
+    def update_table_based_on_card_from_cardknowledge(self, player_idx, card_idx, card):
+        """Update table based on a card which is known due to cardknowledge"""
+        card_color = card['color']
+        card_rank = card['rank']
+
+        for color in self.colors:
+            for rank in range(self.max_rank + 1):
+                if (card_color != color or card_rank != rank):
+                    self.table[player_idx][card_idx][color][rank] = 0
+        
+
+
 
     def update_mc_based_on_discard_pile(self): 
         """Update mc based on discard_pile """
@@ -479,9 +514,9 @@ class HTGSAgent(Agent):
             for card_idx, card in enumerate(player_card_knowledge):
 
                 # Update possibility table based on card 
-                self.update_poss_table_based_card(card, agent_idx, card_idx)
+                self.update_poss_table_based_on_card_from_cardknowledge(card, agent_idx, card_idx)
 
-    def update_poss_table_based_card(self, card, agent_idx, card_idx):
+    def update_poss_table_based_on_card_from_cardknowledge(self, card, agent_idx, card_idx):
         """Update poss table based on card from card_knowledge
 
         Args:
@@ -544,8 +579,14 @@ class HTGSAgent(Agent):
     def update_tables_play_or_discard(self,action):
         """Update Table based on new Card"""
         
+        thrown_card_idx = action['card_index'] 
         current_player_idx = self.observation['current_player_offset']
-        card_idx = action['card_index']
+        num_hand_cards = len(self.observation['observed_hands'][current_player_idx])
+
+        for card_idx in range(thrown_card_idx, num_hand_cards - 1):
+            self.table[current_player_idx][card_idx] = self.table[current_player_idx][card_idx + 1]
+        
+        
 
         poss_table = {'B': [1, 1, 1, 1, 1],
                       'G': [1, 1, 1, 1, 1],
@@ -553,13 +594,14 @@ class HTGSAgent(Agent):
                       'W': [1, 1, 1, 1, 1],
                       'Y': [1, 1, 1, 1, 1]}
 
-        self.table[current_player_idx][card_idx] = poss_table
+        self.table[current_player_idx][num_hand_cards - 1] = poss_table
+
         
     def update_tables_hint(self, action):
         """Update Table based on hint"""
         # Berechne die Hütte aller Spieler (auch den eigenen)
         # auf Basis vom hint
-        player_hats = self.player_hats(action)
+        player_hats = self.player_hats(action) 
         target_cards_idx = self.targeted_cards_idx()
 
         idx_hinting_player = self.observation['current_player_offset']
@@ -570,7 +612,6 @@ class HTGSAgent(Agent):
             # nicht upgedated werden 
             if idx_hinting_player == agent_idx:
                 continue
-               
 
             self.update_poss_table_based_on_hat(agent_idx,
                                                 player_hats[agent_idx], 
@@ -583,19 +624,7 @@ class HTGSAgent(Agent):
 
         poss_table_card = self.table[agent_idx][target_card_idx]
         part_table = self.table.get_part_table(self.observation, poss_table_card)
-        
-        print("\n \nObservation Hand")
-        print(self.observation['observed_hands'][agent_idx][target_card_idx])
-        
-        print("\n Possibility Table ")
-        print(poss_table_card)
-        
-        print("\n Part Table ")
-        print(part_table)
-        
-        print("\n Player Hat")
-        print(player_hat)
-
+     
         for color in self.colors: 
             for rank in range(self.max_rank + 1):
                 if (part_table[color][rank] != player_hat):

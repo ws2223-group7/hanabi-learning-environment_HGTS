@@ -71,9 +71,12 @@ class Table(list):
     
     def get_part_table(self, observation, poss_card_table):
         """Return den partition table zu einem hand_table"""
-        
+
+        if self.get_ti(poss_card_table) == 1:
+            print()    
+
         # Ermittle alle toten Karten im Spiel 
-        dead_cards_in_game = self.get_deads_card(observation)
+        dead_cards_in_game = self.get_deads_card(observation,poss_card_table)
 
         # Ermittle Anzahl der Singleton set 
         single_hint_sets, seven_hint_sets = self.get_size_hint_sets(poss_card_table,dead_cards_in_game)
@@ -92,7 +95,7 @@ class Table(list):
 
         return part_table
     
-    def get_deads_card(self, observation)->dict:
+    def get_deads_card(self, observation, poss_card_table)->dict:
         """Return alle toten Karten im Spiel"""
 
         # Erzeuge Liste mit allen Karten 
@@ -103,8 +106,9 @@ class Table(list):
         # Prüfe jede Karte ob Sie tot ist 
         dead_cards = []
         for card in all_cards:
-            if (self.dead_card(card, observation)):
-                dead_cards.append(card)
+            if (poss_card_table[card['color']][card['rank']] != -1):
+                if (self.dead_card(card, observation)):
+                    dead_cards.append(card)
         
         return dead_cards
                 
@@ -143,24 +147,29 @@ class Table(list):
         ti = self.get_ti(poss_card_table)
 
         # Max Anzahl der Toten Karten in der Hand 
-        pos_dead_card = self.get_possible_dead_cards(poss_card_table, dead_cards_in_game)
+        num_dead_cards = self.get_num_dead_cards(poss_card_table, dead_cards_in_game)
 
         # Die max singleton_size hängt davon ob
         # ob eine Partition von Dead Cards belegt wird 
-        single_hint_set = 7 if pos_dead_card > 0 else 8
-
+        # Und wie viel mögliche Karten es sind        
+        if num_dead_cards > 0:
+            single_hint_set = min(7, ti - num_dead_cards)
+        
+        else:
+            single_hint_set = min(8, ti)
+ 
 
         num_seven_hint_sets = 0 
         
-        # Idee [2,1,1,1,5,7,7]
+        # Idee [2,1,1,1,1,3,7,7]
         # Max Anzahl der Karten in Singlehint + seven_hints + dead_set muss >= ti sein
-        while (ti > (pos_dead_card + single_hint_set + num_seven_hint_sets*7)):
+        while (ti > (num_dead_cards + single_hint_set + num_seven_hint_sets*7)):
             single_hint_set -= 1
             num_seven_hint_sets += 1
 
         return single_hint_set, num_seven_hint_sets        
 
-    def get_possible_dead_cards(self, poss_card_table, dead_cards_in_game): 
+    def get_num_dead_cards(self, poss_card_table, dead_cards_in_game): 
         """Return die Anzahl der max. toten Karten in der Hand"""
         num_pos_dead_cards = 0
 
@@ -204,7 +213,7 @@ class Table(list):
             for color in self.colors:
 
                 # Überprüfe ob noch ein single hint set gesetzt wird
-                if (part_idx_single_hint > single_hint_sets):
+                if (part_idx_single_hint >= single_hint_sets):
                     return part_table
 
                 # Wenn es sich nicht um eine freie Karte handlet 
@@ -222,7 +231,7 @@ class Table(list):
     def set_seven_hint_sets(self, part_table, single_hint_set):
         
         max_rank = 4
-        set_idx = single_hint_set + 1
+        set_idx = single_hint_set
         number_in_set = 0
 
         # Iteriere über jeden Rank und jede Farbe
@@ -295,7 +304,9 @@ if __name__ == "__main__":
 
     testtable = Table(observation)
 
-    dead_cards_in_game = testtable.get_deads_card(observation)
+    poss_card_table = testtable.get_poss_card_table(0, 0)
+
+    dead_cards_in_game = testtable.get_deads_card(observation, poss_card_table)
 
     poss_card_table = testtable.get_poss_card_table(0,0)
     

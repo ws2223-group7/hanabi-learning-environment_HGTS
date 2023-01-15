@@ -53,7 +53,7 @@ class Runner(object):
     rewards = []
     total_reward = 0
 
-    output = False
+    output = True
 
     if output: datei = open('HAT_log.txt','w')
     
@@ -88,7 +88,7 @@ class Runner(object):
       ### End Init Episodes / Rounds ###
 
       # Play as long its not gameOver or Win
-      print("\n\n\n------------------------------ New Episode -------------------------")
+      round = 1
       while not done:
 
         # Loop over all agents 
@@ -99,6 +99,9 @@ class Runner(object):
             observation = observations['player_observations'][agent_id2]
             agent2.update_observation(observation)
             agent2.update_mc()
+            agent2.update_poss_tables_based_on_card_knowledge()
+
+        
 
           action = agent.act()
 
@@ -106,6 +109,89 @@ class Runner(object):
           if output: self.env_out(datei,'V',agents,
                                   observations,episode,
                                   action,episode_reward)
+          """
+          print("-------------------------------------------------------------------------")
+          print("\nRound {}".format(round))
+          print("Current Player {}".format(agent_id))
+          print("\nFirework")
+          print(agents[0].observation['fireworks'])
+          print("\nDiscard Pile")
+          print(agents[0].observation['discard_pile'])
+          print("\n Mc")
+          print(agents[0].mc)
+          print("\nAction")
+          print(action)
+          print("Current Plyer {}".format(agent_id))
+
+          print("\n\nPlayer 0")
+          print("\n Player Hand")
+          print(agents[4].observation['observed_hands'][1])
+          print("\nTarget Index")
+          target_card, target_idx = agents[0].get_target_card(0)
+          print(target_idx)
+          print("\nPoss Table Target Card")
+          poss_table = agents[0].table[0][target_idx]
+          print(poss_table)
+          print("\nPart Table Target Card")
+          print(agents[0].table.get_part_table(agents[0].observation, poss_table))
+          print("\nOwn Hat")
+          print(agents[4].cal_other_hat(1))
+
+          print("\n\nPlayer 1")
+          print("\n Player Hand")
+          print(agents[0].observation['observed_hands'][1])
+          print("\nTarget Index")
+          target_card, target_idx = agents[1].get_target_card(0)
+          print(target_idx)
+          print("\nPoss Table Target Card")
+          poss_table = agents[1].table[0][target_idx]
+          print(poss_table)
+          print("\nPart Table Target Card")
+          print(agents[1].table.get_part_table(agents[1].observation, poss_table))
+          print("\nOwn Hat {}".format(agents[0].cal_other_hat(1)))
+
+          print("\n\nPlayer 2")
+          print("\n Player Hand")
+          print(agents[0].observation['observed_hands'][2])
+          print("\nTarget Index")
+          target_card, target_idx = agents[2].get_target_card(0)
+          print(target_idx)
+          print("\nPoss Table Target Card")
+          poss_table = agents[2].table[0][target_idx]
+          print(poss_table)
+          print("\nPart Table Target Card")
+          print(agents[2].table.get_part_table(agents[2].observation, poss_table))
+          print("\nOwn Hat {}".format(agents[0].cal_other_hat(2)))
+
+          print("\n\nPlayer 3")
+          print("\n Player Hand")
+          print(agents[0].observation['observed_hands'][3])
+          print("\nTarget Index")
+          target_card, target_idx = agents[3].get_target_card(0)
+          print(target_idx)
+          print("\nPoss Table Target Card")
+          poss_table = agents[3].table[0][target_idx]
+          print(poss_table)
+          print("\nPart Table Target Card")
+          print(agents[3].table.get_part_table(agents[3].observation, poss_table))
+          print("\nOwn Hat {}".format(agents[0].cal_other_hat(3)))
+
+          print("\n\nPlayer 4")
+          print("\n Player Hand")
+          print(agents[0].observation['observed_hands'][4])
+          print("\nTarget Index")
+          target_card, target_idx = agents[4].get_target_card(0)
+          print(target_idx)
+          print("\nPoss Table Target Card")
+          poss_table = agents[4].table[0][target_idx]
+          print(poss_table)
+          print("\nPart Table Target Card")
+          print(agents[4].table.get_part_table(agents[4].observation, poss_table))
+          print("\nOwn Hat {}".format(agents[0].cal_other_hat(4)))
+          """
+
+          
+
 
           
           # Update Table 
@@ -115,7 +201,10 @@ class Runner(object):
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(action)
 
+
           episode_reward += reward
+
+          round += 1
           
           if output: self.env_out(datei,'N',agents,observations,
                                   episode,action,episode_reward)
@@ -129,10 +218,10 @@ class Runner(object):
       print('Running episode: %d' % episode)
       print('Max  Reward: %.3f' % max(rewards))
       print('Avg. Reward: {:%.3f}', total_reward/(episode+1))
-      if output: datei.close()
     return rewards
+    if output: datei.close()
 
-def env_out(self,datei,st,agents, observations,e,action,reward):
+  def env_out(self,datei,st,agents, observations,e,action,reward):
       #e = flags['num_episodes']
       p = flags['players']
       if flags['agent_class'] == "HTGSAgent":
