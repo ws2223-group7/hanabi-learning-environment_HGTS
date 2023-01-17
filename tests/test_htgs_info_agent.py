@@ -191,6 +191,54 @@ class TestHTGSAgent(unittest.TestCase):
         self.assertTrue(agent.table[4][0]\
                         [first_card_player4_color][first_card_player4_rank] == 1)
 
+    def test_cal_other_hat(self):
+
+        observation = self.set_observation()
+        agent = self.set_agent(observation)
+
+        observation['discard_pile'] = [{'color': 'G', 'rank': 0}]
+        observation['fireworks'] = {'R': 0, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+
+        agent.table[4][0] = {
+                             'B': [0, 0, 0, 0, 0], 
+                             'G': [0, 0, 0, 0, 0], 
+                             'R': [0, 0, 1, 1, 0], 
+                             'W': [0, 0, 0, 0, 0], 
+                             'Y': [0, 0, 0, 0, 0]
+                             }
+
+                     
+        agent.table[4][1] = {
+                             'B': [0, 0, 0, 1, 0], 
+                             'G': [0, 0, 1, 1, 0], 
+                             'R': [0, 0, 1, 1, 0], 
+                             'W': [0, 0, 1, 0, 0], 
+                             'Y': [0, 0, 1, 0, 0]
+                             }
+
+                     
+        agent.table[4][2] = {
+                             'B': [1, 1, 1, 1, 1], 
+                             'G': [1, 1, 1, 1, 1], 
+                             'R': [1, 1, 1, 1, 1], 
+                             'W': [1, 1, 1, 1, 1], 
+                             'Y': [1, 1, 1, 1, 1]
+                             }
+
+                     
+        agent.table[4][3] = {
+                             'B': [1, 1, 1, 1, 1], 
+                             'G': [1, 1, 1, 1, 1], 
+                             'R': [1, 1, 1, 1, 1], 
+                             'W': [1, 1, 1, 1, 1], 
+                             'Y': [1, 1, 1, 1, 1]
+                             }
+
+        agent.observation['observed_hands'][4] = [{'color': 'Y', 'rank': 1}, {'color': 'W', 'rank': 3}, {'color': 'G', 'rank': 2}, {'color': 'B', 'rank': 1}]
+
+
+
+
 
 
 if __name__ == "__main__":

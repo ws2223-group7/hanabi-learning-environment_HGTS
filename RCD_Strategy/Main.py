@@ -144,6 +144,18 @@ class Runner(object):
           observation = observations['player_observations'][agent_id]
           action = agent.act(observation)
 
+          legal_move = True
+          if (action not in agent.observation['legal_moves']):
+            legal_move = False
+            found = False
+            for act_idx, act in enumerate (agent.observation['legal_moves']): 
+                if act['action_type'] == 'REVEAL_COLOR' or act['action_type'] == 'REVEAL_RANK':
+                  action = agent.observation['legal_moves'][act_idx]
+                  found = True 
+
+            if found == False:
+               action = agent.observation['legal_moves'][act_idx]               
+
           #Ausgabe des aktuellen Spiels vor Aktion:
           if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
           
@@ -158,7 +170,8 @@ class Runner(object):
               # Setze Observation von Spielern die hint bekommen    
               agent2.observation = observations['player_observations'][agent_id2]
               agent2_hand = observations['player_observations'][agent_id2-1]['observed_hands'][1]
-              agent2.decode_hint(action, agent2_hand)
+              if legal_move:
+                agent2.decode_hint(action, agent2_hand)
           
           if (action['action_type'] == 'PLAY'):
             for agent3 in agents:
@@ -174,6 +187,7 @@ class Runner(object):
 
           
           # Make an environment step.
+          
           observations, reward, done, unused_info = self.environment.step(
               current_player_action)
 
@@ -192,7 +206,7 @@ class Runner(object):
     return rewards
 
 def main():
-  flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
+  flags = {'players': 2, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
 
   options, arguments = getopt.getopt(sys.argv[1:], '',
                                      ['players=',

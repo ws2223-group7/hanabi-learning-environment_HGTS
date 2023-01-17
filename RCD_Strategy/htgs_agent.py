@@ -121,17 +121,21 @@ class HTGSAgent(Agent):
   def get_hint_hat_sum_smaller_4(self, hat_sum_mod8):
     # Überprüftr
     # See Paper Cox for calculation 
-    idxPly = hat_sum_mod8 + 1
+    idx_ply = hat_sum_mod8 + 1
 
-    # Get a random rank to hint from player (idxPly)
+    if idx_ply > (self.observation['num_players'] - 1):
+      discard = {'action_type': 'DISCARD', 'card_index': 0}
+      return discard
+
+    # Get a random rank to hint from player (idx_ply)
     # which get the hint 
-    hand_player = self.observation['observed_hands'][idxPly]
+    hand_player = self.observation['observed_hands'][idx_ply]
     first_hand_card = hand_player[0]
     rank = first_hand_card['rank']
 
     hint =  {'action_type': 'REVEAL_RANK',
             'rank': rank,
-            'target_offset': idxPly } 
+            'target_offset': idx_ply } 
 
     return hint
   
@@ -139,7 +143,11 @@ class HTGSAgent(Agent):
     # See Paper Cox for calculation 
     idx_ply = hatSumMod8 - 3
 
-    # Get a random color to hint from player (idxPly)
+    if idx_ply > (self.observation['num_players'] - 1):
+      discard = {'action_type': 'DISCARD', 'card_index': 0}
+      return discard
+
+    # Get a random color to hint from player (idx_ply)
     # which get the hint 
     hand_ply = self.observation['observed_hands'][idx_ply]
     first_hand_card = hand_ply[0]

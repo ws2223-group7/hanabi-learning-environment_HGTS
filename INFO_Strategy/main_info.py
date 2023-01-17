@@ -59,7 +59,7 @@ class Runner(object):
     
     # Loop over all Episodes / Rounds 
 
-    score = [0] * 25
+    score = [0] * 26
 
     for episode in range(flags['num_episodes']):
       ### Begin Init Episodes / Rounds ###
@@ -93,6 +93,7 @@ class Runner(object):
       round = 1
       while not done:
 
+        
         # Loop over all agents 
         for agent_id, agent in enumerate(agents):
 
@@ -103,15 +104,38 @@ class Runner(object):
             agent2.update_mc()
             agent2.update_poss_tables_based_on_card_knowledge()
 
-        
+          action = agent.act(round)
 
-          action = agent.act()
+          legal_move = True
+          if (action not in agent.observation['legal_moves']):
+            legal_move = False
+            found = False
+            for act_idx, act in enumerate (agent.observation['legal_moves']): 
+                if act['action_type'] == 'REVEAL_COLOR' or act['action_type'] == 'REVEAL_RANK':
+                  action = agent.observation['legal_moves'][act_idx]
+                  found = True 
 
+            if found == False:
+               action = agent.observation['legal_moves'][act_idx]          
+               
+          #print(round)
+          countt = 0 
+          """
+          print("\nLegal DISCARD Round {}".format(round))
+          for move in agent.observation['legal_moves']:
+            if move['action_type'] == 'DISCARD':
+              print(move)
+              countt += 1
+          
+          if (countt != len(agent.observation['observed_hands'][0])):
+            print()
+          """
           # Ausgabe des aktuellen Spiels vor Aktion:
           if output: self.env_out(datei,'V',agents,
                                   observations,episode,
                                   action,episode_reward)
           
+          """
           print("\n---------------------------------------------------------------------------------------------------------")
           print("\n---------------------------------------------------------------------------------------------------------")
           print("\nRound {}".format(round))
@@ -235,10 +259,10 @@ class Runner(object):
           target_card, target_idx = agents[4].get_target_card(0)
           print(target_idx)
           print("\nPoss Table Target Card")
-          poss_table0 = agents[0].table[3][0]
-          poss_table1 = agents[0].table[3][1]
-          poss_table2 = agents[0].table[3][2]
-          poss_table3 = agents[0].table[3][3]
+          poss_table0 = agents[0].table[4][0]
+          poss_table1 = agents[0].table[4][1]
+          poss_table2 = agents[0].table[4][2]
+          poss_table3 = agents[0].table[4][3]
           poss_tables = [poss_table0, poss_table1, poss_table2, poss_table3]
           print(poss_table0)
           print(poss_table1)
@@ -247,15 +271,16 @@ class Runner(object):
           print("\nPart Table Target Card")
           print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
           print("\nOwn Hat {}".format(agents[0].cal_other_hat(4)))
-          
+          """
 
           
 
 
           
-          # Update Table 
-          for agent3 in agents: 
-            agent3.update_tables(action)
+          # Update Table
+          if legal_move:
+            for agent3 in agents: 
+              agent3.update_tables(action)
 
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(action)
@@ -263,13 +288,16 @@ class Runner(object):
 
           episode_reward += reward
 
-          round += 1
+          
           
           if output: self.env_out(datei,'N',agents,observations,
                                   episode,action,episode_reward)
+        
+        round += 1
       
       if output: datei.write('Running episode: {} Reward {}\n'.
                               format(episode, episode_reward))
+        
           
       rewards.append(episode_reward)
       total_reward += episode_reward
@@ -341,7 +369,7 @@ class Runner(object):
 
 if __name__ == "__main__":
  
-  flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
+  flags = {'players': 4, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
 
   runner = Runner(flags)
   
