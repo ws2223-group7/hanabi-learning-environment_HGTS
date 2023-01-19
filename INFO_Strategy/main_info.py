@@ -17,6 +17,8 @@ from __future__ import print_function
 
 import sys
 import getopt
+import time
+import numpy as np
 
 from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
@@ -59,7 +61,6 @@ class Runner(object):
     
     # Loop over all Episodes / Rounds 
 
-    score = [0] * 26
 
     for episode in range(flags['num_episodes']):
       ### Begin Init Episodes / Rounds ###
@@ -91,6 +92,7 @@ class Runner(object):
 
       # Play as long its not gameOver or Win
       round = 1
+      start_time = time.time() 
       while not done:
 
         
@@ -279,7 +281,7 @@ class Runner(object):
           
           # Update Table
           if legal_move:
-            for agent3 in agents: 
+            for agent3_idx, agent3 in enumerate(agents): 
               agent3.update_tables(action)
 
           # Make an environment step.
@@ -307,10 +309,20 @@ class Runner(object):
       print('Max  Reward: %.3f' % max(rewards))
       print('Avg. Reward: :%.3f', total_reward/(episode+1))
 
-      score[episode_reward] += 1
+      
 
+    end_time = time.time()
+    print("Laufzeit pro Runde")
+    print((end_time - start_time) / 100) 
+    st_dev = np.std(rewards)
+    print("Standardabweichung")
+    print(st_dev)
+    print("Durchschnitt")
+    print(total_reward/(episode+1))
     return rewards
+    
     if output: datei.close()
+
 
   def env_out(self,datei,st,agents, observations,e,action,reward):
       #e = flags['num_episodes']
@@ -369,7 +381,7 @@ class Runner(object):
 
 if __name__ == "__main__":
  
-  flags = {'players': 4, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
+  flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
 
   runner = Runner(flags)
   
