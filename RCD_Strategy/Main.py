@@ -22,6 +22,9 @@ import getopt
 import numpy as np 
 import time 
 
+import numpy as np 
+import time 
+
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
@@ -141,6 +144,7 @@ class Runner(object):
       # Play as long its not gameOver or Win
       print("\n\n\n------------------------------ New Episode -------------------------")
       start_time = time.time() 
+      start_time = time.time() 
       while not done:
 
         # Loop over all agents 
@@ -216,11 +220,21 @@ class Runner(object):
     print(st_dev)
     print("Durchschnitt")
     print(total_reward/(episode+1))
+    
+    end_time = time.time()
+    print("Laufzeit pro Runde")
+    print((end_time - start_time) / 100) 
+    st_dev = np.std(rewards)
+    print("Standardabweichung")
+    print(st_dev)
+    print("Durchschnitt")
+    print(total_reward/(episode+1))
     return rewards
     return rewards
+ 
 
 def main():
-  flags = {'players': 2, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
+  flags = {'players': 5, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
 
   options, arguments = getopt.getopt(sys.argv[1:], '',
                                      ['players=',
