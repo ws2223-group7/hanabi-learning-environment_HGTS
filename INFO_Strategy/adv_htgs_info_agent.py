@@ -8,6 +8,7 @@ sys.path.append(parentPath)
 
 from hanabi_learning_environment.rl_env import Agent
 from INFO_Strategy.possibility_table import Table
+from color_enum import Color
 
 class HTGSAgent(Agent):
     def __init__(self, config, *args, **kwargs):
@@ -30,7 +31,7 @@ class HTGSAgent(Agent):
                                 6: {'action_type': 'DISCARD', 'card_index': 2},
                                 7: {'action_type': 'DISCARD', 'card_index': 3}}
         
-        self.decode_act_to_hat_sum_mod8 = {
+        self.decode_act_to_hat_sum_mod8_dict = {
                                         ('REVEAL_RANK', 1) : 0,
                                         ('REVEAL_RANK', 2) : 1,
                                         ('REVEAL_RANK', 3) : 2,
@@ -45,9 +46,91 @@ class HTGSAgent(Agent):
         
         self.num_ranks_left = {0:  15, 1: 10, 2: 10, 3: 10, 4: 5}
 
-        self.color_order = {'R': 0, 'G': 1, 'Y': 2, 'W':3, 'B': 4}
-        
     
+    def decode_act_to_hat_sum_mod8(self, action):
+        """Return the hinted hat based on action"""
+
+        if action['target_offset'] == 1 or action['target_offset'] == 2:
+            return self.decode_act_to_hat_sum_mod8_dict [(action['action_type'], action['target_offset'])]
+        
+        # Bestimme den Index vom hinting player 
+        current_player = self.observation['current_player_offset']
+        offset_hinted_player = action['target_offset']
+        num_players = self.observation['num_players'] 
+        hinted_player_idx = (current_player + offset_hinted_player) % num_players
+        
+        player_hand = self.observation['observed_hands'][hinted_player_idx]
+        
+        
+        if action['action_type'] == 'REVEAL_RANK':
+            hat = self.decode_rank_hint(action, player_hand)
+            return hat
+       
+        if action['action_type'] == 'REVEAL_COLOR':
+            hat = self.decode_color_hint(action, player_hand)
+            return hat
+
+    def decode_rank_hint(self,action, player_hand):
+        """Return Hat to a rank hint"""
+
+        hinted_rank = action['rank']
+            
+        sorted_ranks_in_hand = [card for card in player_hand].sort()
+        num_hands_card = len(sorted_ranks_in_hand)
+
+        min_rank_hand = sorted_ranks_in_hand[0]
+        min_second_rank_hand= sorted_ranks_in_hand[1]
+        max_second_rank_hand = sorted_ranks_in_hand[num_hands_card - 2]
+        max_rank_hand = sorted_ranks_in_hand[num_hands_card - 1]
+        
+        if (hinted_rank == min_rank_hand):
+            return 6
+        
+        elif (hinted_rank == max_rank_hand):
+            return 7
+        
+        
+        elif (hinted_rank == min_second_rank_hand):
+            return 2
+
+        elif (hinted_rank == max_second_rank_hand):
+            return 3
+
+        else:
+            raise Exception("Beim Decoden vom Hat ist ein Fehler entstehen")
+
+    def decode_color_hint(self, action, player_hand):
+
+        """Return hat to a color hint"""
+
+        hinted_color = action['color']
+        
+            
+        color_enum = [Color[card['color']].value for card in player_hand]
+        color_enum.sort()
+        sorted_color_in_hand = [Color(card_value).name for card_value in color_enum]
+
+        min_value_color_in_hand = sorted_color_in_hand[0]
+        num_hands_card = len(sorted_color_in_hand)
+        second_min_value_color_in_hand= sorted_color_in_hand[1]
+        second_max_value_color_in_hand = sorted_color_in_hand[num_hands_card - 2]
+        max_value_color_in_hand = sorted_color_in_hand[num_hands_card - 1]
+
+        if (hinted_color == min_value_color_in_hand):
+            return 2
+        
+        elif (hinted_color == max_value_color_in_hand):
+            return 3
+        
+        elif (hinted_color == second_min_value_color_in_hand):
+            return 6
+
+        elif (hinted_color == second_max_value_color_in_hand):
+            return 7
+        
+        else:
+            raise Exception("Beim Decoden vom Hat ist ein Fehler entstehen")
+
     def init_table(self, observation):
         self.table = Table(observation)
 
@@ -84,10 +167,11 @@ class HTGSAgent(Agent):
         if (self.observation['information_tokens'] > 0):
 
             act = self.give_hint()
-            if act['action_type'] == 'DISCARD' and self.observation['information_tokens'] > 0 :
-                print("Error")
-
-            return act 
+            if act == None:
+                pass
+            
+            else: 
+                return act 
         
         # Rule 4. 
         if (dead_card_idx is not None):
@@ -328,8 +412,8 @@ class HTGSAgent(Agent):
         # given_hat_sum_mod8 := r1 (Paper Cox)
         # hat_sum_mod8 := ri (Paper Cox)
         # own_hat := ci (Paper Cox)
-        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8 \
-                                  [(act['action_type'], act['target_offset'])]
+        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8(act)
+                                  
 
         idx_cur_ply = self.observation['current_player_offset']
 
@@ -446,23 +530,150 @@ class HTGSAgent(Agent):
     def get_hint_hat_sum_smaller_4(self, hat_sum_mod8):
         # Überprüftr
         # See Paper Cox for calculation 
-        idx_ply = hat_sum_mod8 + 1
+        if hat_sum_mod8 < 2:
+            idx_ply = hat_sum_mod8 + 1
 
-        if idx_ply > (self.observation['num_players'] - 1):
-            discard = {'action_type': 'DISCARD', 'card_index': 0}
-            return discard
+            if idx_ply > (self.observation['num_players'] - 1):
+                discard = {'action_type': 'DISCARD', 'card_index': 0}
+                return discard
 
-        # Get a random rank to hint from player (idx_ply)
-        # which get the hint 
-        hand_player = self.observation['observed_hands'][idx_ply]
-        first_hand_card = hand_player[0]
-        rank = first_hand_card['rank']
+            # Get a random rank to hint from player (idx_ply)
+            # which get the hint 
+            player_hand = self.observation['observed_hands'][idx_ply]
+            first_hand_card = player_hand[0]
+            rank = first_hand_card['rank']
 
-        hint =  {'action_type': 'REVEAL_RANK',
-                'rank': rank,
-                'target_offset': idx_ply } 
+            hint =  {'action_type': 'REVEAL_RANK',
+                    'rank': rank,
+                    'target_offset': idx_ply } 
 
-        return hint
+            return hint
+        
+        else:
+            pass
+            
+
+
+    def get_hint_hat_2_or_3(self, hat_sum_mod8):
+        idx_ply = 3
+        player_hand = self.observation['observed_hands'][idx_ply]
+        sorted_ranks_in_hand = [card['rank'] for card in player_hand].sort()
+        num_cards_in_hand = len(player_hand)
+
+        min_rank = sorted_ranks_in_hand[0]
+        max_rank = sorted_ranks_in_hand[num_cards_in_hand - 1]
+
+        if min_rank != min_rank:
+            return self.get_rank_hint_hat_2_or_3(hat_sum_mod8, min_rank, max_rank, idx_ply)
+
+        else: 
+            if hat_sum_mod8 == 2:
+                return self.get_color_hint_hat_2(idx_ply, player_hand)
+            
+            if hat_sum_mod8 == 3:
+                return self.get_color_hint_hat_3(idx_ply, player_hand)                                                                 
+                
+
+    def get_rank_hint_hat_2_or_3(self, hat_sum_mod8, min_rank, max_rank, idx_ply):
+        """Return rank hint for hat_sum_mod_8 2 or 3"""
+        
+        if hat_sum_mod8 == 2:
+            hint =  {'action_type': 'REVEAL_RANK',
+                        'rank': min_rank,
+                        'target_offset': idx_ply} 
+            return hint
+        else: 
+            hint =  {'action_type': 'REVEAL_RANK',
+                        'rank': max_rank,
+                        'target_offset': idx_ply} 
+            return hint
+
+    def get_color_hint_hat_2_or_3(self, player_hand, idx_ply, hat_sum_mod8):
+        
+
+        sorted_color_enum = [Color[card['color']].value for card in player_hand].sort()
+        sorted_color_in_hand = [Color(card_value).name for card_value in sorted_color_enum]
+
+        num_hands_card = len(player_hand)
+
+        min_value_color_in_hand = sorted_color_in_hand[0]
+        second_min_value_color_in_hand= sorted_color_in_hand[1]
+        second_max_value_color_in_hand = sorted_color_in_hand[num_hands_card - 2]
+        max_value_color_in_hand = sorted_color_in_hand[num_hands_card - 1]
+
+        if hat_sum_mod8 == 2:
+            if second_min_value_color_in_hand != second_max_value_color_in_hand and \
+               second_min_value_color_in_hand != min_value_color_in_hand:
+
+                hint =  {'action_type': 'REVEAL_COLOR',
+                         'rank': second_min_value_color_in_hand,
+                         'target_offset': idx_ply} 
+                return hint
+            
+            else:
+                None
+        
+        if hat_sum_mod8 == 3:
+            if second_max_value_color_in_hand != second_min_value_color_in_hand and \
+               second_max_value_color_in_hand != max_value_color_in_hand:
+
+                hint =  {'action_type': 'REVEAL_COLOR',
+                         'rank': second_max_value_color_in_hand,
+                         'target_offset': idx_ply} 
+                return hint
+                
+
+            else:
+                return None 
+        
+        else:
+            raise Exception("Die Funktion get_color_hint_hat_2_or_3 darf nur"
+                            "mit einem hat_sum_mod8 2 oder 3 aufgerufen werden")
+   
+    def get_color_hint_hat_2(self, idx_ply, player_hand):
+
+        sorted_color_enum = [Color[card['color']].value for card in player_hand].sort()
+        sorted_color_in_hand = [Color(card_value).name for card_value in sorted_color_enum]
+
+        num_hands_card = len(player_hand)
+
+        min_value_color_in_hand = sorted_color_in_hand[0]
+        second_min_value_color_in_hand= sorted_color_in_hand[1]
+        second_max_value_color_in_hand = sorted_color_in_hand[num_hands_card - 2]
+        
+        if second_min_value_color_in_hand != second_max_value_color_in_hand and \
+            second_min_value_color_in_hand != min_value_color_in_hand:
+
+            hint =  {'action_type': 'REVEAL_COLOR',
+                        'rank': second_min_value_color_in_hand,
+                        'target_offset': idx_ply} 
+            return hint
+        
+        else:
+            return None
+    
+    def get_color_hint_hat_3(self, idx_ply, player_hand):
+
+        sorted_color_enum = [Color[card['color']].value for card in player_hand].sort()
+        sorted_color_in_hand = [Color(card_value).name for card_value in sorted_color_enum]
+
+        num_hands_card = len(player_hand)
+
+        second_min_value_color_in_hand= sorted_color_in_hand[1]
+        second_max_value_color_in_hand = sorted_color_in_hand[num_hands_card - 2]
+        max_value_color_in_hand = sorted_color_in_hand[num_hands_card - 1]
+        
+        if second_max_value_color_in_hand != second_min_value_color_in_hand and \
+           second_max_value_color_in_hand != max_value_color_in_hand:
+
+            hint =  {'action_type': 'REVEAL_COLOR',
+                        'rank': second_max_value_color_in_hand,
+                        'target_offset': idx_ply} 
+            return hint
+        
+        else:
+            return None
+
 
     def get_hint_hat_sum_bigger_3(self, hatSumMod8):
         
@@ -832,19 +1043,7 @@ class HTGSAgent(Agent):
         
         return targeted_cards_idx
     
-    def decode_hint(self, act):
-        """Return Partition und Card Idx 
-        
-        Parameter:
-            action(dict): action muss ein hint sein sonst 
-                          throw exception
-        
-        """
-        # Der eigene hat entspricht der Partition der targed_card
-        own_hat = self.cal_own_hat(act)
-        _, target_card_idx = self.get_target_card(0)
-        
-        return own_hat, target_card_idx
+
         
 
 
