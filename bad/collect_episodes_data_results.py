@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods
+# pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods, invalid-name
 
 import sys
 import os
@@ -20,8 +20,9 @@ class CollectEpisodesDataResults:
         self.results.append(result)
 
     def get_n(self) -> int:
+        '''get n'''
         n: int = 0
-        
+
         for ep in self.results:
             n += len(ep.buffer.actions)
 

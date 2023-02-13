@@ -52,11 +52,11 @@ class ActionNetwork():
         optimizer = self.model.optimizer
         loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         train_acc_metric =  tf.keras.metrics.CategoricalAccuracy()
-        
+
         tf_x = self.get_model_input(x)
-        
+
         arr_y = np.zeros(21, dtype = int)
-        arr_y = np.append(arr_y, int(y))        
+        arr_y = np.append(arr_y, int(y))
         tf_y = tf.reshape(arr_y, [1, arr_y.shape[0]])
 
         with tf.GradientTape() as tape:
@@ -65,4 +65,3 @@ class ActionNetwork():
         grads = tape.gradient(loss_value, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         train_acc_metric.update_state(tf_y, logits)
-

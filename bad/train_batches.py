@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods
+# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, consider-using-enumerate
 
 import sys
 import os
@@ -31,7 +31,7 @@ class TrainBatches:
         constants = Constants()
         hanabi_environment = rl_env.make(constants.environment_name, players, \
         pyhanabi.AgentObservationType.SEER)
-        
+
         while collect_batch_episodes_result.get_n() < batch_size:
 
             hanabi_observation = hanabi_environment.reset()
@@ -49,7 +49,7 @@ class TrainBatches:
                 ce_data.collect() # hier werden die Daten für eine episode gesammelt
 
             collect_batch_episodes_result.add(episode_data_result)
-        
+
         return collect_batch_episodes_result
 
     def reward_to_go_calculation(self, collected_data: CollectEpisodesDataResults, \

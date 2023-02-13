@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring too-few-public-methods, pointless-string-statement,wrong-import-position, fixme
+# pylint: disable=missing-module-docstring too-few-public-methods, pointless-string-statement,wrong-import-position, fixme, broad-exception-raised
 import sys
 import os
 
@@ -27,8 +27,8 @@ class BayesianAction:
 
         policy = tfp.distributions.Categorical(probs=all_action_probs)
         done = False
-        while not done:        
+        while not done:
             sampled_action:int = int(policy.sample().numpy())
             done: bool = legal_actions_int.count(sampled_action) > 0
-            
+
         return BayesianActionResult(sampled_action, policy)
