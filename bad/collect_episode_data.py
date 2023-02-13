@@ -48,10 +48,10 @@ class CollectEpisodeData:
             bad = self.network.get_action(observation)
             bad_result = bad.decode_action(self.hanabi_environment.state.legal_moves_int())
             next_action = bad_result.sampled_action
-
+            hanabi_move = self.hanabi_environment.game.get_move(next_action)
             observation_after_step, reward, done, _ = self.hanabi_environment.step(next_action)
 
-            buffer.append(self.hanabi_observation, observation, bad_result, reward)
+            buffer.append(self.hanabi_observation, observation, bad_result, reward, hanabi_move)
 
             seo.set_extra_observation(observation_after_step, next_action, max_actions, \
                 self.hanabi_environment.state.legal_moves_int())

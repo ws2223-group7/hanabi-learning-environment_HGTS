@@ -46,7 +46,7 @@ class ActionNetwork():
         result = self.model(self.get_model_input(observation))
         return BayesianAction(result.numpy()[0])
 
-    def train_step(self, x, y):
+    def backpropagation(self, x, y):
         '''train step'''
         model = self.model
         optimizer = self.model.optimizer
@@ -55,9 +55,9 @@ class ActionNetwork():
         
         tf_x = self.get_model_input(x)
         
-        arr_y = np.zeros(21, dtype = int) #np.empty(0, int)
+        arr_y = np.zeros(21, dtype = int)
         arr_y = np.append(arr_y, int(y))        
-        tf_y = tf.reshape(arr_y, [1, arr_y.shape[0]]) # tf.constant(y)        
+        tf_y = tf.reshape(arr_y, [1, arr_y.shape[0]])
 
         with tf.GradientTape() as tape:
             logits = model(tf_x, training=True)
@@ -66,16 +66,3 @@ class ActionNetwork():
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         train_acc_metric.update_state(tf_y, logits)
 
-    def backpropagation(self, loss_policy: float) -> None:
-        '''backpropagation'''
-
-        model = self.model
-        optimizer = self.model.optimizer
-
-        tfconst = tf.constant(loss_policy)
-        return
-
-        # TODO: hier weitermachen
-        with tf.GradientTape() as tape:
-            grads = tape.gradient(tfconst, model.trainable_weights)
-            optimizer.apply_gradients(zip(grads, model.trainable_weights))

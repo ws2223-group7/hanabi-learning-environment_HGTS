@@ -8,7 +8,7 @@ sys.path.append(parentPath)
 
 from bad.bayesian_action_result import BayesianActionResult
 from bad.encoding.observation import Observation
-
+from hanabi_learning_environment.pyhanabi import HanabiMove
 
 class Buffer:
     '''buffer'''
@@ -17,11 +17,13 @@ class Buffer:
         self.observation: list[Observation] = []
         self.actions: list[BayesianActionResult] = []
         self.rewards: list[int] = []
+        self.moves: list[HanabiMove] = []
 
     def append(self, hanabi_observation: dict, observation: Observation, \
-    action_result: BayesianActionResult, reward: int) -> None:
+    action_result: BayesianActionResult, reward: int, move: HanabiMove) -> None:
         '''add'''
         self.hanabi_observation.append(hanabi_observation)
         self.observation.append(observation)
         self.actions.append(action_result)
         self.rewards.append(reward)
+        self.moves.append(move)

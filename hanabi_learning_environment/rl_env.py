@@ -530,9 +530,9 @@ def make(environment_name: string, num_players: int, agentObservationType: pyhan
             "players":
                 num_players,
             "max_information_tokens":
-                15,
+                8,
             "max_life_tokens":
-                15,
+                3,
             "observation_type":
                 agentObservationType.value
         })

@@ -18,3 +18,11 @@ class CollectEpisodesDataResults:
     def add(self, result: CollectEpisodeDataResult) -> None:
         '''add'''
         self.results.append(result)
+
+    def get_n(self) -> int:
+        n: int = 0
+        
+        for ep in self.results:
+            n += len(ep.buffer.actions)
+
+        return n

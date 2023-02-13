@@ -12,7 +12,7 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from bad.self_play import SelfPlay
-from bad.train_batches import TrainBatch
+from bad.train_batches import TrainBatches
 from bad.action_network import ActionNetwork
 
 def main() -> None:
@@ -22,7 +22,7 @@ def main() -> None:
     np.random.seed(seed)
     random.seed(seed)
 
-    batch_size: int = 50
+    batch_size: int = 20
     episodes_running = 100
     gamma = 0.95
 
@@ -31,8 +31,8 @@ def main() -> None:
 
     network: ActionNetwork = ActionNetwork()
 
-    train_batch = TrainBatch(network)
-    training_result = train_batch.run(batch_size=batch_size, gamma=gamma)
+    train_batches = TrainBatches(network)
+    training_result = train_batches.run(batch_size=batch_size, gamma=gamma)
 
     self_play = SelfPlay(network)
     self_play.run(episodes_running)
