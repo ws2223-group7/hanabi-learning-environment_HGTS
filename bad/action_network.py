@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, unused-variable, unused-argument, not-callable, invalid-name, fixme, unreachable
 import sys
 import os
+import numpy as np
 import tensorflow as tf
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
@@ -50,11 +51,13 @@ class ActionNetwork():
         model = self.model
         optimizer = self.model.optimizer
         loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-        train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
-        tf_y =  tf.constant(y)
+        train_acc_metric =  tf.keras.metrics.CategoricalAccuracy()
+        
         tf_x = self.get_model_input(x)
-        # TODO: hier weitermachen
-        return
+        
+        arr_y = np.zeros(21, dtype = int) #np.empty(0, int)
+        arr_y = np.append(arr_y, int(y))        
+        tf_y = tf.reshape(arr_y, [1, arr_y.shape[0]]) # tf.constant(y)        
 
         with tf.GradientTape() as tape:
             logits = model(tf_x, training=True)

@@ -28,12 +28,12 @@ class TrainBatch:
     def collect_data(self, batch_size:int, players: int) -> CollectEpisodesDataResults:
         '''collect data'''
         collect_episodes_result = CollectEpisodesDataResults()
+        constants = Constants()
+        hanabi_environment = rl_env.make(constants.environment_name, players, \
+        pyhanabi.AgentObservationType.SEER)
 
         while len(collect_episodes_result.results) < batch_size:
 
-            constants = Constants()
-            hanabi_environment = rl_env.make(constants.environment_name, players, \
-            pyhanabi.AgentObservationType.SEER)
             hanabi_observation = hanabi_environment.reset()
             max_moves: int = hanabi_environment.game.max_moves() + 1
             max_actions = max_moves + 1 # 0 index based

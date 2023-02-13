@@ -19,16 +19,16 @@ class BayesianAction:
 
     def decode_action(self, legal_moves:np.ndarray) -> BayesianActionResult:
         '''returns a choice'''
-        legal_moves_int = legal_moves.tolist()
-        all_actions = self.actions.copy()
+        legal_actions_int = legal_moves.tolist()
+        all_action_probs = self.actions.copy()
 
-        for action in range(0, all_actions.size):
-            exists: bool = legal_moves_int.count(action) > 0
-            if not exists:
-                all_actions[action] = -float('inf')
+        if len(legal_actions_int) == len(all_action_probs):
+            raise Exception('no legal moves left')
 
-        # TODO: verify
-        cat = tfp.distributions.Categorical(logits=all_actions)
-        next_action = int(cat.sample().numpy().T)
-
-        return BayesianActionResult(int(next_action), cat)
+        policy = tfp.distributions.Categorical(probs=all_action_probs)
+        done = False
+        while not done:        
+            sampled_action:int = int(policy.sample().numpy())
+            done: bool = legal_actions_int.count(sampled_action) > 0
+            
+        return BayesianActionResult(sampled_action, policy)

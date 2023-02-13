@@ -23,21 +23,21 @@ class RewardToGoCalculation:
 
         result = RewardsToGoCalculationResult()
 
-        for collected_data_result in collected_data_results.results:
+        for collected_data_result in collected_data_results.results: # über alle ergebnisse
             ep_result = RewardsToGoEpisodeCalculationResult()
             result.append(ep_result)
             buffer = collected_data_result.buffer
 
-            for index in range(len(buffer.rewards)):
-                current_reward = float(np.sum(buffer.rewards[index:]))
-                discounted_reward = current_reward * np.power(self.gamma, index + 1)
+            for index in range(len(buffer.actions)): # über jede aktion (pro spiel)
+                reward_to_go = float(np.sum(buffer.rewards[index:]))
+                discounted_reward_to_go = reward_to_go * np.power(self.gamma, index + 1)
 
-                categorical = buffer.actions[index].categorical
-                sampled_action = buffer.actions[index].sampled_action
+                action = buffer.actions[index]
+                log_prob = action.categorical.log_prob(action.sampled_action)
                 observation = buffer.observation[index]
                 # loss calculation
-                current_loss = -(discounted_reward * float(categorical.log_prob(sampled_action).numpy()))
+                current_loss = -(discounted_reward_to_go * float(log_prob.numpy()))
 
-                ep_result.append(discounted_reward, current_loss, observation)
+                ep_result.append(discounted_reward_to_go, current_loss, observation)
 
         return result
