@@ -12,7 +12,7 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from bad.self_play import SelfPlay
-from bad.train_batch import TrainBatch
+from bad.train_batches import TrainBatch
 from bad.action_network import ActionNetwork
 
 def main() -> None:
