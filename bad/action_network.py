@@ -17,7 +17,7 @@ class ActionNetwork():
     def __init__(self) -> None:
         self.model = None
 
-    def build(self, observation: Observation, max_action: int, public_belief: PublicBeliefGlobalEnc) -> None:
+    def build(self, observation: Observation, max_action: int, public_belief: PublicBeliefGlobalEnc = None) -> None:
         '''build'''
         if self.model is None:
             shape = observation.to_one_hot_vec().shape
@@ -38,20 +38,20 @@ class ActionNetwork():
         '''print summary'''
         self.model.summary()
 
-    def get_model_input(self, observation: Observation):
+    def get_model_input(self, observation: Observation, publicBelief: PublicBeliefGlobalEnc = None):
         '''get model input'''
-        network_input = observation.to_array()
+        network_input = observation.to_one_hot_vec()
         
         # Input muss noch angepasst werden 
-        # network_input = publicBelief.to_array() + observation.to_array()
+        # network_input = publicBelief.to_one_hot_vec() + observation.to_one_hot_vec()
 
         reshaped = tf.reshape(network_input, [1, network_input.shape[0]])
         return reshaped
 
-    def get_action(self, observation: Observation) -> BayesianAction:
+    def get_action(self, observation: Observation, public_belief: PublicBeliefGlobalEnc = None) -> BayesianAction:
         '''get action'''
+        result = self.model(self.get_model_input(observation, public_belief))
 
-        result = self.model(self.get_model_input(observation))
         return BayesianAction(result.numpy()[0])
 
     def train_step(self, x, y):

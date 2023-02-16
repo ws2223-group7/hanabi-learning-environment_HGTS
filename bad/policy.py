@@ -16,6 +16,6 @@ class Policy:
     def __init__(self, network: ActionNetwork) -> None:
         '''init'''
         self.network = network
-    def get_action(self, observation: Observation, public_belief: PublicBeliefGlobalEnc) -> BayesianAction:
+    def get_action(self, observation: Observation, public_belief: PublicBeliefGlobalEnc=None) -> BayesianAction:
         '''get action'''
         return self.network.get_action(observation, public_belief)
