@@ -1,52 +1,63 @@
-from hanabi_learning_environment.rl_env import HanabiEnv
-from action_network import ActionNetwork
-from bad.encoding.observation import Observation
-import sys
-import os
-
 from likelihood_global import Likelihood
 from hint_matrix_global import HintMatrix
+
+import sys
+import os
+import numpy as np
+import copy
+
+
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 parentPath2 = os.path.dirname(parentPath)
 sys.path.append(parentPath2)
 
+from hanabi_learning_environment.rl_env import HanabiEnv
+from action_network import ActionNetwork
+from bad.encoding.observation import Observation
+from bayesian_action_result import BayesianActionResult
+
+from bad.encoding.card import Card
 
 class LikelihoodHandCard(dict):
     def __init__(self, idx_ply: int, idx_card: int, constants, observation: Observation,
-                 act_network: ActionNetwork, last_act, old_likelihood, hint_matrix):
-        self.idx_ply = idx_ply
-        self.idx_card = idx_card
-        super().__init__(self.init(constants, observation,
-                                   act_network, last_act, old_likelihood, hint_matrix))
-
-    def init(self, constants, observation: Observation, act_network: ActionNetwork,
-             last_act=None, old_likelihood: Likelihood = None,
-             hint_matrix: HintMatrix = None) -> dict:
+                 act_network: ActionNetwork, last_act: int = None, pub_belief = None, pre_hanabi_env = None):
         """Initialize / Update the likelihood based on the action, observation and action network
-           By initializing the likelihood, the first time last_act,old_likelihood and last_act are None
+           By initializing the likelihood, the first time last_act,pub_belief and pre_hanabi_env are None
 
         Args:
+            idx_ply: Index Player curresondes to this HandCard 
+            idx_card: Card Index from HandCard
             constants (HanabiEnv): Hanabi environment 
             observation (Observation): Part of Input from Network
             act_network (ActionNetwork): Network that predicts the action
-            last_act (_type_, None): the last action taken by the agent
-            old_likelihood (Likelihood, None): Likelikhood from the previous step
-            old_public_belief (PublicBelief, None): Public belief from the previous step
-            hint_matrix (HintMatrix, None): Hint matrix from the previous step
-        Returns:
-            dict: _description_
-        """
+            last_act (int, None): the last action taken by the agent
+            public_belief (PublicBelief, None): Public belief from the previous step
+            pre_hanabi_env(HanabiEnviornment, None): Hanabi Enviornment from previous step 
 
-        if (old_likelihood is None 
-            and last_act is None
-            and observation is None):
+        Returns:
+            dict: Likelihood to be a spefic for a hand card 
+                  based on action of other player 
+        """
+        
+        self.idx_ply = idx_ply
+        self.idx_card = idx_card
+        super().__init__(self.init(constants, observation,
+                                   act_network, last_act, pub_belief, pre_hanabi_env))
+
+    def init(self, constants, observation: Observation, act_network: ActionNetwork,
+             last_act, pub_belief, pre_hanabi_env) -> dict:
+       
+
+        if (pub_belief is None and last_act is None
+                and observation is None):
             '''Initialize the likelihood for the first time'''
             return self.first_init_likelihood(constants)
 
         # Update the likelihood based on the old likelihood, action, input from network and action network
-        return self.update_likelihood(constants, observation, act_network, last_act, old_likelihood, hint_matrix)
+        return self.update_likelihood(constants, observation, act_network, 
+                                      last_act, pub_belief, pre_hanabi_env)
 
     def first_init_likelihood(self, constants) -> dict:
         """Initialize the likelihood for the first time"""
@@ -59,8 +70,8 @@ class LikelihoodHandCard(dict):
 
         return likelihood_hand_card
 
-    def update_likelihood(self, constants, observation: Observation, act_network: ActionNetwork,
-                          last_act, old_likelihood: Likelihood, hint_matrix) -> dict:
+    def update_likelihood(self, constants, observation: Observation, network: ActionNetwork,
+                          last_act, pub_belief, pre_hanabi_env) -> dict:
         """Update the likelihood based on the old likelihood, action, input from network and action network"""
 
         # Get all possible hand_card combinations
@@ -70,15 +81,20 @@ class LikelihoodHandCard(dict):
         hand_card_combinations_possibility = self.hand_card_combinations_pos(
             act_network_output, last_act)
 
+        # Create observations based on the hand_card_combinations, which are used as an input
+        # for the action network to get the action based on the hand_card_combinations
+        observations_for_hand_card_combinations = self.create_observations(observation, hand_card_combinations)
+
         # Get action from network based on hand_card_combinations and observation (input from network)
-        act_network_output = self.output_action_network(
-            hand_card_combinations, observation, act_network)
+        act_network_output = self.output_actions_network(
+            observations_for_hand_card_combinations, pre_hanabi_env, pub_belief, network)
 
         # Update the hand_card_combinations_possibility
         # based on the action from network
         # (Eliminate the hand_card_combinations that are not possible)
         hand_card_combinations_possibility = self.update_hand_card_combinations_pos(
-            hand_card_combinations_possibility, act_network_output, last_act, hint_matrix)
+            hand_card_combinations_possibility, act_network_output, last_act, 
+            pub_belief.hint_matrix)
 
         # Normalize the hand_card_combinations_possibility
         hand_card_combinations_possibility = self.normalize_hand_card_possibility(
@@ -90,10 +106,31 @@ class LikelihoodHandCard(dict):
 
         # Update the likelihood based on the hand_card_combinations_possibility
         likelihood = self.calculate_new_likelihood(
-            old_likelihood, hand_card_possibility)
+            pub_belief, hand_card_possibility)
 
         return likelihood
+    
+    def create_observations(self, observation: Observation, hand_card_combinations) -> list:
+        """Create observations based on the hand_card_combinations, which are used as an input
+        for the action network to get the action based on the hand_card_combinations"""
 
+        observations_for_hand_card_combinations = []
+        for hand_card_combination in hand_card_combinations:
+            observations_for_hand_card_combinations.append(
+                self.observation_based_on_hand_card_combination(observation, hand_card_combination))
+        
+        return observations_for_hand_card_combinations
+    
+    def observation_based_on_hand_card_combination(self, observation: Observation, 
+                                                   hand_card_combination) -> Observation:
+        """Create an observation based on the hand_card_combination and old observation"""
+        new_observation = copy.copy(observation)
+        other_ply_hand = new_observation['player_observations'][0]['observed_hands'][1]
+        for idx_card, card in enumerate(hand_card_combination): 
+            other_ply_hand[idx_card] = card 
+
+        return new_observation            
+            
     def hand_card_combinations(self, constants) -> list:
         """Returns all possible hand_card combinations"""
 
@@ -116,22 +153,43 @@ class LikelihoodHandCard(dict):
 
         return card_combinations
 
-    def output_action_network(self, hand_card_combinations, observation: Observation, 
-        act_network: ActionNetwork) -> list:
-        """Returns the action from network based on hand_card_combinations and observation (input from network)"""
-        pass
+    def output_actions_network(observations_for_hand_card_combinations, 
+                               pre_hanabi_env, pub_belief, network) -> list:
+        """Returns the actions from network based on hand_card_combinations and observation (input from network)"""
+        
+        output_actions = []
+        for observation in observations_for_hand_card_combinations:
+            bad = network.get_action(observation)
+            bad_result = bad.decode_action(pre_hanabi_env.state.legal_moves_int(), pub_belief)
+            next_action = bad_result.sampled_action
+            output_actions.append()
+        
+        return output_actions
+
+    def build_observations(self, public_feature_one_hot_sig_vec, hand_card_combis_one_hot) -> list:
+        """Create Inputs for network"""
+        
+        inputs_network = []
+        for hand_card_combi_one_hot in hand_card_combis_one_hot:
+            inputs_network.append(np.concatenate(public_feature_one_hot_sig_vec, hand_card_combi_one_hot))
+
+        return inputs_network
 
     def hand_card_combinations_pos(self, hand_card_combinations, public_belief) -> list:
         """Returns the possiblity for hand_card_combinations"""
 
         hand_card_combinations_possibility = []
         for card_combination in hand_card_combinations:
+
+            # Get the possiblity for each card
             card1_possiblity = self.card_possibility(
                 card_combination[0], public_belief)
             card2_possiblity = self.card_possibility(
                 card_combination[1], public_belief)
             card3_possiblity = self.card_possibility(
                 card_combination[2], public_belief)
+
+            # Get the possiblity for the hand_card_combination and append it to the list
             hand_card_combinations_possibility.append(
                 card1_possiblity * card2_possiblity * card3_possiblity)
 
@@ -145,24 +203,34 @@ class LikelihoodHandCard(dict):
 
         return card_possibility
 
-    def update_hand_card_combinations_pos(self, hand_card_combinations_possibility,
-                                          act_network_output, last_act, hint_matrix):
+    def update_hand_card_combinations_pos(self, hand_card_combis_pos,
+                                          network_output, last_act, hint_matrix) -> list:
         """Update the hand_card_combinations_possibility based on the action from network
            (Eliminate the hand_card_combinations that are not possible)
+
+        Args:
+            hand_card_combis_pos (list): Possibility for all combinations of own hand based on public belief
+                                           A.k.a. the possibility for the hand card combinations 
+            network_output (list): Outputs from the network based on the hand card combinations 
+            last_act (_type_): last action with the other action played
+            hint_matrix (HintMatrix): 
+
+        Return:
+            hand_card_combis_pos(list): Updated Version of possibility for our own hand  
         """
 
         # Eliminate the hand_card_combinations that are not possible
         # based on the action from network
-        hand_card_combinations_possibility = self.update_hand_card_combinations_pos_based_on_act_net_output(
-            hand_card_combinations_possibility, act_network_output, last_act)
+        hand_card_combis_pos = self.update_hand_card_combinations_pos_based_on_net_output(
+            hand_card_combis_pos, network_output, last_act)
 
         # Eliminate the hand_card_combinations that are not possible based on hint_matrix
-        hand_card_combinations_possibility = self.update_hand_card_combinations_pos_based_on_hint_matrix(
-            hand_card_combinations_possibility, hint_matrix)
+        hand_card_combis_pos = self.update_hand_card_combinations_pos_based_on_hint_matrix(
+            hand_card_combis_pos, hint_matrix)
 
-        return hand_card_combinations_possibility
+        return hand_card_combis_pos
 
-    def update_hand_card_combinations_pos_based_on_act_net_output(self, hand_card_combinations_possibility,
+    def update_hand_card_combinations_pos_based_on_net_output(self, hand_card_combinations_possibility,
                                                                   act_network_output, last_act):
         """Eliminate the hand_card_combinations that are not possible based on the action from network"""
         for idx, action in enumerate(act_network_output):
@@ -196,7 +264,7 @@ class LikelihoodHandCard(dict):
 
         return hand_card_combinations_possibility
 
-    def hand_card_possibility(self, hand_card_combinations_possibility, hand_cards_combination)-> dict:
+    def hand_card_possibility(self, hand_card_combinations_possibility, hand_cards_combination) -> dict:
         """Get the possiblity for each possible hand_card"""
         all_possible_cards = self.card_combinations()
 
@@ -205,9 +273,9 @@ class LikelihoodHandCard(dict):
         for card in all_possible_cards:
             hand_card_possibility.update({card: 0})
 
-        # Get for each card the possibility based on the hand_card_combinations_possibility   
+        # Get for each card the possibility based on the hand_card_combinations_possibility
         for idx, hand_card_combination_pos in enumerate(hand_card_combinations_possibility):
-            
+
             # The card possibilty is based on the card_idx
             card = hand_cards_combination[idx][self.idx_card]
 
@@ -215,10 +283,10 @@ class LikelihoodHandCard(dict):
 
         return hand_card_possibility
 
-    def calculate_new_likelihood(self, old_likelihood: dict, hand_card_combinations_possibility):
+    def calculate_new_likelihood(self, old_pub_belief: dict, hand_card_combinations_possibility):
         """Update the likelihood based on the hand_card_combinations_possibility and the old likelihood"""
         new_likelihood = {}
-        for color, color_likelihood in old_likelihood.items():
+        for color, color_likelihood in old_pub_belief.likelihood.items():
             new_color_likelihood = [hand_card_combinations_possibility[color][rank] * color_likelihood[rank]
                                     for rank in range(len(color_likelihood))]
             new_likelihood.update({color: new_color_likelihood})
