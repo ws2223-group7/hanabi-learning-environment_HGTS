@@ -25,7 +25,7 @@ class CardProbabilitiy:
 def main():
     '''main'''
     card: CardProbabilitiy = CardProbabilitiy('R', 1)
-    print(card.rank)
+    print(card.num_rem_cards)
     print(card.color)
 
 

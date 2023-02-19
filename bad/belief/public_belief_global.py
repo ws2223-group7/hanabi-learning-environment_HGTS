@@ -56,7 +56,7 @@ class PublicBelief(list):
         self.hanabi_env = hanabi_env
 
         super().__init__(self.init(constants, self.rem_cards,
-                         self.hint_matrix, self.likelihood))
+                         self.hint_matrix, self.likelehood))
 
     def init(self, constants, rem_cards,
                     hint_matrix, likelihood):
