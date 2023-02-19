@@ -60,6 +60,7 @@ class PublicBelief(list):
 
     def init(self, constants, rem_cards,
                     hint_matrix, likelihood):
+        '''init'''
 
         pub_belf = [PublicBeliefPlayer(constants, idx_ply, rem_cards,
                     hint_matrix[idx_ply], likelihood[idx_ply])

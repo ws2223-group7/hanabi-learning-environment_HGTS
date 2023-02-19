@@ -1,3 +1,5 @@
+# pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods, unused-variable
+
 from build_hanabi_env import get_hanabi_env
 from ftpubvec import RemaingCards
 
@@ -38,6 +40,7 @@ class HintMatrixHandCard(dict):
 
 
 def main():
+    '''main'''
     hanabi_env = get_hanabi_env()
     observation = hanabi_env['player_observations'][0]
     rem_cards = RemaingCards(observation)

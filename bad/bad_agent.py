@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, line-too-long
+# pylint: disable=missing-module-docstring, wrong-import-position, line-too-long, arguments-differ
 import sys
 import os
 

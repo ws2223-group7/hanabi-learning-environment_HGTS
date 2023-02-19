@@ -12,7 +12,6 @@ sys.path.append(parentPath2)
 
 from bad.action_network import ActionNetwork
 from bad.encoding.observation import Observation
-from hanabi_learning_environment.rl_env import HanabiEnv
 
 
 class LikelihoodPlayer(list):

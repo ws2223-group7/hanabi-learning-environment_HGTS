@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, line-too-long
 import os
 import sys
 
@@ -46,9 +47,9 @@ class RemaingCards(dict):
         for color, max_rank in firework.items():
             for rank in range(max_rank):
                 rem_cards[color][rank] -= 1
-        
+
         return rem_cards
-    
+
     def update_based_on_card_knowledge(self, hanabi_env: HanabiEnv, rem_cards)-> dict:
         """Update rem_cards based on card_knowledge """
 
@@ -74,6 +75,6 @@ class RemaingCards(dict):
         # eines anderen Spieler sein
         discard_pile = hanabi_env['player_observations'][0]['discard_pile']
         for card in discard_pile:
-            rem_cards[card['color']][card['rank']] -= 1   
+            rem_cards[card['color']][card['rank']] -= 1
 
         return rem_cards

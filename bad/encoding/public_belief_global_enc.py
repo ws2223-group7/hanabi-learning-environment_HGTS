@@ -8,7 +8,6 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.belief.public_belief_hand_card import PublicBeliefHandCard
 from bad.encoding.public_belief_player_enc import PublicBeliefPlayerEnc
 
 class PublicBeliefGlobalEnc():

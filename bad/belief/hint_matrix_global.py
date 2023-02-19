@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, wrong-import-order, ungrouped-imports, too-few-public-methods, line-too-long, too-many-arguments
+# pylint: disable=missing-module-docstring, wrong-import-position, wrong-import-order, ungrouped-imports, too-few-public-methods, line-too-long, too-many-arguments, unused-variable
 
 from hint_matrix_player import HintMatrixPlayer
 from ftpubvec import RemaingCards
