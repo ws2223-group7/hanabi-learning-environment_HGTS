@@ -3,8 +3,11 @@
 import sys
 import os
 
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
 
-from build_hanabi_env import get_hanabi_env
+from bad.belief.build_hanabi_env import get_hanabi_env
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)

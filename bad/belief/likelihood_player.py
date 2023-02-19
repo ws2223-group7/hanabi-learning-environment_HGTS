@@ -3,8 +3,6 @@
 import sys
 import os
 
-from likelihood_hand_card import LikelihoodHandCard
-
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 parentPath2 = os.path.dirname(parentPath)
@@ -12,6 +10,7 @@ sys.path.append(parentPath2)
 
 from bad.action_network import ActionNetwork
 from bad.encoding.observation import Observation
+from bad.belief.likelihood_hand_card import LikelihoodHandCard
 
 
 class LikelihoodPlayer(list):

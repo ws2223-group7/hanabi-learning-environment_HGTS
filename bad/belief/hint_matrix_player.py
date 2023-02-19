@@ -8,8 +8,8 @@ parentPath = os.path.dirname(currentPath)
 parentPath2 = os.path.dirname(parentPath)
 sys.path.append(parentPath2)
 
-from ftpubvec import RemaingCards
-from hint_matrix_hand_card import HintMatrixHandCard
+from bad.belief.ftpubvec import RemaingCards
+from bad.belief.hint_matrix_hand_card import HintMatrixHandCard
 
 
 class HintMatrixPlayer(list):

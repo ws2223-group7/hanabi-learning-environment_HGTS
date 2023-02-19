@@ -1,9 +1,17 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods, no-method-argument, unnecessary-pass, consider-using-enumerate, too-many-function-args, too-many-arguments
 
-from public_belief_hand_card import PublicBelfHandCard
-from ftpubvec import RemaingCards
-from hint_matrix_player import HintMatrixPlayer
-from likelihood_player import LikelihoodPlayer
+import os
+import sys
+
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
+
+
+from bad.belief.public_belief_hand_card import PublicBelfHandCard
+from bad.belief.ftpubvec import RemaingCards
+from bad.belief.hint_matrix_player import HintMatrixPlayer
+from bad.belief.likelihood_player import LikelihoodPlayer
 
 
 class PublicBeliefPlayer(list):

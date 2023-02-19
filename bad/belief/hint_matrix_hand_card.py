@@ -1,7 +1,14 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods, unused-variable
 
-from build_hanabi_env import get_hanabi_env
-from ftpubvec import RemaingCards
+import os
+import sys
+
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
+
+from bad.belief.build_hanabi_env import get_hanabi_env
+from bad.belief.ftpubvec import RemaingCards
 
 
 class HintMatrixHandCard(dict):
