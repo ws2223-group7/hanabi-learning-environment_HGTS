@@ -3,8 +3,10 @@ from ftpubvec import RemaingCards
 
 
 class HintMatrixHandCard(dict):
+    '''hint matrix hand card'''
     def __init__(self, constants, rem_cards: RemaingCards, idx_ply: int,
                  idx_card: int):
+        '''init'''
         self.idx_ply = idx_ply
         self.idx_card = idx_card
         super().__init__(self.__init(constants, rem_cards))

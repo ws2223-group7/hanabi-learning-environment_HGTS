@@ -26,7 +26,7 @@ def get_hanabi_env()->HanabiEnv:
                                     'num_episodes=',
                                     'agent_class='])
     if arguments:
-        sys.exit('usage: rl_env_example.py [options]\n'
+        sys.exit(f'usage: rl_env_example.py [options]\n'
                 '--players       number of players in the game.\n'
                 '--num_episodes  number of game episodes to run.\n'
                 '--agent_class   {}'.format(' or '.join(AGENT_CLASSES.keys())))
@@ -43,6 +43,7 @@ def get_hanabi_env()->HanabiEnv:
     return observations
 
 def main():
+    '''main'''
     observation: HanabiEnv = get_hanabi_env()
     print(observation)
 
