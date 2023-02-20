@@ -17,14 +17,15 @@ class ActionNetwork():
     def __init__(self) -> None:
         self.model = None
 
-    def build(self, observation: Observation, max_action: int, public_belief: PublicBeliefGlobalEnc = None) -> None:
+    def build(self, observation: Observation, max_action: int, \
+              public_belief: PublicBeliefGlobalEnc = None) -> None:
         '''build'''
         if self.model is None:
             shape = observation.to_one_hot_vec().shape
-            
+
             #Hier müssen noch Anpassungen gemacht werden
             #shape = public_belief.to_one_hot_vec().shape
-            
+
             self.model = tf.keras.Sequential([
                 tf.keras.Input(shape=shape, name="input"),
                 tf.keras.layers.Dense(384, activation="relu", name="layer1"),
@@ -41,14 +42,15 @@ class ActionNetwork():
     def get_model_input(self, observation: Observation, publicBelief: PublicBeliefGlobalEnc = None):
         '''get model input'''
         network_input = observation.to_one_hot_vec()
-        
-        # Input muss noch angepasst werden 
+
+        # Input muss noch angepasst werden
         # network_input = publicBelief.to_one_hot_vec() + observation.to_one_hot_vec()
 
         reshaped = tf.reshape(network_input, [1, network_input.shape[0]])
         return reshaped
 
-    def get_action(self, observation: Observation, public_belief: PublicBeliefGlobalEnc = None) -> BayesianAction:
+    def get_action(self, observation: Observation, \
+                   public_belief: PublicBeliefGlobalEnc = None) -> BayesianAction:
         '''get action'''
         result = self.model(self.get_model_input(observation, public_belief))
 

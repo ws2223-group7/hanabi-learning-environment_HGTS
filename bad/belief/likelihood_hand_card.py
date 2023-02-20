@@ -1,26 +1,20 @@
-from likelihood_global import Likelihood
-from hint_matrix_global import HintMatrix
+# pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods, line-too-long, too-many-arguments, unused-variable, pointless-string-statement
 
 import sys
 import os
-import numpy as np
 import copy
-
-
+import numpy as np
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 parentPath2 = os.path.dirname(parentPath)
 sys.path.append(parentPath2)
 
-from hanabi_learning_environment.rl_env import HanabiEnv
-from action_network import ActionNetwork
+from bad.action_network import ActionNetwork
 from bad.encoding.observation import Observation
-from bayesian_action_result import BayesianActionResult
-
-from bad.encoding.card import Card
 
 class LikelihoodHandCard(dict):
+    '''likely hood hand card'''
     def __init__(self, idx_ply: int, idx_card: int, constants, observation: Observation,
                  act_network: ActionNetwork, last_act: int = None, pub_belief = None, pre_hanabi_env = None):
         """Initialize / Update the likelihood based on the action, observation and action network
@@ -40,7 +34,7 @@ class LikelihoodHandCard(dict):
             dict: Likelihood to be a spefic for a hand card 
                   based on action of other player 
         """
-        
+
         self.idx_ply = idx_ply
         self.idx_card = idx_card
         super().__init__(self.init(constants, observation,
@@ -48,7 +42,7 @@ class LikelihoodHandCard(dict):
 
     def init(self, constants, observation: Observation, act_network: ActionNetwork,
              last_act, pub_belief, pre_hanabi_env) -> dict:
-       
+        '''init'''
 
         if (pub_belief is None and last_act is None
                 and observation is None):
@@ -56,7 +50,7 @@ class LikelihoodHandCard(dict):
             return self.first_init_likelihood(constants)
 
         # Update the likelihood based on the old likelihood, action, input from network and action network
-        return self.update_likelihood(constants, observation, act_network, 
+        return self.update_likelihood(constants, observation, act_network,
                                       last_act, pub_belief, pre_hanabi_env)
 
     def first_init_likelihood(self, constants) -> dict:
@@ -93,7 +87,7 @@ class LikelihoodHandCard(dict):
         # based on the action from network
         # (Eliminate the hand_card_combinations that are not possible)
         hand_card_combinations_possibility = self.update_hand_card_combinations_pos(
-            hand_card_combinations_possibility, act_network_output, last_act, 
+            hand_card_combinations_possibility, act_network_output, last_act,
             pub_belief.hint_matrix)
 
         # Normalize the hand_card_combinations_possibility
@@ -109,7 +103,7 @@ class LikelihoodHandCard(dict):
             pub_belief, hand_card_possibility)
 
         return likelihood
-    
+
     def create_observations(self, observation: Observation, hand_card_combinations) -> list:
         """Create observations based on the hand_card_combinations, which are used as an input
         for the action network to get the action based on the hand_card_combinations"""
@@ -118,19 +112,19 @@ class LikelihoodHandCard(dict):
         for hand_card_combination in hand_card_combinations:
             observations_for_hand_card_combinations.append(
                 self.observation_based_on_hand_card_combination(observation, hand_card_combination))
-        
+
         return observations_for_hand_card_combinations
-    
-    def observation_based_on_hand_card_combination(self, observation: Observation, 
+
+    def observation_based_on_hand_card_combination(self, observation: Observation,
                                                    hand_card_combination) -> Observation:
         """Create an observation based on the hand_card_combination and old observation"""
         new_observation = copy.copy(observation)
         other_ply_hand = new_observation['player_observations'][0]['observed_hands'][1]
-        for idx_card, card in enumerate(hand_card_combination): 
-            other_ply_hand[idx_card] = card 
+        for idx_card, card in enumerate(hand_card_combination):
+            other_ply_hand[idx_card] = card
 
-        return new_observation            
-            
+        return new_observation
+
     def hand_card_combinations(self, constants) -> list:
         """Returns all possible hand_card combinations"""
 
@@ -153,22 +147,22 @@ class LikelihoodHandCard(dict):
 
         return card_combinations
 
-    def output_actions_network(observations_for_hand_card_combinations, 
+    def output_actions_network(self, observations_for_hand_card_combinations,
                                pre_hanabi_env, pub_belief, network) -> list:
         """Returns the actions from network based on hand_card_combinations and observation (input from network)"""
-        
+
         output_actions = []
         for observation in observations_for_hand_card_combinations:
             bad = network.get_action(observation)
             bad_result = bad.decode_action(pre_hanabi_env.state.legal_moves_int(), pub_belief)
             next_action = bad_result.sampled_action
             output_actions.append()
-        
+
         return output_actions
 
     def build_observations(self, public_feature_one_hot_sig_vec, hand_card_combis_one_hot) -> list:
         """Create Inputs for network"""
-        
+
         inputs_network = []
         for hand_card_combi_one_hot in hand_card_combis_one_hot:
             inputs_network.append(np.concatenate(public_feature_one_hot_sig_vec, hand_card_combi_one_hot))
@@ -255,12 +249,12 @@ class LikelihoodHandCard(dict):
     def normalize_hand_card_possibility(self, hand_card_combinations_possibility):
         """Normalize the hand_card_combinations_possibility"""
 
-        sum = 0
+        my_sum = 0
         for possibility in hand_card_combinations_possibility:
-            sum += possibility
+            my_sum += possibility
 
         for i, possibility in enumerate(hand_card_combinations_possibility):
-            hand_card_combinations_possibility[i] = possibility / sum
+            hand_card_combinations_possibility[i] = possibility / my_sum
 
         return hand_card_combinations_possibility
 

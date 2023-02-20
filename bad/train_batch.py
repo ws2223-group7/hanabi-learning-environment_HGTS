@@ -36,15 +36,15 @@ class TrainBatch:
         observation_converter: ObservationConverter = ObservationConverter()
 
         while len(collect_episodes_result.results) < batch_size:
-            
+
             hanabi_observation = hanabi_environment.reset()
-            
+
             max_moves: int = hanabi_environment.game.max_moves() + 1
             max_actions = max_moves + 1 # 0 index based
 
             seo.set_extra_observation(hanabi_observation, max_moves, max_actions, \
                 hanabi_environment.state.legal_moves_int())
-            
+
             self.network.build(observation_converter.convert(hanabi_observation), max_actions)
 
             ce_data = CollectEpisodeData(hanabi_observation, hanabi_environment, self.network)

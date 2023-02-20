@@ -1,5 +1,15 @@
-from colortointconverter import ColorToIntConverter
-from rem_cards_to_int_converter import NumRemCardsToIntConverter
+# pylint: disable=missing-module-docstring, wrong-import-position, unused-variable, unused-argument, not-callable, invalid-name, too-few-public-methods
+
+import sys
+import os
+
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
+
+
+from bad.encoding.colortointconverter import ColorToIntConverter
+from bad.encoding.rem_cards_to_int_converter import NumRemCardsToIntConverter
 
 
 class CardProbabilitiy:
@@ -15,7 +25,7 @@ class CardProbabilitiy:
 def main():
     '''main'''
     card: CardProbabilitiy = CardProbabilitiy('R', 1)
-    print(card.rank)
+    print(card.num_rem_cards)
     print(card.color)
 
 

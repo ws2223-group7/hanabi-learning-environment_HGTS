@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, no-name-in-module, too-few-public-methods
+# pylint: disable=missing-module-docstring, wrong-import-position, no-name-in-module, too-few-public-methods, too-many-instance-attributes
 
 class Constants:
     '''constants'''
@@ -28,4 +28,5 @@ class Constants:
                                    for rank in range(self.num_ranks + 1)]
 
     def action_int_to_move_type(self, action: int):
+        ''''action int to move type'''
         return self.hanabi_env.game.get_move(action)
