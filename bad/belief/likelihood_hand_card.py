@@ -10,13 +10,14 @@ parentPath = os.path.dirname(currentPath)
 parentPath2 = os.path.dirname(parentPath)
 sys.path.append(parentPath2)
 
-from bad.action_network import ActionNetwork
+
 from bad.encoding.observation import Observation
+from bad.action_provider import ActionProvider
 
 class LikelihoodHandCard(dict):
     '''likely hood hand card'''
     def __init__(self, idx_ply: int, idx_card: int, constants, observation: Observation,
-                 act_network: ActionNetwork, last_act: int = None, pub_belief = None, pre_hanabi_env = None):
+                 act_network: ActionProvider, last_act: int = None, pub_belief = None, pre_hanabi_env = None):
         """Initialize / Update the likelihood based on the action, observation and action network
            By initializing the likelihood, the first time last_act,pub_belief and pre_hanabi_env are None
 
@@ -40,7 +41,7 @@ class LikelihoodHandCard(dict):
         super().__init__(self.init(constants, observation,
                                    act_network, last_act, pub_belief, pre_hanabi_env))
 
-    def init(self, constants, observation: Observation, act_network: ActionNetwork,
+    def init(self, constants, observation: Observation, act_network: ActionProvider,
              last_act, pub_belief, pre_hanabi_env) -> dict:
         '''init'''
 
@@ -64,7 +65,7 @@ class LikelihoodHandCard(dict):
 
         return likelihood_hand_card
 
-    def update_likelihood(self, constants, observation: Observation, network: ActionNetwork,
+    def update_likelihood(self, constants, observation: Observation, network: ActionProvider,
                           last_act, pub_belief, pre_hanabi_env) -> dict:
         """Update the likelihood based on the old likelihood, action, input from network and action network"""
 
@@ -148,7 +149,7 @@ class LikelihoodHandCard(dict):
         return card_combinations
 
     def output_actions_network(self, observations_for_hand_card_combinations,
-                               pre_hanabi_env, pub_belief, network) -> list:
+                               pre_hanabi_env, pub_belief, network: ActionProvider) -> list:
         """Returns the actions from network based on hand_card_combinations and observation (input from network)"""
 
         output_actions = []
