@@ -1,5 +1,4 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, no-name-in-module, unused-variable, unused-variable
-
 import os
 import random
 import sys
@@ -11,9 +10,10 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.self_play import SelfPlay
-from bad.train_batch import TrainBatch
 from bad.action_network import ActionNetwork
+from bad.train_batch import TrainBatch
+from bad.self_play import SelfPlay
+
 
 def main() -> None:
     '''main'''
@@ -38,5 +38,7 @@ def main() -> None:
     self_play.run(episodes_running)
 
     print("finish with everything")
+
+
 if __name__ == "__main__":
     main()
