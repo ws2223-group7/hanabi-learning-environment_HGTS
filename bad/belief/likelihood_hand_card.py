@@ -178,11 +178,11 @@ class LikelihoodHandCard(dict):
 
             # Get the possiblity for each card
             card1_possiblity = self.card_possibility(
-                card_combination[0], public_belief)
+                card_combination[0], public_belief, 0)
             card2_possiblity = self.card_possibility(
-                card_combination[1], public_belief)
+                card_combination[1], public_belief, 1)
             card3_possiblity = self.card_possibility(
-                card_combination[2], public_belief)
+                card_combination[2], public_belief, 2)
 
             # Get the possiblity for the hand_card_combination and append it to the list
             hand_card_combinations_possibility.append(
@@ -190,11 +190,11 @@ class LikelihoodHandCard(dict):
 
         return hand_card_combinations_possibility
 
-    def card_possibility(self, card, public_belief):
+    def card_possibility(self, card, public_belief, card_idx):
         """Returns the possibility for a card based on the public belief"""
         card_color = card['color']
         card_rank = card['rank']
-        card_possibility = public_belief[card_color][card_rank]
+        card_possibility = public_belief[self.idx_ply][card_idx][card_color][card_rank]
 
         return card_possibility
 
@@ -269,19 +269,19 @@ class LikelihoodHandCard(dict):
             hand_card_possibility.update({card: 0})
 
         # Get for each card the possibility based on the hand_card_combinations_possibility
-        for idx, hand_card_combination_pos in enumerate(hand_card_combinations_possibility):
+        for hand_card_combination_pos in hand_card_combinations_possibility:
 
             # The card possibilty is based on the card_idx
-            card = hand_cards_combination[idx][self.idx_card]
+            card = hand_cards_combination[self.idx_card]
 
             hand_card_possibility[card] += hand_card_combination_pos
 
         return hand_card_possibility
 
-    def calculate_new_likelihood(self, old_pub_belief: dict, hand_card_combinations_possibility):
+    def calculate_new_likelihood(self, pub_belief: dict, hand_card_combinations_possibility):
         """Update the likelihood based on the hand_card_combinations_possibility and the old likelihood"""
         new_likelihood = {}
-        for color, color_likelihood in old_pub_belief.likelihood.items():
+        for color, color_likelihood in pub_belief.likelihood.items():
             new_color_likelihood = [hand_card_combinations_possibility[color][rank] * color_likelihood[rank]
                                     for rank in range(len(color_likelihood))]
             new_likelihood.update({color: new_color_likelihood})
