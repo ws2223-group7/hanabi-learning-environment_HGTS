@@ -10,8 +10,9 @@ sys.path.append(parentPath)
 from bad.encoding.observation import Observation
 from bad.bayesian_action import BayesianAction
 from bad.encoding.public_belief_global_enc import PublicBeliefGlobalEnc
+from bad.action_provider import ActionProvider
 
-class ActionNetwork():
+class ActionNetwork(ActionProvider):
     ''' action network '''
 
     def __init__(self) -> None:
