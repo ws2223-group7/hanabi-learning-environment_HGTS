@@ -1,19 +1,19 @@
+# pylint: disable=missing-module-docstring, wrong-import-position, wrong-import-order, ungrouped-imports, too-few-public-methods, line-too-long, too-many-arguments
+
 import sys
 import os
-
-
-from bad.encoding.observation import Observation
-from likelihood_player import LikelihoodPlayer
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 parentPath2 = os.path.dirname(parentPath)
 sys.path.append(parentPath2)
 
-from action_network import ActionNetwork
-from hanabi_learning_environment.rl_env import HanabiEnv
+from bad.action_network import ActionNetwork
+from bad.encoding.observation import Observation
+from likelihood_player import LikelihoodPlayer
 
 class Likelihood(list):
+    '''likely hood'''
     def __init__(self, constants, action_network: ActionNetwork, pre_hanabi_env,
                 pre_observation: Observation, last_act, pub_belief)-> None:
         """Initialize / Update the likelihood based on the last_action, observation and last_action network
@@ -30,16 +30,16 @@ class Likelihood(list):
         Returns:
             likelihood (Likelihood): Likelihood of the current step
         """
-        super().__init__(self.__init(constants, pre_observation, 
+        super().__init__(self.__init(constants, pre_observation,
                                      action_network, last_act, pub_belief, pre_hanabi_env))
 
 
     def __init(self, constants, observation: Observation,
-                     action_network: ActionNetwork, last_act, 
+                     action_network: ActionNetwork, last_act,
                      pub_belief, pre_hanabi_env) -> list:
-        
-        players_hands = [LikelihoodPlayer(constants, idx_ply, observation, 
-                         action_network, last_act, pub_belief, pre_hanabi_env) 
-                         for idx_ply in range(constants.num_ply)] 
+
+        players_hands = [LikelihoodPlayer(constants, idx_ply, observation,
+                         action_network, last_act, pub_belief, pre_hanabi_env)
+                         for idx_ply in range(constants.num_ply)]
 
         return players_hands

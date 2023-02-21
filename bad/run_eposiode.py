@@ -63,7 +63,7 @@ class RunEpisode:
         return RunEpisodeResult(episode_number, episode_reward, self.hanabi_environment, \
             agent_step_times)
 
-
-if __name__ == '__main__':
-    runner = RunEpisode()
-    runner.run()
+# needed ?
+#if __name__ == '__main__':
+#    runner = RunEpisode()
+#    runner.run()

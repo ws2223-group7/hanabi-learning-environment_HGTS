@@ -1,10 +1,21 @@
-from build_hanabi_env import get_hanabi_env
-from ftpubvec import RemaingCards
+# pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods, unused-variable
+
+import os
+import sys
+
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+sys.path.append(parentPath)
+
+from bad.belief.build_hanabi_env import get_hanabi_env
+from bad.belief.ftpubvec import RemaingCards
 
 
 class HintMatrixHandCard(dict):
+    '''hint matrix hand card'''
     def __init__(self, constants, rem_cards: RemaingCards, idx_ply: int,
                  idx_card: int):
+        '''init'''
         self.idx_ply = idx_ply
         self.idx_card = idx_card
         super().__init__(self.__init(constants, rem_cards))
@@ -36,6 +47,7 @@ class HintMatrixHandCard(dict):
 
 
 def main():
+    '''main'''
     hanabi_env = get_hanabi_env()
     observation = hanabi_env['player_observations'][0]
     rem_cards = RemaingCards(observation)

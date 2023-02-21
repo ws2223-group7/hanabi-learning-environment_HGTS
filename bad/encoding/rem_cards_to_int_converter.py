@@ -1,6 +1,7 @@
+# pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods
+
 import numpy as np
 import tensorflow as tf
-
 
 class NumRemCardsToIntConverter:
     ''' rank converter'''

@@ -1,11 +1,8 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods
 
-import sys
-import os
 import numpy as np
 
-from card import Card
-
+from bad.encoding.card import Card
 
 class Hands():
     '''hand'''
