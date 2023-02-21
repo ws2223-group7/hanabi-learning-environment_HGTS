@@ -6,23 +6,26 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from hanabi_learning_environment import rl_env
-from bad.action_network import ActionNetwork
-from bad.encoding.observationconverter import ObservationConverter
-from bad.set_extra_observation import SetExtraObservation
-from bad.buffer import Buffer
 from bad.collect_episode_data_result import CollectEpisodeDataResult
+from bad.buffer import Buffer
+from bad.set_extra_observation import SetExtraObservation
+from bad.encoding.observationconverter import ObservationConverter
+from bad.action_network import ActionNetwork
+from hanabi_learning_environment import rl_env
+
 
 class CollectEpisodeData:
     '''train episode'''
-    def __init__(self, hanabi_observation:dict, hanabi_environment: rl_env.HanabiEnv, \
-         network: ActionNetwork) -> None:
+
+    def __init__(self, hanabi_observation: dict,
+                 hanabi_environment: rl_env.HanabiEnv,
+                 network: ActionNetwork) -> None:
         self.hanabi_observation = hanabi_observation
         self.hanabi_environment = hanabi_environment
         self.network = network
 
     def collect(self) \
-         -> CollectEpisodeDataResult:
+            -> CollectEpisodeDataResult:
         '''train within an environment'''
 
         copied_state = self.hanabi_environment.state.copy()
@@ -31,13 +34,14 @@ class CollectEpisodeData:
 
         self.hanabi_environment.state = copied_state.copy()
         # one more move because of no-action move on the beginning
-        #fake an action that does not exists
+        # fake an action that does not exists
         max_moves: int = self.hanabi_environment.game.max_moves() + 1
-        max_actions = max_moves + 1 # 0 index based
+        max_actions = max_moves + 1  # 0 index based
 
         seo = SetExtraObservation()
-        seo.set_extra_observation(self.hanabi_observation, max_moves, max_actions, \
-            self.hanabi_environment.state.legal_moves_int())
+        seo.set_extra_observation(self.hanabi_observation, max_moves,
+                                  max_actions,
+                                  self.hanabi_environment.state.legal_moves_int())
 
         observation_converter: ObservationConverter = ObservationConverter()
         observation = observation_converter.convert(self.hanabi_observation)
@@ -46,15 +50,19 @@ class CollectEpisodeData:
         while not done:
 
             bad = self.network.get_action(observation)
-            bad_result = bad.decode_action(self.hanabi_environment.state.legal_moves_int())
+            bad_result = bad.decode_action(
+                self.hanabi_environment.state.legal_moves_int())
             next_action = bad_result.sampled_action
 
-            observation_after_step, reward, done, _ = self.hanabi_environment.step(next_action)
+            observation_after_step, reward, done, _ = self.hanabi_environment.step(
+                next_action)
 
-            buffer.append(self.hanabi_observation, observation, bad_result, reward)
+            buffer.append(self.hanabi_observation,
+                          observation, bad_result, reward)
 
-            seo.set_extra_observation(observation_after_step, next_action, max_actions, \
-                self.hanabi_environment.state.legal_moves_int())
+            seo.set_extra_observation(observation_after_step, next_action, +
+                                      max_actions,
+                                      self.hanabi_environment.state.legal_moves_int())
 
             observation = observation_converter.convert(observation_after_step)
             self.hanabi_observation = observation_after_step

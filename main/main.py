@@ -15,6 +15,7 @@ from bad.self_play import SelfPlay
 from bad.train_batch import TrainBatch
 from bad.action_network import ActionNetwork
 
+
 def main() -> None:
     '''main'''
     seed = 42
@@ -38,5 +39,7 @@ def main() -> None:
     self_play.run(episodes_running)
 
     print("finish with everything")
+
+    
 if __name__ == "__main__":
     main()
