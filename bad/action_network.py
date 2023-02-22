@@ -14,8 +14,17 @@ from bad.bayesian_action import BayesianAction
 class ActionNetwork():
     ''' action network '''
 
-    def __init__(self) -> None:
+    def __init__(self, path) -> None:
         self.model = None
+        self.path = path
+
+    def load(self, ) -> None:
+        """load"""
+        self.model = tf.keras.models.load_model(self.path)
+
+    def save(self):
+        """save"""
+        self.model.save(self.path)
 
     def build(self, observation: Observation, max_action: int) -> None:
         '''build'''
@@ -55,8 +64,6 @@ class ActionNetwork():
             logits = model(self.get_model_input(observation))
             log_probs = tf.nn.log_softmax(logits, -1)
             loss = -(tf.reduce_mean(log_probs * rewards_to_go))
-            print("loss: ", loss)
 
         grads = tape.gradient(loss, model.trainable_variables)
-
         optimizer.apply_gradients(zip(grads, model.trainable_variables))

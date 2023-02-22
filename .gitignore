@@ -7,3 +7,4 @@ bad/belief/__init__.py
 bad/belief/__init__.py
 *.idea
 *.vscode
+model/*

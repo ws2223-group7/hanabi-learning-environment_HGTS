@@ -26,13 +26,21 @@ def main() -> None:
     episodes_running = 100
     gamma = 0.95
 
+    model_path = 'model'
+
+
     print(f'welcome to bad agent with tf version: {tf.__version__}')
     print(f'running {episodes_running} episodes')
 
-    network: ActionNetwork = ActionNetwork()
+    network: ActionNetwork = ActionNetwork(model_path)
+
+    #if os.path.exists(model_path):
+    #    network.load()
 
     train_batches = TrainBatches(network)
     training_result = train_batches.run(batch_size=batch_size, gamma=gamma)
+
+    #network.save()
 
     self_play = SelfPlay(network)
     self_play.run(episodes_running)
