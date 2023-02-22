@@ -27,8 +27,8 @@ class ActionNetwork():
                 tf.keras.layers.Dense(384, activation="relu", name="layer2"),
                 tf.keras.layers.Dense(max_action, activation='softmax', name='Output_Layer')
             ])
-            opt = tf.keras.optimizers.Adam(learning_rate=0.01)
-            self.model.compile(loss='categorical_crossentropy', optimizer=opt)
+            # opt = tf.keras.optimizers.Adam(learning_rate=0.01)
+            # self.model.compile(loss='categorical_crossentropy', optimizer=opt)
 
     def print_summary(self):
         '''print summary'''
@@ -46,22 +46,17 @@ class ActionNetwork():
         result = self.model(self.get_model_input(observation))
         return BayesianAction(result.numpy()[0])
 
-    def backpropagation(self, x, y):
+    def backpropagation(self, observation: Observation, rewards_to_go: float, loss):
         '''train step'''
         model = self.model
-        optimizer = self.model.optimizer
-        loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-        train_acc_metric =  tf.keras.metrics.CategoricalAccuracy()
-
-        tf_x = self.get_model_input(x)
-
-        arr_y = np.zeros(21, dtype = int)
-        arr_y = np.append(arr_y, int(y))
-        tf_y = tf.reshape(arr_y, [1, arr_y.shape[0]])
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
 
         with tf.GradientTape() as tape:
-            logits = model(tf_x, training=True)
-            loss_value = loss_fn(tf_y, logits)
-        grads = tape.gradient(loss_value, model.trainable_weights)
-        optimizer.apply_gradients(zip(grads, model.trainable_weights))
-        train_acc_metric.update_state(tf_y, logits)
+            logits = model(self.get_model_input(observation))
+            log_probs = tf.nn.log_softmax(logits, -1)
+            loss = -(tf.reduce_mean(log_probs * rewards_to_go))
+            print("loss: ", loss)
+
+        grads = tape.gradient(loss, model.trainable_variables)
+
+        optimizer.apply_gradients(zip(grads, model.trainable_variables))

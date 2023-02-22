@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, consider-using-enumerate
+# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, consider-using-enumerate, line-too-long
 
 import sys
 import os
@@ -63,7 +63,7 @@ class TrainBatches:
 
         for calc_result_result in calc_result.results:
             for index in range(len(calc_result_result.observation)):
-                self.network.backpropagation(calc_result_result.observation[index], 10)
+                self.network.backpropagation(calc_result_result.observation[index], calc_result_result.rewards[index], calc_result_result.losses[index])
 
     def run(self, batch_size: int, gamma: float) -> TrainBatchResult:
         '''init'''
