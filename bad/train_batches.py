@@ -70,10 +70,13 @@ class TrainBatches:
         print('train')
         players:int = 2
 
+        print('collect data')
         collected_data = self.collect_data(batch_size, players)
 
+        print('reward calculation')
         reward_calculation_result = self.reward_to_go_calculation(collected_data, gamma)
 
+        print('backpropagation')
         self.backpropagation(reward_calculation_result)
 
         return TrainBatchResult()
