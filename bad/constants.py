@@ -12,7 +12,7 @@ class Constants:
         self.num_cards_per_rank = None
         self.num_colors = None
         self.colors = None
-        self.environment_name = 'Hanabi-Group-7'
+        self.environment_name = 'Hanabi-Full'
 
     def update(self, hanabi_env) -> None:
         '''update'''

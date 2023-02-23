@@ -39,7 +39,7 @@ class ActionNetwork(ActionProvider):
         '''print summary'''
         self.model.summary()
 
-    def get_model_input(self, observation: Observation, publicBelief):
+    def get_model_input(self, observation: Observation, publicBelief=None):
         '''get model input'''
         network_input = observation.to_one_hot_vec()
 
