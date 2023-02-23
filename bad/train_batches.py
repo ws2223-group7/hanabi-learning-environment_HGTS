@@ -67,10 +67,10 @@ class TrainBatches:
 
     def run(self, batch_size: int, gamma: float) -> TrainBatchResult:
         '''init'''
-        print('train')
+        print('training')
         players:int = 2
 
-        print('collect data')
+        print('collecting data')
         collected_data = self.collect_data(batch_size, players)
 
         print('reward calculation')
