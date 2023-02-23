@@ -29,9 +29,9 @@ class PublicBeliefPlayer(list):
              likelihood_ply: LikelihoodPlayer) -> list:
         '''init'''
 
-        public_belief_player = [PublicBelfHandCard(constants, self.idx_ply, idx_card,
-                                rem_cards, hint_matrix_ply[idx_card],
-                                likelihood_ply[idx_card])
+        public_belief_hand_cards = [PublicBelfHandCard(constants, self.idx_ply, idx_card,
+                                rem_cards, hint_matrix_ply[idx_card], 
+                                likelihood_ply[idx_card]) 
                                 for idx_card in range(constants.num_ply)]
-        return public_belief_player
+        return public_belief_hand_cards
         

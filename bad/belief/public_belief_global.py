@@ -20,22 +20,22 @@ from bad.encoding.observation import Observation
 
 
 class PublicBelief(list):
-    '''public belief'''
-
+    """Init"""
     def __init__(self, hanabi_env: HanabiEnv, constants: Constants,
-                 action_network, pre_observation_enc: Observation= None,  last_action=None,
-                 pre_hanabi_env: HanabiEnv=None, public_belief= None):
+                 action_network, pre_observation_enc: Observation = None,
+                 last_action = None, pre_hanabi_env: HanabiEnv = None,
+                 public_belief = None):
         """Initialize / Update the PublicBelief
-        - create 
+        - create
             RemaningCard (FtpubVec in Paper)
             HintMatrix
             likelihoof
-        
+
         Creating the publicBelief the first time the parameter
             observation, last_action, pre_hanabi_env and public_belief are None!!!
 
         Args:
-            constants (HanabiEnv): Hanabi environment 
+            constants (HanabiEnv): Hanabi environment
             act_network (ActionNetwork): Network that predicts the last_action
             last_act (_type_, None): the last action taken by the agent
             pre_observation (Observation): Observation from the previous step
@@ -45,31 +45,28 @@ class PublicBelief(list):
             likelihood (Likelihood): Likelihood of the current step
         """
 
-
+        # Init rem_cards,hint_matrix and hanabi_env due to dubug purpose
         # Init rem_cards,hint_matrix and hanabi_env due to dubug purpose
         self.rem_cards = RemaingCards(hanabi_env)
         self.hint_matrix = HintMatrix(constants, self.rem_cards)
-        self.likelehood = Likelihood(constants, action_network, pre_hanabi_env,
-                                     pre_observation_enc, last_action, public_belief)
+        self.likelihood = Likelihood(constants, action_network, pre_hanabi_env,
+                                     pre_observation_enc, last_action,
+                                     public_belief)
 
         # Init hanabi_env due to dubug purpose
         self.hanabi_env = hanabi_env
 
+
         super().__init__(self.init(constants, self.rem_cards,
-                         self.hint_matrix, self.likelehood))
+                         self.hint_matrix, self.likelihood))
 
     def init(self, constants, rem_cards,
-                    hint_matrix, likelihood):
-        '''init'''
+             hint_matrix, likelihood):
+        """Init"""
 
         pub_belf = [PublicBeliefPlayer(constants, idx_ply, rem_cards,
-                    hint_matrix[idx_ply], likelihood[idx_ply])
+                    hint_matrix[idx_ply], likelihood[idx_ply]) 
                     for idx_ply in range(constants.num_ply)]
         return pub_belf
 
 
-if __name__ == "__main__":
-    # redefined-outer-name
-    # hanabi_env = get_hanabi_env()
-    # pub_belf = PublicBelief(hanabi_env)
-    print()
