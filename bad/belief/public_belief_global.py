@@ -65,8 +65,6 @@ class PublicBelief(list):
         """Init"""
 
         pub_belf = [PublicBeliefPlayer(constants, idx_ply, rem_cards,
-                    hint_matrix[idx_ply], likelihood[idx_ply]) 
+                    hint_matrix[idx_ply], likelihood[idx_ply])
                     for idx_ply in range(constants.num_ply)]
         return pub_belf
-
-

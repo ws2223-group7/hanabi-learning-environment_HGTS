@@ -10,7 +10,6 @@ from hanabi_learning_environment.rl_env import Agent, HanabiEnv
 from bad.bad_agent_acting_result import BadAgentActingResult
 from bad.policy import Policy
 from bad.encoding.observationconverter import ObservationConverter
-from bad.encoding.public_belief_global_enc import PublicBeliefGlobalEnc
 
 class BadAgent(Agent):
     ''' bad agent '''
