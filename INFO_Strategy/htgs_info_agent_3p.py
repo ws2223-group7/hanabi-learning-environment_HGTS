@@ -8,7 +8,7 @@ sys.path.append(parentPath)
 
 from INFO_Strategy.possibility_table import Table
 from hanabi_learning_environment.rl_env import Agent
-
+from INFO_Strategy.color_enum import Color
 
 class HTGSAgent(Agent):
     def __init__(self, config, *args, **kwargs):
@@ -413,7 +413,8 @@ class HTGSAgent(Agent):
 
         return sum_mc_Ti_cards, sum_mc_Ti_cut_Si_cards
 
-    def get_pb_playable_cards(self, agent_idx, poss_hand_table, sum_mc_Ti_cards, sum_mc_Ti_cut_Si_cards):
+    def get_pb_playable_cards(self, agent_idx, poss_hand_table, 
+                              sum_mc_Ti_cards, sum_mc_Ti_cut_Si_cards):
 
         pb_playable_cards = []
 
@@ -448,46 +449,189 @@ class HTGSAgent(Agent):
         return pb_playable_cards
 
     def get_hint_hat_sum_smaller_4(self, hat_sum_mod8):
-        # Überprüftr
-        # See Paper Cox for calculation
-        idx_ply = hat_sum_mod8 + 1
+        """Return Hint Rank if highst_rank != lowest_rank
+           else return specific color hint"""
 
-        if idx_ply > (self.observation['num_players'] - 1):
-            discard = {'action_type': 'DISCARD', 'card_index': 0}
-            return discard
+        idx_ply = 1 if hat_sum_mod8 == 0 or hat_sum_mod8 == 1 else 2
 
-        # Get a random rank to hint from player (idx_ply)
-        # which get the hint
-        hand_player = self.observation['observed_hands'][idx_ply]
-        first_hand_card = hand_player[0]
-        rank = first_hand_card['rank']
-
-        hint = {'action_type': 'REVEAL_RANK',
-                'rank': rank,
-                'target_offset': idx_ply}
-
-        return hint
-
-    def get_hint_hat_sum_bigger_3(self, hatSumMod8):
-
-        # See Paper Cox for calculation
-        idx_ply = hatSumMod8 - 3
-
-        if idx_ply > (self.observation['num_players'] - 1):
-            discard = {'action_type': 'DISCARD', 'card_index': 0}
-            return discard
-
-        # Get a random color to hint from player (idx_ply)
-        # which get the hint
         hand_ply = self.observation['observed_hands'][idx_ply]
-        first_hand_card = hand_ply[0]
-        color = first_hand_card['color']
 
-        hint = {'action_type': 'REVEAL_COLOR',
-                'color': color,
-                'target_offset': idx_ply}
+        highst_rank = self.highst_rank_in_hand(hand_ply)
+        lowest_rank  = self.lowest_rank_in_hand(hand_ply)
+
+        if highst_rank != lowest_rank:
+            if hat_sum_mod8 == 0 or hat_sum_mod8 == 2:
+                hint = {'action_type': 'REVEAL_RANK',
+                        'rank': highst_rank,
+                        'target_offset': idx_ply}
+                
+            elif hat_sum_mod8 == 1 or hat_sum_mod8 == 3:
+                hint = {'action_type': 'REVEAL_RANK',
+                        'rank': lowest_rank,
+                        'target_offset': idx_ply}
+            
+            else:
+                raise ValueError("hat_sum_mod8 must be in [0, 3]")
+            
+        else:
+            # Give a color hint if it is not possible to hint rank
+            hint = self.get_spec_color_hint(hat_sum_mod8, hand_ply, idx_ply)
 
         return hint
+
+    def get_spec_color_hint(self, hat_sum_mod8, hand_ply, idx_ply):
+        """Return Hint Color with second highest or lowest color
+           This only happen if it is not possible to hint rank
+           becouse highst_rank == lowest_rank"""
+        
+        # Get Color with second highest or lowest color
+        sec_lowest_color = self.sec_lowest_color_in_hand(hand_ply)
+        sec_highest_color = self.sec_highest_color_in_hand(hand_ply)
+
+        if sec_lowest_color != sec_highest_color:
+            if hat_sum_mod8 == 0 or hat_sum_mod8 == 2:
+                hint = {'action_type': 'REVEAL_COLOR',
+                        'color': sec_highest_color,
+                        'target_offset': 1}
+                
+            elif hat_sum_mod8 == 1 or hat_sum_mod8 == 3:
+                hint = {'action_type': 'REVEAL_COLOR',
+                        'color': sec_lowest_color,
+                        'target_offset': 1}
+            
+            else:
+                raise ValueError("hat_sum_mod8 must be in [0, 3]")
+        
+        else:
+            # Give a color hint for second highest color
+            # Other Player will check if sec_highst_color == sec_lowest_color
+            # If not hat is is calculated as 0,5 or 2,5 based on player idx 
+            hint = {'action_type': 'REVEAL_COLOR',
+                    'color': sec_highest_color,
+                    'target_offset': idx_ply}
+        
+        return hint
+    
+    def get_hint_hat_sum_bigger_3(self, hat_sum_mod8):
+        """Return Hint Color if sec_highst_color != sec_lowest_color
+           else return specific rank hint"""
+
+        idx_ply = 1 if (hat_sum_mod8 == 4 or hat_sum_mod8 == 5) \
+                    else 2
+        
+        hand_ply = self.observation['observed_hands'][idx_ply]
+
+        lowest_color = self.lowest_color_in_hand(hand_ply)
+        highst_color = self.highest_color_in_hand(hand_ply)
+
+        if lowest_color != highst_color:
+            if hat_sum_mod8 == 4 or hat_sum_mod8 == 6:
+                hint = {'action_type': 'REVEAL_COLOR',
+                        'color': highst_color,
+                        'target_offset': idx_ply}
+                
+            elif hat_sum_mod8 == 5 or hat_sum_mod8 == 7:
+                hint = {'action_type': 'REVEAL_COLOR',
+                        'color': lowest_color,
+                        'target_offset': idx_ply}
+            
+            else:
+                raise ValueError("hat_sum_mod8 must be in [4, 7]")
+        
+        else:
+            # Give a rank hint 
+            hint = self.get_spec_rank_hint(hat_sum_mod8, hand_ply, idx_ply)
+        
+        return hint
+    
+    def get_spec_rank_hint(self, hat_sum_mod8, hand_ply, idx_ply):
+        """Return Hint Rank with second highest or lowest rank
+           This only happen if it is not possible to hint color
+           becouse sec_lowest_color == sec_highest_color"""
+        
+        # Get Rank with second highest or lowest rank
+        sec_lowest_rank = self.sec_lowest_rank_in_hand(hand_ply)
+        sec_highest_rank = self.sec_highest_rank_in_hand(hand_ply)
+
+        if sec_lowest_rank != sec_highest_rank:
+            if hat_sum_mod8 == 4 or hat_sum_mod8 == 6:
+                hint = {'action_type': 'REVEAL_RANK',
+                        'rank': sec_highest_rank,
+                        'target_offset': idx_ply}
+                
+            elif hat_sum_mod8 == 5 or hat_sum_mod8 == 7:
+                hint = {'action_type': 'REVEAL_RANK',
+                        'rank': sec_lowest_rank,
+                        'target_offset': idx_ply}
+            
+            else:
+                raise ValueError("hat_sum_mod8 must be in [4, 7]")
+        
+        else:
+            # Give a rank hint for second highest rank
+            # Other Player will check if sec_highst_rank == sec_lowest_rank
+            # If not hat is is calculated as 4,5 or 6,5 based on player idx 
+            hint = {'action_type': 'REVEAL_RANK',
+                    'rank': sec_highest_rank,
+                    'target_offset': idx_ply}
+        
+        return hint
+
+    def sorted_ranks_in_hand(self, hand_ply):
+        """Return sorted list of ranks in hand"""
+        
+        sorted_ranks_in_hand = [card['rank'] for card in hand_ply] 
+        sorted_ranks_in_hand.sort()
+
+        return sorted_ranks_in_hand
+
+    def lowest_rank_in_hand(self, hand_ply):
+        """Return lowest color in hand"""
+        sorted_ranks_in_hand = self.sorted_ranks_in_hand(hand_ply)
+        return sorted_ranks_in_hand[0]
+
+    def highest_rank_in_hand(self, hand_ply):
+        """Return second highest color in hand"""
+        sorted_ranks_in_hand = self.sorted_ranks_in_hand(hand_ply)
+        return sorted_ranks_in_hand[-1]
+        
+    def sec_lowest_rank_in_hand(self, hand_ply):
+        """Return second lowest rank in hand"""
+
+        sorted_ranks_in_hand = self.sorted_ranks_in_hand(hand_ply)
+        return sorted_ranks_in_hand[1]
+    
+    def sec_highest_rank_in_hand(self, hand_ply):
+        """Return second highest rank in hand"""
+
+        sorted_ranks_in_hand = self.sorted_ranks_in_hand(hand_ply)
+        return sorted_ranks_in_hand[-2]
+        
+    def sorted_color_in_hand(self, hand_ply):
+        """Return sorted color in hand"""
+
+        color_values_in_hand = [Color(card['color']).value() 
+                                for card in hand_ply]
+        color_values_in_hand.sort()
+        color_in_hand = [Color(value).name for value 
+                         in color_values_in_hand]
+
+        return color_in_hand
+    
+    def lowest_color_in_hand(self, hand_ply):
+        """Return lowest color in hand"""
+        sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
+        return sorted_color_in_hand[0]
+    
+    def highest_color_in_hand(self, hand_ply):
+        """Return second highest color in hand"""
+        sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
+        return sorted_color_in_hand[-1]
+    
+    def sec_lowest_color_in_hand(self, hand_ply):
+        """Return second lowest color in hand"""
+        sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
+        return sorted_color_in_hand[1]
 
     def duplicate_card_in_hand(self, privat_poss_hand_table):
         """Return First duplicate Cards in hands
