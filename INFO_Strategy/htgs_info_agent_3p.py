@@ -31,17 +31,6 @@ class HTGSAgent(Agent):
                                   6: {'action_type': 'DISCARD', 'card_index': 2},
                                   7: {'action_type': 'DISCARD', 'card_index': 3}}
 
-        self.decode_act_to_hat_sum_mod8 = {
-            ('REVEAL_RANK', 1): 0,
-            ('REVEAL_RANK', 2): 1,
-            ('REVEAL_RANK', 3): 2,
-            ('REVEAL_RANK', 4): 3,
-            ('REVEAL_COLOR', 1): 4,
-            ('REVEAL_COLOR', 2): 5,
-            ('REVEAL_COLOR', 3): 6,
-            ('REVEAL_COLOR', 4): 7
-        }
-
         self.num_colors_left = {'B':  10, 'G': 10, 'R': 10, 'W': 10, 'Y': 10}
 
         self.num_ranks_left = {0:  15, 1: 10, 2: 10, 3: 10, 4: 5}
@@ -312,12 +301,281 @@ class HTGSAgent(Agent):
                           Hierbei muss es sich natürlich um ein Hint handeln 
         """
 
+        idx_hinting_player = self.observation['current_player_offset']
+        idx_hinted_player = (idx_hinting_player + act['target_offset']) \
+                             % self.observation['num_players']
+
+        
+        if agent_idx == idx_hinted_player:
+            return self.cal_hinted_ply_hat(act, idx_hinted_player)
+
         # Sonderfall wenn der eigene Hat berechnet werden soll
         # ! Hierfür muss der Hint übergeben werden
-        if agent_idx == 0:
+        elif agent_idx == 0:
             return self.cal_own_hat(act)
 
         return self.cal_other_hat(agent_idx)
+
+    def cal_hinted_ply_hat(self, act, idx_hinted_player):
+        """Return hat vom Spieler der gehintet wird
+           Der gehinted Spieler kennt seine Karten nicht
+           und kann somit den hint nur bedingt interpretieren
+           Damit alle den possibilty table gleich updaten muss 
+           jeder den selben hut bzw. die selben möglichen Hüte 
+           für den hinted player berechnen"""
+        
+        
+
+        highst_rank = self.highest_rank_in_hand(card_knowledge_hinted_ply)
+        sec_lowest_rank = self.sec_lowest_rank_in_hand(card_knowledge_hinted_ply)
+        lowest_rank = self.lowest_rank_in_hand(card_knowledge_hinted_ply)
+        sec_highst_rank = self.sec_highst_rank_in_hand(card_knowledge_hinted_ply)
+
+        # Calculate highst and lowest color in hand
+        card_knowledge_hinted_ply = self.observation['card_knowledge'][idx_hinted_player]
+        
+        highst_color = self.highest_color_in_hand(card_knowledge_hinted_ply)
+        highst_color_value = Color(highst_color).value
+
+        sec_highst_color = self.sec_highest_color_in_hand(card_knowledge_hinted_ply)
+        sec_highst_color_value = Color(sec_highst_color).value
+
+        lowest_color = self.lowest_color_in_hand(card_knowledge_hinted_ply) 
+        lowest_color_value = Color(lowest_color).value
+
+        sec_lowest_color = self.sec_lowest_color_in_hand(card_knowledge_hinted_ply)
+        sec_lowest_color_value = Color(sec_lowest_color).value
+
+        # Wenn der Hint eine Farbe ist
+        if act['action_type'] == 'REVEAL_COLOR':
+            hat_ply = self.cal_hinted_ply_hat_hint_color(act,
+                highst_rank, lowest_rank, highst_color_value,
+                sec_highst_color_value, lowest_color_value,
+                sec_lowest_color_value)
+        
+        elif act['action_type'] == 'REVEAL_RANK':
+            #''''''''''''''############################################## Hier weiter machen ######## 
+            hat_ply = self.cal_hinted_plys_hat_hint_rank(act,
+                                                         card_knowledge_hinted_ply)
+        
+        else:
+            raise ValueError('act[action_type] is not REVEAL_COLOR or REVEAL_RANK')
+        
+        return hat_ply
+
+                
+    def cal_hinted_ply_hat_hint_color(self, act, highst_rank, lowest_rank, 
+        highst_color_value, sec_highst_color_value, 
+        lowest_color_value, sec_lowest_color_value):
+        """Return hat vom hinted player wenn es sich um einen Color Hint handelt"""
+        
+        hinted_color_value = Color(act['color']).value
+        
+        # Wenn höchste Karte != niedrigste Karte dann ist es mit Sicherheit ein Color Hint
+        # und kein speziel Fall von einen Rank Hint 
+        if highst_rank != lowest_rank:
+            hat = self.hinted_ply_hat_hint_color_no_special_case(act,
+                highst_color_value, sec_highst_color_value,
+                lowest_color_value, sec_lowest_color_value)
+              
+
+           
+
+        # Wenn höchste Karte == niedrigste Karte ist, dann kann es sich auch 
+        # um einen speziellen Fall von einem Rank Hint handeln
+        else: 
+
+            # Wenn mindestens eine Farbe auf der Hand bekannt ist
+            if highst_color_value != None and lowest_color_value != None:
+                hat = self.hinted_ply_hat_hint_color_special_case_I(act,
+                    highst_color_value, sec_highst_color_value,
+                    lowest_color_value, sec_lowest_color_value)
+                
+                
+
+            # Wenn keine Farbe auf der Hand bekannt ist 
+            # kann der speziellen Fall von Rank Hint nicht ausgeschlossen werden
+            # es kann auch nicht auf high Color hint oder low Color hint geschlossen werden
+            elif highst_color_value == None and lowest_color_value == None:
+                if act['target_offset'] == 1:
+                    return [0, 1, 4, 5]
+                elif act['target_offset'] == 2:
+                    return [2, 3, 6, 7]
+                else:
+                    #target off set muss 1 oder 2 sein 
+                    raise Exception("target offset must be 1 or 2")
+                
+            else:
+                raise Exception("This case should never happen")
+
+    def hinted_ply_hat_hint_color_no_special_case(self, act, hinted_color_value,
+            highst_color_value, sec_highst_color_value,
+            lowest_color_value, sec_lowest_color_value):
+        """Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
+        und es sich nicht um einen speziellen Fall von einem Rank Hint handelt"""
+        # Wenn keine Farbe auf der Hand bekannt ist 
+        # sich um einen highst oder lowest rank hint handelt 
+        if highst_color_value == None and lowest_color_value == None:
+            if act['target_offset'] == 1:
+                return [4, 5]
+            elif act['target_offset'] == 2:
+                return [6, 7]
+            else:
+                #target off set muss 1 oder 2 sein 
+                raise Exception("target offset must be 1 or 2")
+
+
+
+        # Wenn es eine Farbe auf der Hand gibt die einen höheren Wert 
+        # Dann handelt es sich um einen Color Hint für den niedriegsten Rank 
+        if highst_color_value > hinted_color_value:              
+            if act['target_offset'] == 1:
+                return [5]
+            elif act['target_offset'] == 2:
+                return [7]
+
+            else:
+                #target off set muss 1 oder 2 sein 
+                raise Exception("target offset must be 1 or 2")
+        
+        # Wenn es eine Farbe auf der Hand gibt die einen niedrigeren Wert hat
+        # Dann handelt es sich um einen Color Hint für den höchsten Rank 
+        elif lowest_color_value < hinted_color_value:
+            if act['target_offset'] == 1:
+                return [4]
+            elif act['target_offset'] == 2:
+                return [6]
+            else:
+                #target off set muss 1 oder 2 sein 
+                raise Exception("target offset must be 1 or 2")
+            
+        # Wenn eine Karte bekannt ist aber es sich um eine höchsten color
+        # oder niedrigsten color hint handel kann
+        elif (highst_color_value == hinted_color_value and
+                lowest_color_value == hinted_color_value):
+            if act['target_offset'] == 1:
+                return [4, 5]
+            elif act['target_offset'] == 2:
+                return [6, 7]
+            else:
+                #target off set muss 1 oder 2 sein 
+                raise Exception("target offset must be 1 or 2")
+
+        # Dieser Fall sollte eigentlich nie auftreten    
+        else:
+            raise Exception("This case should never happen")
+    
+    def hinted_ply_hat_hint_color_special_case_I(self, act,
+                    highst_color_value, sec_highst_color_value,
+                    lowest_color_value, sec_lowest_color_value):
+        """Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
+          und es sich um einen speziellen Fall von einem Rank Hint handel könnte, 
+          also highst_rank == lowst_rank"""
+        
+        # Prüfe ob es sich um ein spezieller Fall 
+        # von einem Rank Hint handeln kann 
+                
+
+        # Wenn die höchste Farbe nicht die zweithöchste Farbe ist
+        # und die höchste Farbe gehinted wurde dann handelt es sich nicht
+        # um einen speziellen Fall von einem Rank Hint sondern
+        # es wurde einfach die höchste Farbe gehinted
+        if (highst_color_value != sec_highst_color_value 
+            and highst_color_value == act['color']):
+            if act['target_offset'] == 1:
+                return [4]
+            elif act['target_offset'] == 2:
+                return [6]
+            else:
+                #target off set muss 1 oder 2 sein 
+                raise Exception("target offset must be 1 or 2")
+        
+        # Elif Fall folgt der gleichen logik wie der If Fall
+        elif (lowest_color_value != sec_lowest_color_value 
+            and lowest_color_value == act['color']):
+            if act['target_offset'] == 1:
+                return [5]
+            elif act['target_offset'] == 2:
+                return [7]
+            else:
+                #target off set muss 1 oder 2 sein 
+                raise Exception("target offset must be 1 or 2")
+        
+        # Wenn die niedrigste Farbe nicht zweitniedrigste Farbe ist
+        elif (sec_lowest_color_value != sec_highst_color_value):
+            hat = self.hinted_ply_hat_hint_color_special_case_I_I(act,
+                highst_color_value, sec_highst_color_value,
+                lowest_color_value, sec_lowest_color_value)
+
+            return hat
+        
+        # Wenn die niedrigste Farbe gleich der zweithöchsten Farbe ist
+        # ! Dieser Fall kann nur eintreten wenn alle Karten die gleiche Farbe haben
+        # da der höchste rank aber auch der niedrigste rank ist kann der Fall nicht eintreten 
+        elif (sec_lowest_color_value == sec_highst_color_value):
+            raise Exception("This case should never happen")
+
+        else:
+            raise Exception("This case should never happen")
+
+    def hinted_ply_hat_hint_color_special_case_I_I(self,act,
+        highst_color_value, sec_highst_color_value,
+        lowest_color_value, sec_lowest_color_value):
+        """Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
+        und es sich um einen speziellen Fall von einem Rank Hint handel könnte,
+        und sec_lowest_card != sec_highest_card"""
+
+        # Wenn die niedrigste Farbe nicht die zweitniedrigste Farbe ist
+        # und die zweitniedrigste Farbe nicht die niedrigste Farbe ist
+        # und der hint die zweitniedrigste Farbe ist dann handelt es sich 
+        # um den spezieller Fall Rank Hint lowest rank
+        if (sec_lowest_color_value != sec_highst_color_value
+            and sec_lowest_color_value != lowest_color_value
+            and sec_lowest_color_value == act['color']):
+
+            if act['target_offset'] == 1:
+                return [1]
+            
+            elif act['target_offset'] == 2:
+                return [3]      
+
+
+            
+        # Wenn die höchste Farbe nicht zweithöchste Farbe ist
+        # und die zweitniedrigste Farbe nicht die zweithöchste Farbe ist
+        # und die zweithöchste Farbe gehinted wurde
+        # dann handelt es sich um den spezieller Fall Rank Hint highest rank
+        elif (sec_lowest_color_value != sec_highst_color_value
+            and sec_highst_color_value != highst_color_value
+            and sec_highst_color_value == act['color']):
+
+            if act['target_offset'] == 1:
+                return [0]
+            
+            elif act['target_offset'] == 2:
+                return [2]
+
+        # Wenn die höchste Farbe nicht zweithöchste Farbe ist
+        # und die niedrigste Farbe nicht zweitniedrigste Farbe ist
+        # aber die zweitniedrigste Farbe nicht die zweithöchste Farbe ist
+        # und die zweitniedrigste / zweithöchste Farbe gehinted wurde 
+        # dann handelt es sich um den spezieller Fall von Rank Hint
+        # man weiß aber nicht welcher
+        elif (highst_color_value != sec_highst_color_value
+                and lowest_color_value != sec_lowest_color_value
+                and sec_lowest_color_value != sec_highst_color_value
+                and (sec_lowest_color_value == act['color'] 
+                or sec_highst_color_value == act['color'])):
+            
+            if act['target_offset'] == 1:
+                return [0, 1]
+            
+            elif act['target_offset'] == 2:
+                return [2, 3]
+        
+        else: 
+            raise Exception("This case should never happen")
+
 
     def cal_own_hat(self, act):
         """Returned eigenen hat
@@ -334,8 +592,7 @@ class HTGSAgent(Agent):
         # given_hat_sum_mod8 := r1 (Paper Cox)
         # hat_sum_mod8 := ri (Paper Cox)
         # own_hat := ci (Paper Cox)
-        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8[(
-            act['action_type'], act['target_offset'])]
+        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8(act)
 
         idx_cur_ply = self.observation['current_player_offset']
 
@@ -483,37 +740,26 @@ class HTGSAgent(Agent):
         """Return Hint Color with second highest or lowest color
            This only happen if it is not possible to hint rank
            becouse highst_rank == lowest_rank"""
-        
-        # Get Color with second highest or lowest color
-        sec_lowest_color = self.sec_lowest_color_in_hand(hand_ply)
-        sec_highest_color = self.sec_highest_color_in_hand(hand_ply)
-
-        if sec_lowest_color != sec_highest_color:
-            if hat_sum_mod8 == 0 or hat_sum_mod8 == 2:
-                hint = {'action_type': 'REVEAL_COLOR',
-                        'color': sec_highest_color,
-                        'target_offset': 1}
                 
-            elif hat_sum_mod8 == 1 or hat_sum_mod8 == 3:
-                hint = {'action_type': 'REVEAL_COLOR',
-                        'color': sec_lowest_color,
-                        'target_offset': 1}
-            
-            else:
-                raise ValueError("hat_sum_mod8 must be in [0, 3]")
-        
-        else:
-            # Give a color hint for second highest color
-            # Other Player will check if sec_highst_color == sec_lowest_color
-            # If not hat is is calculated as 0,5 or 2,5 based on player idx 
+        if hat_sum_mod8 == 0 or hat_sum_mod8 == 2:
+            sec_lowest_color = self.sec_lowest_color_in_hand(hand_ply)
             hint = {'action_type': 'REVEAL_COLOR',
                     'color': sec_highest_color,
-                    'target_offset': idx_ply}
+                    'target_offset': 1}
+            
+        elif hat_sum_mod8 == 1 or hat_sum_mod8 == 3:
+            sec_highest_color = self.sec_highest_color_in_hand(hand_ply)
+            hint = {'action_type': 'REVEAL_COLOR',
+                    'color': sec_lowest_color,
+                    'target_offset': 1}
         
+        else:
+            raise ValueError("hat_sum_mod8 must be in [0, 3]")
+                
         return hint
     
     def get_hint_hat_sum_bigger_3(self, hat_sum_mod8):
-        """Return Hint Color if sec_highst_color != sec_lowest_color
+        """Return Hint Color if highst_color != lowest_color
            else return specific rank hint"""
 
         idx_ply = 1 if (hat_sum_mod8 == 4 or hat_sum_mod8 == 5) \
@@ -547,40 +793,35 @@ class HTGSAgent(Agent):
     def get_spec_rank_hint(self, hat_sum_mod8, hand_ply, idx_ply):
         """Return Hint Rank with second highest or lowest rank
            This only happen if it is not possible to hint color
-           becouse sec_lowest_color == sec_highest_color"""
-        
-        # Get Rank with second highest or lowest rank
-        sec_lowest_rank = self.sec_lowest_rank_in_hand(hand_ply)
-        sec_highest_rank = self.sec_highest_rank_in_hand(hand_ply)
+           becouse sec_lowest_color == sec_highest_color"""      
 
-        if sec_lowest_rank != sec_highest_rank:
-            if hat_sum_mod8 == 4 or hat_sum_mod8 == 6:
-                hint = {'action_type': 'REVEAL_RANK',
-                        'rank': sec_highest_rank,
-                        'target_offset': idx_ply}
-                
-            elif hat_sum_mod8 == 5 or hat_sum_mod8 == 7:
-                hint = {'action_type': 'REVEAL_RANK',
-                        'rank': sec_lowest_rank,
-                        'target_offset': idx_ply}
-            
-            else:
-                raise ValueError("hat_sum_mod8 must be in [4, 7]")
-        
-        else:
-            # Give a rank hint for second highest rank
-            # Other Player will check if sec_highst_rank == sec_lowest_rank
-            # If not hat is is calculated as 4,5 or 6,5 based on player idx 
+        if hat_sum_mod8 == 4 or hat_sum_mod8 == 6:
+            sec_highest_rank = self.sec_highest_rank_in_hand(hand_ply)
             hint = {'action_type': 'REVEAL_RANK',
                     'rank': sec_highest_rank,
                     'target_offset': idx_ply}
+            
+        elif hat_sum_mod8 == 5 or hat_sum_mod8 == 7:
+            sec_lowest_rank = self.sec_lowest_rank_in_hand(hand_ply)
+            hint = {'action_type': 'REVEAL_RANK',
+                    'rank': sec_lowest_rank,
+                    'target_offset': idx_ply}
         
+        else:
+            raise ValueError("hat_sum_mod8 must be in [4, 7]")
+        
+
         return hint
 
     def sorted_ranks_in_hand(self, hand_ply):
         """Return sorted list of ranks in hand"""
         
         sorted_ranks_in_hand = [card['rank'] for card in hand_ply] 
+        
+        # Enter None aus liste
+        sorted_ranks_in_hand = [rank for rank in sorted_ranks_in_hand
+                                 if rank is not None]
+        
         sorted_ranks_in_hand.sort()
 
         return sorted_ranks_in_hand
@@ -610,6 +851,8 @@ class HTGSAgent(Agent):
     def sorted_color_in_hand(self, hand_ply):
         """Return sorted color in hand"""
 
+        # Entfern None aus der Liste
+        hand_ply = [card for card in hand_ply if card['color'] is not None]
         color_values_in_hand = [Color(card['color']).value() 
                                 for card in hand_ply]
         color_values_in_hand.sort()
@@ -632,6 +875,11 @@ class HTGSAgent(Agent):
         """Return second lowest color in hand"""
         sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
         return sorted_color_in_hand[1]
+    
+    def sec_highest_color_in_hand(self, hand_ply):
+        """Return second highest color in hand"""
+        sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
+        return sorted_color_in_hand[-2]
 
     def duplicate_card_in_hand(self, privat_poss_hand_table):
         """Return First duplicate Cards in hands
@@ -907,7 +1155,7 @@ class HTGSAgent(Agent):
         """Update Table based on hint"""
         # Berechne die Hütte aller Spieler (auch den eigenen)
         # auf Basis vom hint
-        player_hats = self.player_hats(action)
+        players_hats = self.players_hats(action)
         target_cards_idx = self.targeted_cards_idx()
 
         idx_hinting_player = self.observation['current_player_offset']
@@ -919,28 +1167,32 @@ class HTGSAgent(Agent):
             if idx_hinting_player == agent_idx:
                 continue
 
-            self.update_poss_table_based_on_hat(agent_idx,
-                                                player_hats[agent_idx],
-                                                target_cards_idx[agent_idx])
+            # Update Poss Table auf Basis vom Hat bzw. der möglichen Hütte  
+            self.update_poss_table_based_on_hat(
+                agent_idx,
+                players_hats[agent_idx],
+                target_cards_idx[agent_idx])
 
-    def update_poss_table_based_on_hat(self, agent_idx, player_hat, target_card_idx):
+    def update_poss_table_based_on_hat(self, agent_idx, players_hats, target_card_idx):
         """Update the poss_table for an agent"""
 
         poss_table_card = self.table[agent_idx][target_card_idx]
         part_table = self.table.get_part_table(
             self.observation, poss_table_card)
 
-        for color in self.colors:
-            for rank in range(self.max_rank + 1):
-                if (part_table[color][rank] != player_hat):
-                    self.table[agent_idx][target_card_idx][color][rank] = 0
+        for players_hat in players_hats:
+            for color in self.colors:
+                for rank in range(self.max_rank + 1):
+                    if (part_table[color][rank] != players_hat):
+                        self.table[agent_idx][target_card_idx][color][rank] = 0
 
-    def player_hats(self, action):
+    def players_hats(self, action):
         """Return list with hats off all Players"""
         player_hats = []
+        
         # Der Spieler der den Hint gibt, also
         idx_hinting_player = self.observation['current_player_offset']
-
+        
         for agent_idx in range(self.observation['num_players']):
 
             # Der Spieler der den Hint gibt kann ja nicht seinen Hat wissen
@@ -989,3 +1241,32 @@ class HTGSAgent(Agent):
         _, target_card_idx = self.get_target_card(0)
 
         return own_hat, target_card_idx
+
+    def decode_act_to_hat_sum_mod8(self, act):
+        """Return hat_sum mod 8"""
+
+        if act['action_type'] == 'REVEAL_COLOR':
+            hat_mod_sum_8 = self.decode_reveal_color_hint(act)
+        
+        elif act['action_type'] == 'REVEAL_RANK':
+            hat_mod_sum_8 = self.decode_reveal_rank_hint(act)
+        
+        else:
+            raise Exception('Action is no hint')
+
+        return hat_mod_sum_8
+    
+    def decode_reveal_rank_hint(self, act):
+        """Return hat_sum mod 8 for a reveal rank hint"""
+
+        idx_ply = self.observation(['current_player_offset'] + act['target_offset']) \
+                                    % self.observation['num_players']
+        
+        if idx_ply == 0:
+            hat_sum_mod_8 = self.decode_hat_for_hinted_player(act)
+        hand_ply = self.observation['observed_hands'][idx_ply]
+
+
+
+        
+        
