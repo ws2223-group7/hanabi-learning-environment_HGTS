@@ -17,6 +17,7 @@ class ActionNetwork():
     def __init__(self, path) -> None:
         self.model = None
         self.path = path
+        self.optimizer = tf.keras.optimizers.Adam()
 
     def load(self, ) -> None:
         """load"""
@@ -36,8 +37,7 @@ class ActionNetwork():
                 tf.keras.layers.Dense(384, activation="relu", name="layer2"),
                 tf.keras.layers.Dense(max_action, activation='softmax', name='Output_Layer')
             ])
-            # opt = tf.keras.optimizers.Adam(learning_rate=0.01)
-            # self.model.compile(loss='categorical_crossentropy', optimizer=opt)
+            self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer)
 
     def print_summary(self):
         '''print summary'''
@@ -58,7 +58,6 @@ class ActionNetwork():
     def backpropagation(self, observation: Observation, rewards_to_go: float, loss):
         '''train step'''
         model = self.model
-        optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
 
         with tf.GradientTape() as tape:
             logits = model(self.get_model_input(observation))
@@ -66,4 +65,4 @@ class ActionNetwork():
             loss = -(tf.reduce_mean(log_probs * rewards_to_go))
 
         grads = tape.gradient(loss, model.trainable_variables)
-        optimizer.apply_gradients(zip(grads, model.trainable_variables))
+        self.optimizer.apply_gradients(zip(grads, model.trainable_variables))
