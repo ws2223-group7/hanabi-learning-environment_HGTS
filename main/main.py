@@ -42,8 +42,8 @@ def main() -> None:
 
     #network.save()
 
-    #self_play = SelfPlay(network)
-    #self_play.run(episodes_running)
+    self_play = SelfPlay(network)
+    self_play.run(episodes_running)
 
     print("finish with everything")
 if __name__ == "__main__":
