@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods
+# pylint: disable=missing-module-docstring, wrong-import-position, too-few-public-methods, invalid-name
 import sys
 import os
 
@@ -16,3 +16,12 @@ class RewardsToGoCalculationResult:
     def append(self, result: RewardsToGoEpisodeCalculationResult):
         '''append'''
         self.results.append(result)
+
+    def get_batch_size(self) -> int:
+        '''get n'''
+        batch_size: int = 0
+
+        for ep in self.results:
+            batch_size += len(ep.actions)
+
+        return batch_size

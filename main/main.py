@@ -6,14 +6,13 @@ import sys
 import numpy as np
 import tensorflow as tf
 
-
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from bad.self_play import SelfPlay
-from bad.train_batches import TrainBatches
 from bad.action_network import ActionNetwork
+from bad.train_epoch import TrainEpoch
 
 def main() -> None:
     '''main'''
@@ -21,10 +20,14 @@ def main() -> None:
     tf.random.set_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
+    tf.keras.utils.set_random_seed(seed)  # sets seeds for base-python, numpy and tf
+    tf.config.experimental.enable_op_determinism()
 
-    batch_size: int = 20
-    episodes_running = 100
-    gamma = 0.95
+    batch_size: int = 1
+    epoch_size: int = 1
+
+    episodes_running: int = 100
+    gamma: float = 1.0
 
     model_path = 'model'
 
@@ -37,8 +40,9 @@ def main() -> None:
     #if os.path.exists(model_path):
     #    network.load()
 
-    train_batches = TrainBatches(network)
-    training_result = train_batches.run(batch_size=batch_size, gamma=gamma)
+    for epoch in range(epoch_size):
+        train_epoch = TrainEpoch(network)
+        train_epoch.train(batch_size, gamma)
 
     #network.save()
 

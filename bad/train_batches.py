@@ -2,6 +2,8 @@
 
 import sys
 import os
+import numpy as np
+import tensorflow as tf
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
@@ -18,6 +20,7 @@ from bad.set_extra_observation import SetExtraObservation
 from bad.reward_to_go_calculation import RewardToGoCalculation
 from bad.train_batch_result import TrainBatchResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
+from bad.encoding.observation import Observation
 
 class TrainBatches:
     '''train batch'''
@@ -32,7 +35,7 @@ class TrainBatches:
         hanabi_environment = rl_env.make(constants.environment_name, players, \
         pyhanabi.AgentObservationType.SEER)
 
-        while collect_batch_episodes_result.get_n() < batch_size:
+        while collect_batch_episodes_result.get_batch_size() < batch_size:
 
             hanabi_observation = hanabi_environment.reset()
             max_moves: int = hanabi_environment.game.max_moves() + 1
@@ -49,11 +52,11 @@ class TrainBatches:
 
             collect_batch_episodes_result.add(episode_data_result)
 
-            print(f"collected episoden aktionen: {collect_batch_episodes_result.get_n()} von batch size {batch_size}")
+            print(f"collected episoden aktionen: {collect_batch_episodes_result.get_batch_size()} von batch size {batch_size}")
 
         return collect_batch_episodes_result
 
-    def reward_to_go_calculation(self, collected_data: CollectEpisodesDataResults, \
+    def calculation(self, collected_data: CollectEpisodesDataResults, \
         gamma: float) -> RewardsToGoCalculationResult:
         '''reward to go calculation'''
         reward_to_go_calculation = RewardToGoCalculation(gamma)
@@ -61,10 +64,22 @@ class TrainBatches:
 
     def backpropagation(self, calc_result: RewardsToGoCalculationResult) -> None:
         '''backpropagation'''
+        observations = np.empty(0, object)
+        actions = np.empty(0, int)
+        logprob = np.empty(0, float)
+        rewards_to_go = np.empty(0, int)
+        shape: int = 0
+        for episode_result in calc_result.results:
 
-        for calc_result_result in calc_result.results:
-            for index in range(len(calc_result_result.observation)):
-                self.network.backpropagation(calc_result_result.observation[index], calc_result_result.rewards[index], calc_result_result.losses[index])
+            for action_index in range(len(episode_result.observation)):
+                shape = episode_result.observation[action_index].to_array().shape[0]
+                observations = np.append(observations, self.network.get_model_input(episode_result.observation[action_index]))
+                actions = np.append(actions, episode_result.actions[action_index])
+                logprob = np.append(logprob, episode_result.logprob[action_index])
+                rewards_to_go = np.append(rewards_to_go, episode_result.rewards_to_go[action_index])
+
+        reshaped_observation = tf.reshape(observations, [1, shape])
+        self.network.backpropagation(observations, actions, logprob, rewards_to_go)
 
     def run(self, batch_size: int, gamma: float) -> TrainBatchResult:
         '''init'''
@@ -75,9 +90,9 @@ class TrainBatches:
         collected_data = self.collect_data(batch_size, players)
 
         print('reward calculation')
-        reward_calculation_result = self.reward_to_go_calculation(collected_data, gamma)
+        calculation_result = self.calculation(collected_data, gamma)
 
         print('backpropagation')
-        self.backpropagation(reward_calculation_result)
+        self.backpropagation(calculation_result)
 
         return TrainBatchResult()

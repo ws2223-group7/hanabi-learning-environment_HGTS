@@ -19,7 +19,7 @@ class RewardToGoCalculation:
     def __init__(self, gamma: float) -> None:
         self.gamma = gamma
 
-    def calculate_episode(self, buffer: Buffer, result: RewardsToGoEpisodeCalculationResult) -> None:
+    def calculate(self, buffer: Buffer, result: RewardsToGoEpisodeCalculationResult) -> None:
         ''''calculate episode'''
 
         reward_shape_converter = RewardShapeConverter()
@@ -28,18 +28,14 @@ class RewardToGoCalculation:
             reward_shape = reward_shape_converter.convert(buffer.reward_shapes[index])
             # hier rewards verändern
             reward_vom_hanabi_framework = float(np.sum(buffer.rewards[index:]))
-            reward_vom_reward_shaping = reward_shape.get_sum()
+            reward_vom_reward_shaping = 0.0 # reward_shape.get_sum()
 
             reward_to_go = reward_vom_hanabi_framework + reward_vom_reward_shaping
             discounted_reward_to_go = reward_to_go * np.power(self.gamma, index + 1)
-
-            action = buffer.actions[index]
-            log_prob = action.categorical.log_prob(action.sampled_action)
             observation = buffer.observation[index]
-            # loss calculation
-            current_loss = -(discounted_reward_to_go * float(log_prob.numpy()))
+            action = buffer.actions[index]
 
-            result.append(discounted_reward_to_go, current_loss, observation)
+            result.append(action.sampled_action, action.categorical.log_prob(action.sampled_action).numpy(), discounted_reward_to_go, observation)
 
     def run(self,collected_episode_results: CollectEpisodesDataResults) -> RewardsToGoCalculationResult:
         '''run'''
@@ -51,6 +47,6 @@ class RewardToGoCalculation:
             episodes_result.append(ep_result)
 
             buffer = episode_result.buffer
-            self.calculate_episode(buffer, ep_result)
+            self.calculate(buffer, ep_result)
 
         return episodes_result

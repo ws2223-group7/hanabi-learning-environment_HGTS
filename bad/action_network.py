@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, unused-variable, unused-argument, not-callable, invalid-name, fixme, unreachable
+# pylint: disable=missing-module-docstring, wrong-import-position, unused-variable, unused-argument, not-callable, invalid-name, fixme, unreachable, line-too-long
 import sys
 import os
 import numpy as np
@@ -55,12 +55,12 @@ class ActionNetwork():
         result = self.model(self.get_model_input(observation))
         return BayesianAction(result.numpy()[0])
 
-    def backpropagation(self, observation: Observation, rewards_to_go: float, loss):
+    def backpropagation(self, observation: np.ndarray, actions: np.ndarray, logprob: np.ndarray, rewards_to_go: np.ndarray):
         '''train step'''
         model = self.model
 
         with tf.GradientTape() as tape:
-            logits = model(self.get_model_input(observation))
+            logits = model(observation)
             log_probs = tf.nn.log_softmax(logits, -1)
             loss = -(tf.reduce_mean(log_probs * rewards_to_go))
             print(f'current loss {loss}')

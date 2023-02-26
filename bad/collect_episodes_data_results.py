@@ -19,11 +19,11 @@ class CollectEpisodesDataResults:
         '''add'''
         self.results.append(result)
 
-    def get_n(self) -> int:
+    def get_batch_size(self) -> int:
         '''get n'''
-        n: int = 0
+        batch_size: int = 0
 
         for ep in self.results:
-            n += len(ep.buffer.actions)
+            batch_size += len(ep.buffer.actions)
 
-        return n
+        return batch_size
