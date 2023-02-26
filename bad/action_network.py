@@ -62,7 +62,8 @@ class ActionNetwork():
         with tf.GradientTape() as tape:
             logits = model(self.get_model_input(observation))
             log_probs = tf.nn.log_softmax(logits, -1)
-            loss = -(tf.reduce_mean(log_probs * rewards_to_go))
-
+            loss = -(tf.reduce_mean(log_probs * rewards_to_go))        
+            print(f'current loss {loss}')
+        
         grads = tape.gradient(loss, model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, model.trainable_variables))

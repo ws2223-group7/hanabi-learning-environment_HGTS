@@ -35,8 +35,6 @@ class RewardToGoCalculation:
             # loss calculation
             current_loss = -(discounted_reward_to_go * float(log_prob.numpy()))
 
-            print(f'current loss {current_loss}')
-
             result.append(discounted_reward_to_go, current_loss, observation)
 
     def run(self,collected_episode_results: CollectEpisodesDataResults) -> RewardsToGoCalculationResult:
