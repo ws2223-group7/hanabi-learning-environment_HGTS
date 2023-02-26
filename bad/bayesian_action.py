@@ -50,5 +50,4 @@ class BayesianAction:
             if not done:
                 policy_as_numpy[sampled_action] = -float('inf')
 
-
         return BayesianActionResult(sampled_action, policy)
