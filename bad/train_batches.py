@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, consider-using-enumerate, line-too-long
+# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, consider-using-enumerate, line-too-long, line-too-long
 
 import sys
 import os
@@ -45,8 +45,7 @@ class TrainBatches:
             self.network.build(observation_converter.convert(hanabi_observation), max_actions)
 
             ce_data = CollectEpisodeData(hanabi_observation, hanabi_environment, self.network)
-            episode_data_result: CollectEpisodeDataResult = \
-                ce_data.collect() # hier werden die Daten für eine episode gesammelt
+            episode_data_result: CollectEpisodeDataResult = ce_data.collect() # hier werden die Daten für eine episode gesammelt
 
             collect_batch_episodes_result.add(episode_data_result)
 

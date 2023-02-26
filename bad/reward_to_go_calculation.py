@@ -4,7 +4,6 @@ import sys
 import os
 import numpy as np
 
-
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
@@ -12,6 +11,7 @@ sys.path.append(parentPath)
 from bad.collect_episodes_data_results import CollectEpisodesDataResults
 from bad.rewards_to_go_episode_calculation_result import RewardsToGoEpisodeCalculationResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
+from bad.reward_shape_converter import RewardShapeConverter
 from bad.buffer import Buffer
 
 class RewardToGoCalculation:
@@ -22,8 +22,11 @@ class RewardToGoCalculation:
     def calculate_episode(self, buffer: Buffer, result: RewardsToGoEpisodeCalculationResult) -> None:
         ''''calculate episode'''
 
+        reward_shape_converter = RewardShapeConverter()
+
         for index in range(len(buffer.actions)): # über jede aktion (pro spiel)
-            reward_to_go = float(np.sum(buffer.rewards[index:]))
+            reward_shape = reward_shape_converter.convert(buffer.reward_shapes[index])
+            reward_to_go = float(np.sum(buffer.rewards[index:])) + reward_shape.get_sum()
             discounted_reward_to_go = reward_to_go * np.power(self.gamma, index + 1)
 
             action = buffer.actions[index]

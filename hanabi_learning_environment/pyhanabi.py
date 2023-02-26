@@ -15,6 +15,7 @@
 """Python interface to Hanabi code."""
 import os
 import re
+from typing import Optional
 import cffi
 import enum
 import sys
@@ -177,6 +178,9 @@ class HanabiCard(object):
 
   def rank(self):
     return self._rank
+  
+  def one_plus_rank(self):
+    return self.rank() + 1
 
   def __str__(self):
     if self.valid():
@@ -258,7 +262,7 @@ class HanabiCardKnowledge(object):
       return lib.KnownRank(self._knowledge)
     else:
       return None
-
+  
   def rank_plausible(self, rank_index):
     """Returns true if we have no hint saying card is not the given rank.
 
