@@ -54,7 +54,7 @@ class CollectEpisodeData:
         while not done:
 
             bad = self.network.get_action(observation)
-            bad_result = bad.decode_action(self.hanabi_environment.state.legal_moves_int())
+            bad_result = bad.sample_action(self.hanabi_environment.state.legal_moves_int())
             next_action = bad_result.sampled_action
             hanabi_move = self.hanabi_environment.game.get_move(next_action)
             reward_shape = self.get_reward_shape(hanabi_move)
