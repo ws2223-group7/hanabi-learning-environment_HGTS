@@ -15,7 +15,7 @@ class RewardShapeConverter:
     def convert(self, reward_shape: RewardShape) -> RewardShapeResult:
         """convert"""
 
-        lost_one_life_token:float = -10 if reward_shape.lost_one_life_token is True else 1
+        lost_one_life_token = -10 if reward_shape.lost_one_life_token is True else 1
         lost_all_life_tokens: float = -50 if reward_shape.lost_all_life_tokens is True else 1
         discard_playable: float = -10 if reward_shape.discard_playable is True else 0
 

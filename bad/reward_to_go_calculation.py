@@ -26,7 +26,7 @@ class RewardToGoCalculation:
 
         for index in range(len(buffer.actions)): # über jede aktion (pro spiel)
             reward_shape = reward_shape_converter.convert(buffer.reward_shapes[index])
-            reward_to_go = float(np.sum(buffer.rewards[index:])) + reward_shape.legal_action_reward
+            reward_to_go = float(np.sum(buffer.rewards[index:])) + reward_shape.get_sum()
             discounted_reward_to_go = reward_to_go * np.power(self.gamma, index + 1)
 
             action = buffer.actions[index]
