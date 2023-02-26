@@ -4,9 +4,6 @@ import sys
 import os
 import numpy as np
 
-from bad.reward_shape_converter import RewardShapeConverter
-
-
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
@@ -14,6 +11,7 @@ sys.path.append(parentPath)
 from bad.collect_episodes_data_results import CollectEpisodesDataResults
 from bad.rewards_to_go_episode_calculation_result import RewardsToGoEpisodeCalculationResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
+from bad.reward_shape_converter import RewardShapeConverter
 from bad.buffer import Buffer
 
 class RewardToGoCalculation:
