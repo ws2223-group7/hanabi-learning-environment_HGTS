@@ -363,222 +363,214 @@ class HTGSAgent(Agent):
         
         return hat_ply
 
-                
-    def cal_hinted_ply_hat_hint_color(self, act, highst_rank, lowest_rank, 
-        highst_color_value, sec_highst_color_value, 
-        lowest_color_value, sec_lowest_color_value):
+    def cal_hinted_ply_hat_hint_color(self, act,
+                                      highst_rank, lowest_rank,
+                                      highst_color_value,  sec_highst_color_value,
+                                      lowest_color_value, sec_lowest_color_value):
         """Return hat vom hinted player wenn es sich um einen Color Hint handelt"""
-        
+
         hinted_color_value = Color(act['color']).value
-        
+
         # Wenn höchste Karte != niedrigste Karte dann ist es mit Sicherheit ein Color Hint
-        # und kein speziel Fall von einen Rank Hint 
-        if highst_color_value != lowest_color_value:
+        # und kein speziel Fall von einen Rank Hint
+        if highst_rank != lowest_rank:
             hat = self.hinted_ply_hat_hint_color_no_special_case(act,
-                highst_color_value, sec_highst_color_value,
-                lowest_color_value, sec_lowest_color_value)
-              
+                                                                 hinted_color_value,
+                                                                 highst_color_value, lowest_color_value)
 
-           
-
-        # Wenn höchste Karte == niedrigste Karte ist, dann kann es sich auch 
+        # Wenn höchste Karte == niedrigste Karte ist, dann kann es sich auch
         # um einen speziellen Fall von einem Rank Hint handeln
-        else: 
+        else:
 
             # Wenn mindestens eine Farbe auf der Hand bekannt ist
             if highst_color_value != None and lowest_color_value != None:
                 hat = self.hinted_ply_hat_hint_color_special_case_I(act,
-                    highst_color_value, sec_highst_color_value,
-                    lowest_color_value, sec_lowest_color_value)
-                return hat 
-                
-                
+                                                                    hinted_color_value,
+                                                                    highst_color_value, sec_highst_color_value,
+                                                                    lowest_color_value, sec_lowest_color_value)
 
-            # Wenn keine Farbe auf der Hand bekannt ist 
+            # Wenn keine Farbe auf der Hand bekannt ist
             # kann der speziellen Fall von Rank Hint nicht ausgeschlossen werden
             # es kann auch nicht auf high Color hint oder low Color hint geschlossen werden
             elif highst_color_value == None and lowest_color_value == None:
                 if act['target_offset'] == 1:
-                    return [0, 1, 4, 5]
+                    hat = [0, 1, 4, 5]
                 elif act['target_offset'] == 2:
-                    return [2, 3, 6, 7]
+                    hat = [2, 3, 6, 7]
                 else:
-                    #target off set muss 1 oder 2 sein 
+                    # target off set muss 1 oder 2 sein
                     raise Exception("target offset must be 1 or 2")
-                
+
             else:
                 raise Exception("This case should never happen")
 
-    def hinted_ply_hat_hint_color_no_special_case(self, act, hinted_color_value,
-            highst_color_value, sec_highst_color_value,
-            lowest_color_value, sec_lowest_color_value):
+        return hat
+    def hinted_ply_hat_hint_color_no_special_case(self, act,
+                                                  hinted_color_value, highst_color_value,
+                                                  lowest_color_value):
         """Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
         und es sich nicht um einen speziellen Fall von einem Rank Hint handelt"""
-        # Wenn keine Farbe auf der Hand bekannt ist 
-        # sich um einen highst oder lowest rank hint handelt 
+        # Wenn keine Farbe auf der Hand bekannt ist
+        # sich um einen highst oder lowest color hint handelt
         if highst_color_value == None and lowest_color_value == None:
             if act['target_offset'] == 1:
-                return [4, 5]
+                hat = [4, 5]
             elif act['target_offset'] == 2:
-                return [6, 7]
+                hat = [6, 7]
             else:
-                #target off set muss 1 oder 2 sein 
+                # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
 
-
-
-        # Wenn es eine Farbe auf der Hand gibt die einen höheren Wert 
-        # Dann handelt es sich um einen Color Hint für den niedriegsten Rank 
-        if highst_color_value > hinted_color_value:              
+        # Wenn es eine Farbe auf der Hand gibt die einen höheren Wert
+        # Dann handelt es sich um einen Color Hint für den niedriegsten Rank
+        if highst_color_value > hinted_color_value:
             if act['target_offset'] == 1:
-                return [5]
+                hat = [5]
             elif act['target_offset'] == 2:
-                return [7]
+                hat = [7]
 
             else:
-                #target off set muss 1 oder 2 sein 
+                # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
-        
+
         # Wenn es eine Farbe auf der Hand gibt die einen niedrigeren Wert hat
-        # Dann handelt es sich um einen Color Hint für den höchsten Rank 
+        # Dann handelt es sich um einen Color Hint für den höchsten Rank
         elif lowest_color_value < hinted_color_value:
             if act['target_offset'] == 1:
-                return [4]
+                hat = [4]
             elif act['target_offset'] == 2:
-                return [6]
+                hat = [6]
             else:
-                #target off set muss 1 oder 2 sein 
+                # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
-            
+
         # Wenn eine Karte bekannt ist aber es sich um eine höchsten color
         # oder niedrigsten color hint handel kann
         elif (highst_color_value == hinted_color_value and
                 lowest_color_value == hinted_color_value):
             if act['target_offset'] == 1:
-                return [4, 5]
+                hat = [4, 5]
             elif act['target_offset'] == 2:
-                return [6, 7]
+                hat = [6, 7]
             else:
-                #target off set muss 1 oder 2 sein 
+                # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
 
-        # Dieser Fall sollte eigentlich nie auftreten    
+        # Dieser Fall sollte eigentlich nie auftreten
         else:
             raise Exception("This case should never happen")
-    
+
+        return hat
+
     def hinted_ply_hat_hint_color_special_case_I(self, act,
-                    highst_color_value, sec_highst_color_value,
-                    lowest_color_value, sec_lowest_color_value):
+                                                 hinted_color_value,
+                                                 highst_color_value, sec_highst_color_value,
+                                                 lowest_color_value, sec_lowest_color_value):
         """Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
           und es sich um einen speziellen Fall von einem Rank Hint handel könnte, 
           also highst_rank == lowst_rank"""
-        
-        hinted_color_value = Color(act['color']).value()
 
-        # Prüfe ob es sich um ein spezieller Fall 
-        # von einem Rank Hint handeln kann 
-                
+        # Prüfe ob es sich um ein spezieller Fall
+        # von einem Rank Hint handeln kann
 
         # Wenn die höchste Farbe nicht die zweithöchste Farbe ist
         # und die höchste Farbe gehinted wurde dann handelt es sich nicht
         # um einen speziellen Fall von einem Rank Hint sondern
         # es wurde einfach die höchste Farbe gehinted
-        if (highst_color_value != sec_highst_color_value 
-            and highst_color_value == act['color']):
+        if (highst_color_value != sec_highst_color_value
+                and highst_color_value == hinted_color_value):
             if act['target_offset'] == 1:
-                return [4]
+                hat = [4]
             elif act['target_offset'] == 2:
-                return [6]
+                hat = [6]
             else:
-                #target off set muss 1 oder 2 sein 
+                # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
-        
+
         # Elif Fall folgt der gleichen logik wie der If Fall
-        elif (lowest_color_value != sec_lowest_color_value 
-            and lowest_color_value == hinted_color_value):
+        elif (lowest_color_value != sec_lowest_color_value
+              and lowest_color_value == hinted_color_value):
             if act['target_offset'] == 1:
-                return [5]
+                hat = [5]
             elif act['target_offset'] == 2:
-                return [7]
+                hat = [7]
             else:
-                #target off set muss 1 oder 2 sein 
+                # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
-        
+
         # Wenn die niedrigste Farbe nicht zweitniedrigste Farbe ist
         elif (sec_lowest_color_value != sec_highst_color_value):
             hat = self.hinted_ply_hat_hint_color_special_case_I_I(act,
-                highst_color_value, sec_highst_color_value,
-                lowest_color_value, sec_lowest_color_value,
-                hinted_color_value)
+                                                                  highst_color_value, sec_highst_color_value,
+                                                                  lowest_color_value, sec_lowest_color_value,
+                                                                  hinted_color_value)
 
-            return hat
-        
         # Wenn die niedrigste Farbe gleich der zweithöchsten Farbe ist
         # ! Dieser Fall kann nur eintreten wenn alle Karten die gleiche Farbe haben
-        # da der höchste rank aber auch der niedrigste rank ist kann der Fall nicht eintreten 
+        # da der höchste rank aber auch der niedrigste rank ist kann der Fall nicht eintreten
         elif (sec_lowest_color_value == sec_highst_color_value):
             raise Exception("This case should never happen")
 
         else:
             raise Exception("This case should never happen")
 
-    def hinted_ply_hat_hint_color_special_case_I_I(self,act,
-        highst_color_value, sec_highst_color_value,
-        lowest_color_value, sec_lowest_color_value,
-        hinted_color_value):
+        return hat
+
+    def hinted_ply_hat_hint_color_special_case_I_I(self, act,
+                                                   highst_color_value, sec_highst_color_value,
+                                                   lowest_color_value, sec_lowest_color_value,
+                                                   hinted_color_value):
         """Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
         und es sich um einen speziellen Fall von einem Rank Hint handel könnte,
         und sec_lowest_card != sec_highest_card"""
 
         # Wenn die niedrigste Farbe nicht die zweitniedrigste Farbe ist
         # und die zweitniedrigste Farbe nicht die niedrigste Farbe ist
-        # und der hint die zweitniedrigste Farbe ist dann handelt es sich 
+        # und der hint die zweitniedrigste Farbe ist dann handelt es sich
         # um den spezieller Fall Rank Hint lowest rank
         if (sec_lowest_color_value != sec_highst_color_value
             and sec_lowest_color_value != lowest_color_value
-            and sec_lowest_color_value == hinted_color_value):
+                and sec_lowest_color_value == hinted_color_value):
 
             if act['target_offset'] == 1:
                 return [1]
-            
+
             elif act['target_offset'] == 2:
-                return [3]      
+                return [3]
 
-
-            
         # Wenn die höchste Farbe nicht zweithöchste Farbe ist
         # und die zweitniedrigste Farbe nicht die zweithöchste Farbe ist
         # und die zweithöchste Farbe gehinted wurde
         # dann handelt es sich um den spezieller Fall Rank Hint highest rank
         elif (sec_lowest_color_value != sec_highst_color_value
-            and sec_highst_color_value != highst_color_value
-            and sec_highst_color_value == hinted_color_value):
+              and sec_highst_color_value != highst_color_value
+              and sec_highst_color_value == hinted_color_value):
 
             if act['target_offset'] == 1:
                 return [0]
-            
+
             elif act['target_offset'] == 2:
                 return [2]
 
         # Wenn die höchste Farbe nicht zweithöchste Farbe ist
         # und die niedrigste Farbe nicht zweitniedrigste Farbe ist
         # aber die zweitniedrigste Farbe nicht die zweithöchste Farbe ist
-        # und die zweitniedrigste / zweithöchste Farbe gehinted wurde 
+        # und die zweitniedrigste / zweithöchste Farbe gehinted wurde
         # dann handelt es sich um den spezieller Fall von Rank Hint
         # man weiß aber nicht welcher
         elif (highst_color_value != sec_highst_color_value
                 and lowest_color_value != sec_lowest_color_value
                 and sec_lowest_color_value != sec_highst_color_value
-                and (sec_lowest_color_value == hinted_color_value 
-                or sec_highst_color_value == hinted_color_value)):
-            
+                and (sec_lowest_color_value == hinted_color_value
+                     or sec_highst_color_value == hinted_color_value)):
+
             if act['target_offset'] == 1:
                 return [0, 1]
-            
+
             elif act['target_offset'] == 2:
                 return [2, 3]
-        
-        else: 
+
+        else:
             raise Exception("This case should never happen")
 
 
