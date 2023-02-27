@@ -373,7 +373,7 @@ class HTGSAgent(Agent):
         
         # Wenn höchste Karte != niedrigste Karte dann ist es mit Sicherheit ein Color Hint
         # und kein speziel Fall von einen Rank Hint 
-        if highst_rank != lowest_rank:
+        if highst_color_value != lowest_color_value:
             hat = self.hinted_ply_hat_hint_color_no_special_case(act,
                 highst_color_value, sec_highst_color_value,
                 lowest_color_value, sec_lowest_color_value)
