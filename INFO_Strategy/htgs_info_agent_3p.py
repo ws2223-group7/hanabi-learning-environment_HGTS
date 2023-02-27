@@ -742,13 +742,14 @@ class HTGSAgent(Agent):
            becouse highst_rank == lowest_rank"""
                 
         if hat_sum_mod8 == 0 or hat_sum_mod8 == 2:
-            sec_lowest_color = self.sec_lowest_color_in_hand(hand_ply)
+            sec_highest_color = self.sec_highest_color_in_hand(hand_ply)
+            
             hint = {'action_type': 'REVEAL_COLOR',
                     'color': sec_highest_color,
                     'target_offset': 1}
             
         elif hat_sum_mod8 == 1 or hat_sum_mod8 == 3:
-            sec_highest_color = self.sec_highest_color_in_hand(hand_ply)
+            sec_lowest_color = self.sec_lowest_color_in_hand(hand_ply)
             hint = {'action_type': 'REVEAL_COLOR',
                     'color': sec_lowest_color,
                     'target_offset': 1}
