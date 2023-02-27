@@ -8,7 +8,7 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from hanabi_learning_environment.pyhanabi import HanabiCard, HanabiCardKnowledge, HanabiMove, HanabiMoveType, HanabiState
+from hanabi_learning_environment.pyhanabi import HanabiCard, HanabiMove, HanabiMoveType, HanabiState
 from hanabi_learning_environment import rl_env
 
 class RewardShape:

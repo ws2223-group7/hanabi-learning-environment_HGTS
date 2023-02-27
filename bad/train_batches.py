@@ -75,7 +75,7 @@ class TrainBatches:
                 observation_array_array.append(observation_array[0])
                 actions = np.append(actions, episode_result.actions[action_index])
                 logprob = np.append(logprob, episode_result.logprob[action_index])
-                rewards_to_go = np.append(rewards_to_go, episode_result.rewards_to_go[action_index])        
+                rewards_to_go = np.append(rewards_to_go, episode_result.rewards_to_go[action_index])
 
         self.network.backpropagation(observation_array_array, actions, logprob, rewards_to_go)
 

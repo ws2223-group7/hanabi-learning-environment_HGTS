@@ -58,13 +58,19 @@ class ActionNetwork():
     def backpropagation(self, observation, actions: np.ndarray, logprob: np.ndarray, rewards_to_go: np.ndarray):
         '''train step'''
         model = self.model
+        #tf.reshape(network_input, [1, network_input.shape[0]])
+        batch_size = len(observation)
+        observation_length = len(observation[0])
 
-        observation_tensor = tf.convert_to_tensor(observation)
+        observation_tensor2 = tf.convert_to_tensor(observation)
+        observation_tensor = tf.reshape(observation, [batch_size, observation_length])
+        rewards_to_go_tensor = tf.convert_to_tensor(rewards_to_go, dtype=float)
+
         with tf.GradientTape() as tape:
             logits = model(observation_tensor)
             log_probs = tf.nn.log_softmax(logits, -1)
-            loss = -(tf.reduce_mean(log_probs * rewards_to_go))
-            print(f'current loss {loss}')
+            loss = -(tf.reduce_mean(log_probs * tf.reshape(rewards_to_go_tensor, [batch_size, 1])))
+            print(f'current loss {loss.numpy()}')
 
         grads = tape.gradient(loss, model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, model.trainable_variables))
