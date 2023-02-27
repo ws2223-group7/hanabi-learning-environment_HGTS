@@ -472,6 +472,8 @@ class HTGSAgent(Agent):
           und es sich um einen speziellen Fall von einem Rank Hint handel könnte, 
           also highst_rank == lowst_rank"""
         
+        hinted_color_value = Color(act['color']).value()
+
         # Prüfe ob es sich um ein spezieller Fall 
         # von einem Rank Hint handeln kann 
                 
@@ -492,7 +494,7 @@ class HTGSAgent(Agent):
         
         # Elif Fall folgt der gleichen logik wie der If Fall
         elif (lowest_color_value != sec_lowest_color_value 
-            and lowest_color_value == act['color']):
+            and lowest_color_value == hinted_color_value):
             if act['target_offset'] == 1:
                 return [5]
             elif act['target_offset'] == 2:
@@ -505,7 +507,8 @@ class HTGSAgent(Agent):
         elif (sec_lowest_color_value != sec_highst_color_value):
             hat = self.hinted_ply_hat_hint_color_special_case_I_I(act,
                 highst_color_value, sec_highst_color_value,
-                lowest_color_value, sec_lowest_color_value)
+                lowest_color_value, sec_lowest_color_value,
+                hinted_color_value)
 
             return hat
         
@@ -520,7 +523,8 @@ class HTGSAgent(Agent):
 
     def hinted_ply_hat_hint_color_special_case_I_I(self,act,
         highst_color_value, sec_highst_color_value,
-        lowest_color_value, sec_lowest_color_value):
+        lowest_color_value, sec_lowest_color_value,
+        hinted_color_value):
         """Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
         und es sich um einen speziellen Fall von einem Rank Hint handel könnte,
         und sec_lowest_card != sec_highest_card"""
@@ -531,7 +535,7 @@ class HTGSAgent(Agent):
         # um den spezieller Fall Rank Hint lowest rank
         if (sec_lowest_color_value != sec_highst_color_value
             and sec_lowest_color_value != lowest_color_value
-            and sec_lowest_color_value == act['color']):
+            and sec_lowest_color_value == hinted_color_value):
 
             if act['target_offset'] == 1:
                 return [1]
@@ -547,7 +551,7 @@ class HTGSAgent(Agent):
         # dann handelt es sich um den spezieller Fall Rank Hint highest rank
         elif (sec_lowest_color_value != sec_highst_color_value
             and sec_highst_color_value != highst_color_value
-            and sec_highst_color_value == act['color']):
+            and sec_highst_color_value == hinted_color_value):
 
             if act['target_offset'] == 1:
                 return [0]
@@ -564,8 +568,8 @@ class HTGSAgent(Agent):
         elif (highst_color_value != sec_highst_color_value
                 and lowest_color_value != sec_lowest_color_value
                 and sec_lowest_color_value != sec_highst_color_value
-                and (sec_lowest_color_value == act['color'] 
-                or sec_highst_color_value == act['color'])):
+                and (sec_lowest_color_value == hinted_color_value 
+                or sec_highst_color_value == hinted_color_value)):
             
             if act['target_offset'] == 1:
                 return [0, 1]
