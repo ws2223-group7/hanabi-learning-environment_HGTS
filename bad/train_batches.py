@@ -3,7 +3,6 @@
 import sys
 import os
 import numpy as np
-import tensorflow as tf
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
@@ -62,7 +61,7 @@ class TrainBatches:
         reward_to_go_calculation = RewardToGoCalculation(gamma)
         return reward_to_go_calculation.run(collected_data)
 
-    def backpropagation(self, calc_result: RewardsToGoCalculationResult) -> None:
+    def backpropagation(self, calc_result: RewardsToGoCalculationResult) -> float:
         '''backpropagation'''
         actions = np.empty(0, int)
         logprob = np.empty(0, float)
@@ -71,13 +70,13 @@ class TrainBatches:
 
         for episode_result in calc_result.results:
             for action_index in range(len(episode_result.observation)):
-                observation_array = np.array([np.array(val.observation[action_index].to_array()) for val in calc_result.results])
-                observation_array_array.append(observation_array[0])
+                current_observation = episode_result.observation[action_index].to_array()
+                observation_array_array.append(current_observation)
                 actions = np.append(actions, episode_result.actions[action_index])
                 logprob = np.append(logprob, episode_result.logprob[action_index])
                 rewards_to_go = np.append(rewards_to_go, episode_result.rewards_to_go[action_index])
 
-        self.network.backpropagation(observation_array_array, actions, logprob, rewards_to_go)
+        return self.network.backpropagation(observation_array_array, actions, logprob, rewards_to_go)
 
     def run(self, batch_size: int, gamma: float) -> TrainBatchResult:
         '''init'''
@@ -91,6 +90,6 @@ class TrainBatches:
         calculation_result = self.calculation(collected_data, gamma)
 
         print('backpropagation')
-        self.backpropagation(calculation_result)
+        loss = self.backpropagation(calculation_result)
 
-        return TrainBatchResult()
+        return TrainBatchResult(loss)

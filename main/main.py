@@ -23,8 +23,8 @@ def main() -> None:
     tf.keras.utils.set_random_seed(seed)  # sets seeds for base-python, numpy and tf
     tf.config.experimental.enable_op_determinism()
 
-    batch_size: int = 1
-    epoch_size: int = 1
+    batch_size: int = 50
+    epoch_size: int = 100
 
     episodes_running: int = 100
     gamma: float = 1.0
@@ -40,14 +40,21 @@ def main() -> None:
     #if os.path.exists(model_path):
     #    network.load()
 
+    losses = np.empty(0, float)
+
     for epoch in range(epoch_size):
+        print('')
+        print(f'running epoch: {epoch}')
+
         train_epoch = TrainEpoch(network)
-        train_epoch.train(batch_size, gamma)
+        result = train_epoch.train(batch_size, gamma)
+        losses = np.append(losses, result.loss)
+        print(f"mean loss: {losses.mean()}")
 
     #network.save()
 
-    self_play = SelfPlay(network)
-    self_play.run(episodes_running)
+    #self_play = SelfPlay(network)
+    #self_play.run(episodes_running)
 
     print("finish with everything")
 if __name__ == "__main__":

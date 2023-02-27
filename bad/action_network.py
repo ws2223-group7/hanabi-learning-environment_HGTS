@@ -55,7 +55,7 @@ class ActionNetwork():
         result = self.model(self.get_model_input(observation))
         return BayesianAction(result.numpy()[0])
 
-    def backpropagation(self, observation, actions: np.ndarray, logprob: np.ndarray, rewards_to_go: np.ndarray):
+    def backpropagation(self, observation, actions: np.ndarray, logprob: np.ndarray, rewards_to_go: np.ndarray) -> float:
         '''train step'''
         model = self.model
         #tf.reshape(network_input, [1, network_input.shape[0]])
@@ -74,3 +74,5 @@ class ActionNetwork():
 
         grads = tape.gradient(loss, model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+        
+        return loss.numpy()

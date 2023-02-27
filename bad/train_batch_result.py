@@ -2,5 +2,5 @@
 
 class TrainBatchResult:
     '''train batch result'''
-    def __init__(self) -> None:
-        pass
+    def __init__(self, loss: float) -> None:
+        self.loss = loss
