@@ -15,9 +15,9 @@ class TrainEpoch:
     def __init__(self, network: ActionNetwork) -> None:
         """init"""
         self.network = network
+        self.train_batches = TrainBatches(self.network)
 
     def train(self, batch_size: int, gamma: float) -> TrainEpochResult:
         """train"""
-        train_batches = TrainBatches(self.network)
-        result = train_batches.run(batch_size=batch_size, gamma=gamma)
+        result = self.train_batches.run(batch_size=batch_size, gamma=gamma)
         return TrainEpochResult(result.loss, result.reward)

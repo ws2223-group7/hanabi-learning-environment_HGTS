@@ -40,20 +40,22 @@ def main() -> None:
     #if os.path.exists(model_path):
     #    network.load()
 
-    losses = np.empty(0, float)
-    rewards = np.empty(0, float)
+    # losses = np.empty(0, float)
+    # rewards = np.empty(0, float)
+    train_epoch = TrainEpoch(network)
 
     for epoch in range(epoch_size):
         print('')
         print(f'running epoch: {epoch}')
 
-        train_epoch = TrainEpoch(network)
         result = train_epoch.train(batch_size, gamma)
-        losses = np.append(losses, result.loss)
-        rewards = np.append(rewards, result.reward)
+        print(f"epoch reward: {result.reward}")
 
-        print(f"mean reward: {rewards.mean()}")
-        print(f"mean loss: {losses.mean()}")
+        #losses = np.append(losses, result.loss)
+        #rewards = np.append(rewards, result.reward)
+
+        #print(f"mean reward: {rewards.mean()}")
+        #print(f"mean loss: {losses.mean()}")
 
     #network.save()
 
