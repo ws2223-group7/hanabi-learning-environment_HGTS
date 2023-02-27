@@ -390,6 +390,7 @@ class HTGSAgent(Agent):
                 hat = self.hinted_ply_hat_hint_color_special_case_I(act,
                     highst_color_value, sec_highst_color_value,
                     lowest_color_value, sec_lowest_color_value)
+                return hat 
                 
                 
 
