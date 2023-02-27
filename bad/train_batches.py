@@ -68,8 +68,6 @@ class TrainBatches:
         observation_array_array = []
         baseline =  calc_result.get_baseline()
 
-        print(f"reward sum: {calc_result.get_reward_sum()}")
-
         for episode_result in calc_result.results:
             for action_index in range(len(episode_result.observation)):
                 current_observation = episode_result.observation[action_index].to_array()
