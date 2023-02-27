@@ -64,22 +64,20 @@ class TrainBatches:
 
     def backpropagation(self, calc_result: RewardsToGoCalculationResult) -> None:
         '''backpropagation'''
-        observations = np.empty(0, object)
         actions = np.empty(0, int)
         logprob = np.empty(0, float)
         rewards_to_go = np.empty(0, int)
-        shape: int = 0
-        for episode_result in calc_result.results:
+        observation_array_array = []
 
+        for episode_result in calc_result.results:
             for action_index in range(len(episode_result.observation)):
-                shape = episode_result.observation[action_index].to_array().shape[0]
-                observations = np.append(observations, self.network.get_model_input(episode_result.observation[action_index]))
+                observation_array = np.array([np.array(val.observation[action_index].to_array()) for val in calc_result.results])
+                observation_array_array.append(observation_array[0])
                 actions = np.append(actions, episode_result.actions[action_index])
                 logprob = np.append(logprob, episode_result.logprob[action_index])
-                rewards_to_go = np.append(rewards_to_go, episode_result.rewards_to_go[action_index])
+                rewards_to_go = np.append(rewards_to_go, episode_result.rewards_to_go[action_index])        
 
-        reshaped_observation = tf.reshape(observations, [1, shape])
-        self.network.backpropagation(observations, actions, logprob, rewards_to_go)
+        self.network.backpropagation(observation_array_array, actions, logprob, rewards_to_go)
 
     def run(self, batch_size: int, gamma: float) -> TrainBatchResult:
         '''init'''

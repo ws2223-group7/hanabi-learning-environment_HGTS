@@ -55,12 +55,13 @@ class ActionNetwork():
         result = self.model(self.get_model_input(observation))
         return BayesianAction(result.numpy()[0])
 
-    def backpropagation(self, observation: np.ndarray, actions: np.ndarray, logprob: np.ndarray, rewards_to_go: np.ndarray):
+    def backpropagation(self, observation, actions: np.ndarray, logprob: np.ndarray, rewards_to_go: np.ndarray):
         '''train step'''
         model = self.model
 
+        observation_tensor = tf.convert_to_tensor(observation)
         with tf.GradientTape() as tape:
-            logits = model(observation)
+            logits = model(observation_tensor)
             log_probs = tf.nn.log_softmax(logits, -1)
             loss = -(tf.reduce_mean(log_probs * rewards_to_go))
             print(f'current loss {loss}')
