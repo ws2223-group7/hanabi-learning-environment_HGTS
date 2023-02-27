@@ -20,4 +20,4 @@ class TrainEpoch:
         """train"""
         train_batches = TrainBatches(self.network)
         result = train_batches.run(batch_size=batch_size, gamma=gamma)
-        return TrainEpochResult(result.loss)
+        return TrainEpochResult(result.loss, result.reward)

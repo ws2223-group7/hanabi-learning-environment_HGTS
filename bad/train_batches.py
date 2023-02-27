@@ -50,7 +50,7 @@ class TrainBatches:
 
             collect_batch_episodes_result.add(episode_data_result)
 
-            print(f"collected episoden aktionen: {collect_batch_episodes_result.get_batch_size()} von batch size {batch_size}")
+            # print(f"collected episoden aktionen: {collect_batch_episodes_result.get_batch_size()} von batch size {batch_size}")
 
         return collect_batch_episodes_result
 
@@ -67,6 +67,8 @@ class TrainBatches:
         rewards_to_go = np.empty(0, int)
         observation_array_array = []
         baseline =  calc_result.get_baseline()
+
+        print(f"reward sum: {calc_result.get_reward_sum()}")
 
         for episode_result in calc_result.results:
             for action_index in range(len(episode_result.observation)):
@@ -92,4 +94,4 @@ class TrainBatches:
         print('backpropagation')
         loss = self.backpropagation(calculation_result)
 
-        return TrainBatchResult(loss)
+        return TrainBatchResult(loss, calculation_result.get_reward_sum())

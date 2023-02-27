@@ -73,7 +73,7 @@ class ActionNetwork():
             logits = model(observation_tensor)
             log_probs = tf.nn.log_softmax(logits, -1)
             loss = -(tf.reduce_mean(log_probs * tf.reshape(baseline_result, [batch_size, 1])))
-            print(f'current loss {loss.numpy()}')
+            print(f'current loss: {loss.numpy()}')
 
         grads = tape.gradient(loss, model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, model.trainable_variables))

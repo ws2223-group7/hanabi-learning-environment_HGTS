@@ -12,7 +12,7 @@ from bad.rewards_to_go_episode_calculation_result import RewardsToGoEpisodeCalcu
 from bad.baseline import Baseline
 
 class RewardsToGoCalculationResult:
-    '''RewardToGoCalculationResult'''
+    """RewardToGoCalculationResult"""
     def __init__(self) -> None:
         self.results: list[RewardsToGoEpisodeCalculationResult] = []
 
@@ -21,7 +21,7 @@ class RewardsToGoCalculationResult:
         self.results.append(result)
 
     def get_batch_size(self) -> int:
-        '''get n'''
+        """get n"""
         batch_size: int = 0
 
         for ep in self.results:
@@ -29,11 +29,22 @@ class RewardsToGoCalculationResult:
 
         return batch_size
 
-    def get_baseline(self) -> Baseline:
-        """get baseline"""
+    def get_rewards(self) -> np.ndarray:
+        """get rewards"""
         total = np.empty(0, float)
 
         for res in self.results:
             total = np.append(total, res.rewards_to_go)
 
-        return Baseline(total.mean(), total.std())
+        return total
+
+    def get_baseline(self) -> Baseline:
+        """get baseline"""
+        rewards = self.get_rewards()
+        return Baseline(rewards.mean(), rewards.std())
+
+    def get_reward_sum(self) -> float:
+        """get reward sum"""
+        rewards = self.get_rewards()
+
+        return rewards.sum()

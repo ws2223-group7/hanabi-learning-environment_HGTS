@@ -41,6 +41,7 @@ def main() -> None:
     #    network.load()
 
     losses = np.empty(0, float)
+    rewards = np.empty(0, float)
 
     for epoch in range(epoch_size):
         print('')
@@ -49,6 +50,9 @@ def main() -> None:
         train_epoch = TrainEpoch(network)
         result = train_epoch.train(batch_size, gamma)
         losses = np.append(losses, result.loss)
+        rewards = np.append(rewards, result.reward)
+
+        print(f"mean reward: {rewards.mean()}")
         print(f"mean loss: {losses.mean()}")
 
     #network.save()
