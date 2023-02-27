@@ -62,7 +62,6 @@ class ActionNetwork():
         batch_size = len(observation)
         observation_length = len(observation[0])
 
-        observation_tensor2 = tf.convert_to_tensor(observation)
         observation_tensor = tf.reshape(observation, [batch_size, observation_length])
         rewards_to_go_tensor = tf.convert_to_tensor(rewards_to_go, dtype=float)
 
