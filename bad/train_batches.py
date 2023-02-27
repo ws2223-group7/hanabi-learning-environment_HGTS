@@ -19,7 +19,6 @@ from bad.set_extra_observation import SetExtraObservation
 from bad.reward_to_go_calculation import RewardToGoCalculation
 from bad.train_batch_result import TrainBatchResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
-from bad.encoding.observation import Observation
 
 class TrainBatches:
     '''train batch'''
@@ -67,6 +66,7 @@ class TrainBatches:
         logprob = np.empty(0, float)
         rewards_to_go = np.empty(0, int)
         observation_array_array = []
+        baseline =  calc_result.get_baseline()
 
         for episode_result in calc_result.results:
             for action_index in range(len(episode_result.observation)):
@@ -76,7 +76,7 @@ class TrainBatches:
                 logprob = np.append(logprob, episode_result.logprob[action_index])
                 rewards_to_go = np.append(rewards_to_go, episode_result.rewards_to_go[action_index])
 
-        return self.network.backpropagation(observation_array_array, actions, logprob, rewards_to_go)
+        return self.network.backpropagation(observation_array_array, actions, logprob, rewards_to_go, baseline)
 
     def run(self, batch_size: int, gamma: float) -> TrainBatchResult:
         '''init'''

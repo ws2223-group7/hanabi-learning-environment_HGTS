@@ -2,6 +2,7 @@
 
 import sys
 import os
+import numpy as np
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
