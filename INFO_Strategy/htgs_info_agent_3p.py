@@ -1407,18 +1407,33 @@ class HTGSAgent(Agent):
 
         # Der Spieler der den Hint gibt, also
         idx_hinting_player = self.observation['current_player_offset']
+        idx_hinted_player = (action['target_offset'] + idx_hinting_player) \
+                            % self.observation['num_players']
 
         for agent_idx in range(self.observation['num_players']):
 
             # Der Spieler der den Hint gibt kann ja nicht seinen Hat wissen
             # Damit wird dieser auch nicht berechnet den es ist keine
             # Public Information
-            if idx_hinting_player == agent_idx:
-                player_hats.append(None)
-                continue
+            if agent_idx == idx_hinted_player:
+                hat = self.cal_hat_hinted_ply(action, idx_hinted_player)
+                
+            elif agent_idx == 0:
+                hat = self.cal_own_hat(action)
+            
+            elif agent_idx == idx_hinting_player:
+                hat = None
+                
 
-            # Für alle anderen Spieler
-            player_hats.append(self.cal_hat_player(agent_idx, action))
+            elif (agent_idx != idx_hinting_player 
+                  and agent_idx != idx_hinted_player
+                  and agent_idx != 0):
+                hat = self.cal_hat_other_ply(action, agent_idx)
+                            
+            else:
+                raise Exception("Dieser Fall sollte nicht auftreten")
+            
+            player_hats.append(hat)
 
         return player_hats
 
