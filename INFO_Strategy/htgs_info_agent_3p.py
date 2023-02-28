@@ -1423,17 +1423,17 @@ class HTGSAgent(Agent):
             if agent_idx == idx_hinted_player:
                 hat = self.cal_hat_hinted_ply(action, idx_hinted_player)
                 
-            elif agent_idx == 0:
-                hat = self.cal_own_hat(action)
             
             elif agent_idx == idx_hinting_player:
                 hat = None
-                
 
+            elif agent_idx == 0:
+                hat = self.cal_own_hat(action)
+            
             elif (agent_idx != idx_hinting_player 
                   and agent_idx != idx_hinted_player
                   and agent_idx != 0):
-                hat = self.cal_hat_other_ply(action, agent_idx)
+                hat = self.cal_hat_other_ply(agent_idx)
                             
             else:
                 raise Exception("Dieser Fall sollte nicht auftreten")
@@ -1445,11 +1445,28 @@ class HTGSAgent(Agent):
     def cal_hat_hinted_ply(self, action, idx_hinted_player):
         """Return hat of the player who is hinted"""
         
-        given_hat = self.decode_hint(action, idx_hinted_player)
+        given_hat = self.decode_hint(action, idx_hinted_player, for_hinted_player=True)
 
-        idx_other_player = 1 if idx_hinted_player == 2 else 2
+        hinting_ply_idx = self.observation['current_player_offset']
 
-        hat_other_ply = self.cal_hat_player(idx_other_player)
+        # Wenn ich der jenige bin der gehintet wird muss ich den hat 
+        # vom den Spieler berechnen der nicht gehintet hat
+        # Das ist also Spieler 1 oder 2
+        if idx_hinted_player == 0:
+            idx_other_player = 1 if hinting_ply_idx == 2 else 2
+        
+        # Wenn ich nicht der gehintete bin, bin ich der hintende oder der andere Spieler
+        # Ich bin der andere Spieler wenn hinting_ply_idx == 1 
+        else:
+            if idx_hinted_player == 1:
+                idx_other_player = 0 if hinting_ply_idx == 2 else 2
+            elif idx_hinted_player == 2:
+                idx_other_player = 0 if hinting_ply_idx == 1 else 1
+            else:
+                raise Exception("Dieser Fall sollte nicht auftreten")
+            
+
+        hat_other_ply = self.cal_hat_player(idx_other_player)[0]
 
         hat_hinted_ply = [(pos_hat + hat_other_ply) % 8 for pos_hat in given_hat]
 
