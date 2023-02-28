@@ -791,7 +791,7 @@ class HTGSAgent(Agent):
             raise Exception("This case should never happen")
 
     def cal_own_hat(self, act):
-        """Returned eigenen hat
+        """Returned eigenen hat nur wenn man nicht selbst der gehinted player ist
 
         Parameters
             action (dict): Die Action muss ein Hint sein 
@@ -805,13 +805,15 @@ class HTGSAgent(Agent):
         # given_hat_sum_mod8 := r1 (Paper Cox)
         # hat_sum_mod8 := ri (Paper Cox)
         # own_hat := ci (Paper Cox)
-        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8(act)
 
-        idx_cur_ply = self.observation['current_player_offset']
+        idx_hinted_ply = (self.observation['current_player_offset'] + 
+                          act['target_offset']) % 8    
 
-        hat_sum = self.cal_hat_sum_mod8()
-        hat_hinted_ply = self.cal_hat_player(idx_cur_ply)
-        own_hat = (given_hat_sum_mod8 - (hat_sum - hat_hinted_ply)) % 8
+        decode_hint = self.decode_hint(act, idx_hinted_ply)
+
+        hat_other_ply = self.cal_other_hat(idx_hinted_ply)
+
+        own_hat = (decode_hint - hat_other_ply) % 8
 
         return own_hat
 
