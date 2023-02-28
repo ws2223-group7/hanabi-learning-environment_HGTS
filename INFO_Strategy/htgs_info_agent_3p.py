@@ -10,7 +10,6 @@ from INFO_Strategy.color_enum import Color
 from hanabi_learning_environment.rl_env import Agent
 from INFO_Strategy.possibility_table import Table
 
-
 class HTGSAgent(Agent):
     def __init__(self, config, *args, **kwargs):
         self.config = config
@@ -307,7 +306,8 @@ class HTGSAgent(Agent):
             % self.observation['num_players']
 
         if agent_idx == idx_hinted_player:
-            return self.cal_hinted_ply_hat(act, idx_hinted_player)
+            raise ValueError("Der gehintete Spieler hat wird an einer anderen" 
+                             "stelle berechnet hier sollte man nie hin kommen")
 
         # Sonderfall wenn der eigene Hat berechnet werden soll
         # ! Hierfür muss der Hint übergeben werden
@@ -324,15 +324,16 @@ class HTGSAgent(Agent):
            jeder den selben hut bzw. die selben möglichen Hüte 
            für den hinted player berechnen"""
 
+    
+        # Calculate highst and lowest color in hand
+        card_knowledge_hinted_ply = self.observation['observed_hands'][idx_hinted_player]
+
         highst_rank = self.highest_rank_in_hand(card_knowledge_hinted_ply)
         sec_lowest_rank = self.sec_lowest_rank_in_hand(
             card_knowledge_hinted_ply)
         lowest_rank = self.lowest_rank_in_hand(card_knowledge_hinted_ply)
         sec_highst_rank = self.sec_highst_rank_in_hand(
             card_knowledge_hinted_ply)
-
-        # Calculate highst and lowest color in hand
-        card_knowledge_hinted_ply = self.observation['card_knowledge'][idx_hinted_player]
 
         highst_color = self.highest_color_in_hand(card_knowledge_hinted_ply)
         highst_color_value = Color(highst_color).value
@@ -816,6 +817,7 @@ class HTGSAgent(Agent):
         own_hat = (decode_hint - hat_other_ply) % 8
 
         return own_hat
+
 
     def cal_other_hat(self, agent_idx):
         """Returned hat von anderen Agent nicht dem eigenen"""
@@ -1398,7 +1400,7 @@ class HTGSAgent(Agent):
         for players_hat in players_hats:
             for color in self.colors:
                 for rank in range(self.max_rank + 1):
-                    if (part_table[color][rank] != players_hat):
+                    if part_table[color][rank] not in players_hat:
                         self.table[agent_idx][target_card_idx][color][rank] = 0
 
     def players_hats(self, action):
@@ -1449,6 +1451,7 @@ class HTGSAgent(Agent):
         hat_hinted_ply = [(pos_hat + hat_other_ply) % 8 for pos_hat in given_hat]
 
         return hat_hinted_ply
+
     def targeted_cards_idx(self):
         """Return list mit targed_cards von allen Agent
         außer dem der aktuell dar ist. Also dem der gehintet hat"""
@@ -1470,40 +1473,8 @@ class HTGSAgent(Agent):
 
         return targeted_cards_idx
 
-    def decode_hint(self, act):
-        """Return Partition und Card Idx 
 
-        Parameter:
-            action(dict): action muss ein hint sein sonst 
-                          throw exception
 
-        """
-        # Der eigene hat entspricht der Partition der targed_card
-        own_hat = self.cal_own_hat(act)
-        _, target_card_idx = self.get_target_card(0)
 
-        return own_hat, target_card_idx
+    
 
-    def decode_act_to_hat_sum_mod8(self, act):
-        """Return hat_sum mod 8"""
-
-        if act['action_type'] == 'REVEAL_COLOR':
-            hat_mod_sum_8 = self.decode_reveal_color_hint(act)
-
-        elif act['action_type'] == 'REVEAL_RANK':
-            hat_mod_sum_8 = self.decode_reveal_rank_hint(act)
-
-        else:
-            raise Exception('Action is no hint')
-
-        return hat_mod_sum_8
-
-    def decode_reveal_rank_hint(self, act):
-        """Return hat_sum mod 8 for a reveal rank hint"""
-
-        idx_ply = self.observation(['current_player_offset'] + act['target_offset']) \
-            % self.observation['num_players']
-
-        if idx_ply == 0:
-            hat_sum_mod_8 = self.decode_hat_for_hinted_player(act)
-        hand_ply = self.observation['observed_hands'][idx_ply]
