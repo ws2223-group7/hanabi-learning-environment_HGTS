@@ -316,7 +316,7 @@ class HTGSAgent(Agent):
 
         return self.cal_other_hat(agent_idx)
 
-    def cal_hinted_ply_hat(self, act, idx_hinted_player):
+    def decode_hint(self, act, idx_hinted_player):
         """Return hat vom Spieler der gehintet wird
            Der gehinted Spieler kennt seine Karten nicht
            und kann somit den hint nur bedingt interpretieren
@@ -350,16 +350,16 @@ class HTGSAgent(Agent):
 
         # Wenn der Hint eine Farbe ist
         if act['action_type'] == 'REVEAL_COLOR':
-            hat_ply = self.cal_hinted_ply_hat_hint_color(act,
-                                                         highst_rank, lowest_rank,
-                                                         highst_color_value, sec_highst_color_value,
-                                                         lowest_color_value, sec_lowest_color_value)
+            hat_ply = self.decode_hat_hint_color(act,
+                highst_rank, lowest_rank,
+                highst_color_value, sec_highst_color_value,
+                lowest_color_value, sec_lowest_color_value)
 
         elif act['action_type'] == 'REVEAL_RANK':
-            hat_ply = self.cal_hinted_plys_hat_hint_rank(act,
-                                                         highst_rank, sec_highst_rank,
-                                                         lowest_rank, sec_lowest_rank,
-                                                         highst_color_value, lowest_color_value)
+            hat_ply = self.decode_hint_hint_rank(act,
+                highst_rank, sec_highst_rank,
+                lowest_rank, sec_lowest_rank,
+                highst_color_value, lowest_color_value)
 
         else:
             raise ValueError(
@@ -367,7 +367,7 @@ class HTGSAgent(Agent):
 
         return hat_ply
 
-    def cal_hinted_plys_hat_hint_rank(self, act,
+    def decode_hint_hint_rank(self, act,
                                       highst_rank, sec_highst_rank,
                                       lowest_rank, sec_lowest_rank,
                                       highest_color_value, lowest_color_value):
@@ -378,7 +378,7 @@ class HTGSAgent(Agent):
         # Wenn höchste Karte != niedrigste Karte dann ist es mit Sicherheit ein Rank Hint
         # und kein speziel Fall von einen Color Hint
         if highest_color_value != lowest_color_value:
-            hat = self.hinted_ply_hat_hint_rank_no_special_case(act,
+            hat = self.decode_hat_rank_no_special_case(act,
                                                                 hinted_rank,
                                                                 highst_rank, lowest_rank)
 
@@ -388,7 +388,7 @@ class HTGSAgent(Agent):
 
             # Wenn mindestens eine Farbe auf der Hand bekannt ist
             if highst_rank != None and lowest_rank != None:
-                hat = self.hinted_ply_hat_hint_rank_special_case_I(act,
+                hat = self.decode_hint_rank_special_case_I(act,
                                                                    hinted_rank,
                                                                    highst_rank, sec_highst_rank,
                                                                    lowest_rank, sec_lowest_rank)
@@ -410,7 +410,7 @@ class HTGSAgent(Agent):
 
         return hat
 
-    def hinted_ply_hat_hint_rank_no_special_case(self, act,
+    def decode_hat_rank_no_special_case(self, act,
                                                  hinted_rank,
                                                  highst_rank, lowest_rank):
         """Return hat vom hinted player wenn es sich um einen Rank Hint handelt
@@ -468,7 +468,7 @@ class HTGSAgent(Agent):
 
         return hat
 
-    def hinted_ply_hat_hint_rank_special_case_I(self, act,
+    def decode_hint_rank_special_case_I(self, act,
                                                 hinted_rank,
                                                 highst_rank, sec_highst_rank,
                                                 lowest_rank, sec_lowest_rank):
@@ -506,7 +506,7 @@ class HTGSAgent(Agent):
 
         # Wenn die niedrigste Farbe nicht zweitniedrigste Farbe ist
         elif (sec_lowest_rank != sec_highst_rank):
-            hat = self.hinted_ply_hat_hint_rank_special_case_I_I(act,
+            hat = self.decode_hint_rank_special_case_I_I(act,
                                                                  hinted_rank, sec_highst_rank,
                                                                  lowest_rank, sec_lowest_rank,
                                                                  hinted_rank)
@@ -522,7 +522,7 @@ class HTGSAgent(Agent):
 
         return hat
 
-    def hinted_ply_hat_hint_rank_special_case_I_I(self, act,
+    def decode_hint_rank_special_case_I_I(self, act,
                                                   highest_rank, sec_highest_rank,
                                                   lowest_rank, sec_lowest_rank,
                                                   hinted_rank):
@@ -579,7 +579,7 @@ class HTGSAgent(Agent):
         else:
             raise Exception("This case should never happen")
 
-    def cal_hinted_ply_hat_hint_color(self, act,
+    def decode_hat_hint_color(self, act,
                                       highst_rank, lowest_rank,
                                       highst_color_value,  sec_highst_color_value,
                                       lowest_color_value, sec_lowest_color_value):
@@ -590,7 +590,7 @@ class HTGSAgent(Agent):
         # Wenn höchste Karte != niedrigste Karte dann ist es mit Sicherheit ein Color Hint
         # und kein speziel Fall von einen Rank Hint
         if highst_rank != lowest_rank:
-            hat = self.hinted_ply_hat_hint_color_no_special_case(act,
+            hat = self.decode_hint_color_no_special_case(act,
                                                                  hinted_color_value,
                                                                  highst_color_value, lowest_color_value)
 
@@ -600,7 +600,7 @@ class HTGSAgent(Agent):
 
             # Wenn mindestens eine Farbe auf der Hand bekannt ist
             if highst_color_value != None and lowest_color_value != None:
-                hat = self.hinted_ply_hat_hint_color_special_case_I(act,
+                hat = self.decode_hint_color_special_case_I(act,
                                                                     hinted_color_value,
                                                                     highst_color_value, sec_highst_color_value,
                                                                     lowest_color_value, sec_lowest_color_value)
@@ -622,7 +622,7 @@ class HTGSAgent(Agent):
 
         return hat
 
-    def hinted_ply_hat_hint_color_no_special_case(self, act,
+    def decode_hint_color_no_special_case(self, act,
                                                   hinted_color_value, highst_color_value,
                                                   lowest_color_value):
         """Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
@@ -679,7 +679,7 @@ class HTGSAgent(Agent):
 
         return hat
 
-    def hinted_ply_hat_hint_color_special_case_I(self, act,
+    def decode_hint_color_special_case_I(self, act,
                                                  hinted_color_value,
                                                  highst_color_value, sec_highst_color_value,
                                                  lowest_color_value, sec_lowest_color_value):
@@ -717,7 +717,7 @@ class HTGSAgent(Agent):
 
         # Wenn die niedrigste Farbe nicht zweitniedrigste Farbe ist
         elif (sec_lowest_color_value != sec_highst_color_value):
-            hat = self.hinted_ply_hat_hint_color_special_case_I_I(act,
+            hat = self.decode_hint_color_special_case_I_I(act,
                                                                   highst_color_value, sec_highst_color_value,
                                                                   lowest_color_value, sec_lowest_color_value,
                                                                   hinted_color_value)
@@ -733,7 +733,7 @@ class HTGSAgent(Agent):
 
         return hat
 
-    def hinted_ply_hat_hint_color_special_case_I_I(self, act,
+    def decode_hint_color_special_case_I_I(self, act,
                                                    highst_color_value, sec_highst_color_value,
                                                    lowest_color_value, sec_lowest_color_value,
                                                    hinted_color_value):
