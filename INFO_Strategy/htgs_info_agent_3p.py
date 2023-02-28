@@ -1437,6 +1437,18 @@ class HTGSAgent(Agent):
 
         return player_hats
 
+    def cal_hat_hinted_ply(self, action, idx_hinted_player):
+        """Return hat of the player who is hinted"""
+        
+        given_hat = self.decode_hint(action, idx_hinted_player)
+
+        idx_other_player = 1 if idx_hinted_player == 2 else 2
+
+        hat_other_ply = self.cal_hat_player(idx_other_player)
+
+        hat_hinted_ply = [(pos_hat + hat_other_ply) % 8 for pos_hat in given_hat]
+
+        return hat_hinted_ply
     def targeted_cards_idx(self):
         """Return list mit targed_cards von allen Agent
         außer dem der aktuell dar ist. Also dem der gehintet hat"""
