@@ -818,9 +818,10 @@ class HTGSAgent(Agent):
 
         return own_hat
 
-
-    def cal_other_hat(self, agent_idx):
+    def cal_hat_other_ply(self, agent_idx):
         """Returned hat von anderen Agent nicht dem eigenen"""
+
+        hat = []
 
         # Raise Expection wenn man den eigenen Hat berechnen will
         if (agent_idx == 0):
@@ -836,7 +837,9 @@ class HTGSAgent(Agent):
 
         rank_target_card = target_card['rank']
         color_target_card = target_card['color']
-        hat = part_table[color_target_card][rank_target_card]
+        hat_value = part_table[color_target_card][rank_target_card]
+        hat.append(hat_value)
+        
 
         return hat
 
