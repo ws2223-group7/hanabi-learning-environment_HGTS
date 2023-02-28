@@ -832,16 +832,3 @@ class HTGSAgent(Agent):
 
         return targeted_cards_idx
 
-    def decode_hint(self, act):
-        """Return Partition und Card Idx 
-
-        Parameter:
-            action(dict): action muss ein hint sein sonst 
-                          throw exception
-
-        """
-        # Der eigene hat entspricht der Partition der targed_card
-        own_hat = self.cal_own_hat(act)
-        _, target_card_idx = self.get_target_card(0)
-
-        return own_hat, target_card_idx
