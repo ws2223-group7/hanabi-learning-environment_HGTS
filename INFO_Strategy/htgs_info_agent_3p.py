@@ -355,15 +355,18 @@ class HTGSAgent3P(Agent):
         sec_lowest_color_value = Color[sec_lowest_color].value \
             if sec_lowest_color else None
 
+        unknown_rank = self.unknown_rank_in_hand(card_knowledge_hinted_ply)
+        unknown_color = self.unknown_color_in_hand(card_knowledge_hinted_ply)
+
         # Wenn der Hint eine Farbe ist
         if act['action_type'] == 'REVEAL_COLOR':
-            hat_ply = self.decode_hat_hint_color(act,
+            hat_ply = self.decode_hat_hint_color(act, unknown_color,
                                                  highest_rank, lowest_rank,
                                                  highst_color_value, sec_highst_color_value,
                                                  lowest_color_value, sec_lowest_color_value)
 
         elif act['action_type'] == 'REVEAL_RANK':
-            hat_ply = self.decode_hint_hint_rank(act,
+            hat_ply = self.decode_hint_hint_rank(act, unknown_rank, 
                                                  highest_rank, sec_highest_rank,
                                                  lowest_rank, sec_lowest_rank,
                                                  highst_color_value, lowest_color_value)
@@ -374,7 +377,8 @@ class HTGSAgent3P(Agent):
 
         return hat_ply
 
-    def decode_hint_hint_rank(self, act,
+    def decode_hint_hint_rank(self, act, 
+                              unknown_rank, 
                               highst_rank, sec_highst_rank,
                               lowest_rank, sec_lowest_rank,
                               highest_color_value, lowest_color_value):
@@ -394,8 +398,8 @@ class HTGSAgent3P(Agent):
         else:
             # Wenn mindestens ein Rank auf der Hand bekannt ist
             if highst_rank != None and lowest_rank != None:
-                hat = self.decode_hint_rank_special_case_I(act,
-                                                           hinted_rank,
+                hat = self.decode_hint_rank_special_case_I(act, unknown_rank, 
+                                                           hinted_rank, 
                                                            highst_rank, sec_highst_rank,
                                                            lowest_rank, sec_lowest_rank)
 
@@ -474,8 +478,8 @@ class HTGSAgent3P(Agent):
 
         return hat
 
-    def decode_hint_rank_special_case_I(self, act,
-                                        hinted_rank,
+    def decode_hint_rank_special_case_I(self, act, unknown_rank, 
+                                        hinted_rank, 
                                         highest_rank, sec_highest_rank,
                                         lowest_rank, sec_lowest_rank):
         """ Return hat vom hinted player hat wenn es sich um einen Rank Hint handelt
@@ -484,7 +488,8 @@ class HTGSAgent3P(Agent):
 
         # Eindeutig High Rank Hint
         if (highest_rank != sec_highest_rank
-                and highest_rank == hinted_rank):
+            and highest_rank == hinted_rank
+            and (unknown_rank == False or highest_rank == 5)):
 
             if act['target_offset'] == 1:
                 hat = [0]
@@ -496,7 +501,8 @@ class HTGSAgent3P(Agent):
 
         # Eindeutiger Low Rank Hint
         elif (lowest_rank != sec_lowest_rank
-              and lowest_rank == hinted_rank):
+              and lowest_rank == hinted_rank
+              and (unknown_rank == False or lowest_rank == 0)):
             if act['target_offset'] == 1:
                 hat = [1]
             elif act['target_offset'] == 2:
@@ -692,6 +698,7 @@ class HTGSAgent3P(Agent):
             raise Exception("This case should never happen")
 
     def decode_hat_hint_color(self, act,
+            unknown_color,                  
             highst_rank, lowest_rank,
             highst_color_value,  sec_highst_color_value,
             lowest_color_value, sec_lowest_color_value):
@@ -713,6 +720,7 @@ class HTGSAgent3P(Agent):
             # Wenn mindestens eine Farbe auf der Hand bekannt ist
             if highst_color_value != None and lowest_color_value != None:
                 hat = self.decode_hint_color_special_case_I(act,
+                                                            unknown_color,
                                                             hinted_color_value,
                                                             highst_color_value, sec_highst_color_value,
                                                             lowest_color_value, sec_lowest_color_value)
@@ -792,6 +800,7 @@ class HTGSAgent3P(Agent):
         return hat
 
     def decode_hint_color_special_case_I(self, act,
+                                         unknown_color,
                                          hinted_color_value,
                                          highest_color_value, sec_highest_color_value,
                                          lowest_color_value, sec_lowest_color_value):
@@ -801,7 +810,8 @@ class HTGSAgent3P(Agent):
 
         # Eindeutig highst color hint
         if (highest_color_value != sec_highest_color_value
-                and highest_color_value == hinted_color_value):
+                and highest_color_value == hinted_color_value
+                and (unknown_color == False or highest_color_value == 5)):
             if act['target_offset'] == 1:
                 hat = [4]
             elif act['target_offset'] == 2:
@@ -812,7 +822,8 @@ class HTGSAgent3P(Agent):
 
         # Eindeutig lowest color hint
         elif (lowest_color_value != sec_lowest_color_value
-              and lowest_color_value == hinted_color_value):
+              and lowest_color_value == hinted_color_value
+              and (unknown_color == False or lowest_color_value == 0)):
             if act['target_offset'] == 1:
                 hat = [5]
             elif act['target_offset'] == 2:
@@ -1355,6 +1366,21 @@ class HTGSAgent3P(Agent):
 
         return sorted_color_in_hand[-2]
 
+    def unknown_rank_in_hand(self, hand_ply):
+        ranks_in_hand = [card['rank'] for card in hand_ply]
+        
+        if None in ranks_in_hand:
+            return True
+        
+        return False
+
+    def unknown_color_in_hand(self, hand_ply):
+        color_in_hand = [card['color'] for card in hand_ply]
+        
+        if None in color_in_hand:
+            return True
+        
+        return False
     def duplicate_card_in_hand(self, privat_poss_hand_table):
         """Return First duplicate Cards in hands
         if no card is duplicate return None"""
