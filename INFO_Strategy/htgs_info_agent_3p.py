@@ -921,10 +921,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
             
         # Kein high color hint 
-        elif(hinted_color_value != highest_color_value
-             and sec_highest_color_value != highest_color_value
-             and sec_lowest_color_value != highest_color_value
-             and lowest_color_value != highest_color_value):
+        elif(hinted_color_value > highest_color_value):
 
             if act['target_offset'] == 1:
                 hat = [0, 1, 5]
@@ -937,10 +934,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
             
         # Kein low color hint
-        elif (hinted_color_value != lowest_color_value
-              and sec_lowest_color_value != lowest_color_value
-              and sec_highest_color_value != lowest_color_value
-              and highest_color_value != lowest_color_value):
+        elif (hinted_color_value > lowest_color_value):
             
             if act['target_offset'] == 1:
                 hat = [0, 4, 5]
