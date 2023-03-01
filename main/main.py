@@ -1,5 +1,4 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, no-name-in-module, unused-variable, unused-variable
-
 import os
 import random
 import sys
@@ -10,7 +9,6 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.self_play import SelfPlay
 from bad.action_network import ActionNetwork
 from bad.train_epoch import TrainEpoch
 
@@ -40,8 +38,6 @@ def main() -> None:
     #if os.path.exists(model_path):
     #    network.load()
 
-    # losses = np.empty(0, float)
-    # rewards = np.empty(0, float)
     train_epoch = TrainEpoch(network)
 
     for epoch in range(epoch_size):
@@ -51,17 +47,13 @@ def main() -> None:
         result = train_epoch.train(batch_size, gamma)
         print(f"epoch reward: {result.reward}")
 
-        #losses = np.append(losses, result.loss)
-        #rewards = np.append(rewards, result.reward)
-
-        #print(f"mean reward: {rewards.mean()}")
-        #print(f"mean loss: {losses.mean()}")
-
     #network.save()
 
     #self_play = SelfPlay(network)
     #self_play.run(episodes_running)
 
     print("finish with everything")
+
+
 if __name__ == "__main__":
     main()

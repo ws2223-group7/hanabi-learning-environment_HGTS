@@ -4,7 +4,6 @@ _skbuild/*
 build/*
 ws2223_group7_hanabi_learning_environment_bad.egg-info/*
 bad/belief/__init__.py
-bad/belief/__init__.py
 *.idea
 *.vscode
 model/*

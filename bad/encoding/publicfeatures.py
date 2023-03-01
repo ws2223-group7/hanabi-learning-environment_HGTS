@@ -10,6 +10,7 @@ sys.path.append(parentPath)
 
 from bad.encoding.fireworkrank import FireworkRank
 from bad.encoding.legal_actions import LegalActions
+from bad.encoding.hands import Hands
 
 class PublicFeatures:
     '''public features'''
@@ -24,6 +25,7 @@ class PublicFeatures:
         self.last_action = self.convert_last_action()
         self.firework = FireworkRank(observation)
         self.legal_actions = LegalActions(observation)
+        self.hand = Hands(observation)
 
     def convert_life_tokens(self) -> np.ndarray:
         ''' convert life tokens '''
