@@ -314,7 +314,7 @@ class HTGSAgent3P(Agent):
 
         return self.cal_hat_other_ply(agent_idx)
 
-    def decode_hint(self, act, idx_hinted_player):
+    def decode_hint(self, act, idx_hinted_player, for_hinted_player):
         """Return hat vom Spieler der gehintet wird
            Der gehinted Spieler kennt seine Karten nicht
            und kann somit den hint nur bedingt interpretieren
@@ -322,9 +322,12 @@ class HTGSAgent3P(Agent):
            jeder den selben hut bzw. die selben möglichen Hüte 
            für den hinted player berechnen"""
 
-    
-        # Calculate highst and lowest color in hand
-        card_knowledge_hinted_ply = self.observation['observed_hands'][idx_hinted_player]
+        if for_hinted_player == False:    
+            # Calculate highst and lowest color in hand
+            card_knowledge_hinted_ply = self.observation['observed_hands'][idx_hinted_player]
+
+        else:
+            card_knowledge_hinted_ply = self.observation['card_knowledge'][idx_hinted_player]
 
         highest_rank = self.highest_rank_in_hand(card_knowledge_hinted_ply)
         sec_lowest_rank = self.sec_lowest_rank_in_hand(
