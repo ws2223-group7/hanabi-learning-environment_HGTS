@@ -594,10 +594,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
 
         # Keinen high rank hint
-        elif (hinted_rank != highest_rank
-              and sec_highest_rank != highest_rank
-              and sec_lowest_rank != highest_rank
-              and lowest_rank != highest_rank):
+        elif (hinted_rank < highest_rank):
 
             if act['target_offset'] == 1:
                 hat = [1, 4, 5]
@@ -610,10 +607,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
 
         # Kein low rank hint
-        elif (hinted_rank != lowest_rank
-              and sec_lowest_rank != lowest_rank
-              and sec_highest_rank != lowest_rank
-              and highest_rank != lowest_rank):
+        elif (hinted_rank > lowest_rank):
 
             if act['target_offset'] == 1:
                 hat = [0, 4, 5]
@@ -921,7 +915,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
             
         # Kein high color hint 
-        elif(hinted_color_value > highest_color_value):
+        elif(hinted_color_value < highest_color_value):
 
             if act['target_offset'] == 1:
                 hat = [0, 1, 5]
