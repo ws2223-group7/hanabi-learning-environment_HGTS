@@ -545,7 +545,11 @@ class HTGSAgent3P(Agent):
 
         # Eindeutiger Spezial Fall aber unklar welcher
         elif (hinted_rank != highest_rank
-              and hinted_rank != lowest_rank):
+              and hinted_rank != lowest_rank
+              and sec_highest_rank != highest_rank
+              and sec_highest_rank != lowest_rank
+              and sec_lowest_rank != highest_rank
+              and sec_lowest_rank != lowest_rank):
 
             if act['target_offset'] == 1:
                 hat = [4, 5]
@@ -559,8 +563,9 @@ class HTGSAgent3P(Agent):
 
         # Eindeutig High Rank Hint oder high Color Hint
         elif (hinted_rank == highest_rank
-                and highest_rank == sec_highest_rank
-                and sec_highest_rank != sec_lowest_rank):
+                and sec_highest_rank == highest_rank
+                and sec_lowest_rank != highest_rank
+                and lowest_rank != highest_rank):
 
             if act['target_offset'] == 1:
                 hat = [0, 4]
@@ -574,8 +579,9 @@ class HTGSAgent3P(Agent):
 
         # Eindeutig Low Rank Hint oder low Color Hint
         elif (hinted_rank == lowest_rank
-                and lowest_rank == sec_lowest_rank
-                and sec_highest_rank != sec_lowest_rank):
+                and sec_lowest_rank == lowest_rank
+                and sec_highest_rank != lowest_rank
+                and highest_rank != lowest_rank):
 
             if act['target_offset'] == 1:
                 hat = [1, 5]
@@ -866,7 +872,11 @@ class HTGSAgent3P(Agent):
         
         # Eindeutig Speziel Fall von Rank Hint
         elif (hinted_color_value != highest_color_value
-              and hinted_color_value != lowest_color_value):
+              and hinted_color_value != lowest_color_value
+              and sec_highest_color_value != highest_color_value
+              and sec_highest_color_value != lowest_color_value
+              and sec_lowest_color_value != highest_color_value
+              and sec_lowest_color_value != lowest_color_value):
             
             if act['target_offset'] == 1:
                 hat = [0, 1]
