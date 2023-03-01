@@ -435,7 +435,7 @@ class HTGSAgent3P(Agent):
 
         # Wenn es ein Rank auf der Hand gibt die einen höheren Wert
         # Dann handelt es sich um einen Rank Hint für den niedriegsten Rank
-        if highst_rank > hinted_rank:
+        elif highst_rank > hinted_rank:
             if act['target_offset'] == 1:
                 hat = [1]
             elif act['target_offset'] == 2:
