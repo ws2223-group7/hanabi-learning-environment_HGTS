@@ -474,22 +474,17 @@ class HTGSAgent3P(Agent):
         return hat
 
     def decode_hint_rank_special_case_I(self, act,
-                                                hinted_rank,
-                                                highst_rank, sec_highst_rank,
-                                                lowest_rank, sec_lowest_rank):
+            hinted_rank,
+            highest_rank, sec_highest_rank,
+            lowest_rank, sec_lowest_rank):
         """ Return hat vom hinted player hat wenn es sich um einen Rank Hint handelt
             und es sich um einen speziellen Fall von einem Rank Hint handel könnte, 
             also highst_color == lowest_color"""
 
-        # Prüfe ob es sich um ein spezieller Fall
-        # von einem Rank Hint handeln kann
+        # Eindeutig High Rank Hint 
+        if (highest_rank != sec_highest_rank
+            and highest_rank == hinted_rank):
 
-        # Wenn die höchste Farbe nicht die zweithöchste Farbe ist
-        # und die höchste Farbe gehinted wurde dann handelt es sich nicht
-        # um einen speziellen Fall von einem Rank Hint sondern
-        # es wurde einfach die höchste Farbe gehinted
-        if (highst_rank != sec_highst_rank
-                and highst_rank == hinted_rank):
             if act['target_offset'] == 1:
                 hat = [0]
             elif act['target_offset'] == 2:
@@ -498,7 +493,7 @@ class HTGSAgent3P(Agent):
                 # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
 
-        # Elif Fall folgt der gleichen logik wie der If Fall
+        # Eindeutiger Low Rank Hint
         elif (lowest_rank != sec_lowest_rank
               and lowest_rank == hinted_rank):
             if act['target_offset'] == 1:
@@ -509,17 +504,128 @@ class HTGSAgent3P(Agent):
                 # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
 
-        # Wenn die niedrigste Farbe nicht zweitniedrigste Farbe ist
-        elif (sec_lowest_rank != sec_highst_rank):
-            hat = self.decode_hint_rank_special_case_I_I(act,
-                                                                 hinted_rank, sec_highst_rank,
-                                                                 lowest_rank, sec_lowest_rank,
-                                                                 hinted_rank)
+        # Eindeutiger low Color Hint  
+        elif(lowest_rank != sec_lowest_rank
+             and sec_lowest_rank != sec_highest_rank
+             and hinted_rank == sec_lowest_rank):
+
+            if act['target_offset'] == 1:
+                hat = [5]
+            
+            elif act['target_offset'] == 2:
+                hat = [7]
+            
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+        
+        # Eindeutiger highest color hint 
+        elif(highest_rank != sec_highest_rank
+            and sec_lowest_rank != sec_highest_rank
+            and hinted_rank == sec_highest_rank):
+
+            if act['target_offset'] == 1:
+                hat = [4]
+            
+            elif act['target_offset'] == 2:
+                hat = [6]
+            
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+
+        # Eindeutiger Spezial Fall aber unklar welcher
+        elif (highest_rank != sec_highest_rank
+            and lowest_rank != sec_lowest_rank
+            and sec_lowest_rank == sec_highest_rank
+            and hinted_rank == sec_lowest_rank):
+
+            if act['target_offset'] == 1:
+                hat = [4, 5]
+            
+            elif act['target_offset'] == 2:
+                hat = [6, 7]
+            
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+        
+        # Eindeutig High Rank Hint oder high Color Hint
+        elif (hinted_rank == highest_rank
+                and highest_rank == sec_highest_rank
+                and sec_highest_rank != sec_lowest_rank):
+            
+            if act['target_offset'] == 1:
+                hat = [0, 4]
+
+            elif act['target_offset'] == 2:
+                hat = [2, 6]
+        
+            else:   
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+        
+        # Eindeutig Low Rank Hint oder low Color Hint
+        elif (hinted_rank == lowest_rank
+                and lowest_rank == sec_lowest_rank
+                and sec_highest_rank != sec_lowest_rank):
+            
+            if act['target_offset'] == 1:
+                hat = [1, 5]
+
+            elif act['target_offset'] == 2:
+                hat = [3, 7]
+
+            else:   
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+                
+        # Keinen high rank hint  
+        elif (highest_rank != sec_highest_rank
+              and highest_rank != hinted_rank
+              and sec_highest_rank == sec_lowest_rank
+              and sec_lowest_rank == lowest_rank):
+            
+            if act['target_offset'] == 1:
+                hat = [1, 4, 5]
+            
+            elif act['target_offset'] == 2:
+                hat = [3, 6, 7]
+            
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+        
+        # Kein low rank hint 
+        elif (lowest_rank != sec_lowest_rank
+                and lowest_rank != hinted_rank
+                and sec_highest_rank == sec_lowest_rank
+                and sec_lowest_rank == highest_rank):
+            
+            if act['target_offset'] == 1:
+                hat = [0, 4, 5]
+
+            elif act['target_offset'] == 2:
+                hat = [2, 6, 7]
+            
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")      
+ 
+        # Keine Information kann alles sein
+        elif (highest_rank == sec_highest_rank == sec_lowest_rank == lowest_rank):
+            if act['target_offset'] == 1:
+                hat = [0, 1, 4, 5]
+            elif act['target_offset'] == 2:
+                hat = [2, 3, 6, 7]
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
 
         # Wenn die niedrigste Farbe gleich der zweithöchsten Farbe ist
         # ! Dieser Fall kann nur eintreten wenn alle Karten die gleiche Farbe haben
         # da der höchste rank aber auch der niedrigste rank ist kann der Fall nicht eintreten
-        elif (sec_lowest_rank == sec_highst_rank):
+        elif (sec_lowest_rank == sec_highest_rank):
             raise Exception("This case should never happen")
 
         else:
@@ -720,17 +826,67 @@ class HTGSAgent3P(Agent):
                 # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
 
-        # Wenn die niedrigste Farbe nicht zweitniedrigste Farbe ist
-        elif (sec_lowest_color_value != sec_highst_color_value):
-            hat = self.decode_hint_color_special_case_I_I(act,
-                                                                  highst_color_value, sec_highst_color_value,
-                                                                  lowest_color_value, sec_lowest_color_value,
-                                                                  hinted_color_value)
+        # Wenn die hinted color nicht die niedrigste Farbe ist
+        # dann handelt es sich nicht um einen lowest color hint
+        # wenn man aber keinen Rank kennt und 
+        # highest color == sec highest color == sec lowest color == hinted color
+        # hinted_color_value != lowest_color_value
+        # dann kann es sich um alles andere handeln aber nicht um 
+        # ein lowest color hint        
+        elif (hinted_color_value != lowest_color_value
+              and highest_color_value == sec_highest_color_value 
+              == sec_lowest_color_value == hinted_color_value):
+            
+            if act['target_offset'] == 1:
+                hat =  [0,1,4]
+            
+            elif act['target_offset'] == 2:
+                hat = [2,3,6]
 
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+        
+        # Wenn man keinen Rank kennt und
+        # lowest color == sec lowest color == sec highest color == hinted color
+        # highest_color_value != hinted_color_value
+        # dann kann es sich um alles andere handeln
+        # aber nicht um einen highest color hint
+
+        # Wenn die niedrigste Farbe nicht zweitniedrigste Farbe ist
+        elif (sec_lowest_color_value != sec_highest_color_value):
+            hat = self.decode_hint_color_special_case_I_I(act,
+                highest_color_value, sec_highest_color_value,
+                lowest_color_value, sec_lowest_color_value,
+                hinted_color_value)
+            
+            if act['target_offset'] == 1:
+                hat =  [0,1,5]
+            
+            elif act['target_offset'] == 2:
+                hat = [2,3,7]
+
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+
+        # Wenn nur eine Farbe bekannt ist dann gilt 
+        # höchste Farbe = niedrigste Farbe = zweithöchste Farbe = zweitniedrigste Farbe
+        # und die gehinted Farbe die bekannt farbe ist, dann weiß man nicht ob es ein highst oder lowest color hint ist
+        # weder kann man sagen ob es sich um einen highst oder lowest color hint handelt
+        elif(highest_color_value == sec_highest_color_value == sec_lowest_color_value == lowest_color_value):
+            if act['target_offset'] == 1:
+                hat = [0, 1, 4, 5]
+            elif act['target_offset'] == 2:
+                hat = [2, 3, 6, 7]
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+        
         # Wenn die niedrigste Farbe gleich der zweithöchsten Farbe ist
         # ! Dieser Fall kann nur eintreten wenn alle Karten die gleiche Farbe haben
         # da der höchste rank aber auch der niedrigste rank ist kann der Fall nicht eintreten
-        elif (sec_lowest_color_value == sec_highst_color_value):
+        elif (sec_lowest_color_value == sec_highest_color_value):
             raise Exception("This case should never happen")
 
         else:
