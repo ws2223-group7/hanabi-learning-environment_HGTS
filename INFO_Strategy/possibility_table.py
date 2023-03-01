@@ -85,7 +85,7 @@ class Table(list):
         part_table = self.set_dead_hint_set(part_table,dead_cards_in_game)
 
         # Setze die single hint sets 
-        part_table = self.set_singleton_hint_sets(dead_cards_in_game, part_table, single_hint_sets)
+        part_table = self.set_singleton_hint_sets(dead_cards_in_game, part_table, single_hint_sets, poss_card_table)
 
         # Setze zusätzliche (sieberer) hint sets
         part_table = self.set_seven_hint_sets(part_table, single_hint_sets)
@@ -94,6 +94,7 @@ class Table(list):
         values_table = list(part_table.values())
         one_list_values = sum(values_table, [])
         if 8 in one_list_values:
+            print()
             raise ValueError("8 in part_table")
 
 
@@ -205,12 +206,14 @@ class Table(list):
 
         return part_table        
 
-    def set_singleton_hint_sets(self, dead_cards_in_game, part_table, single_hint_sets):
+    def set_singleton_hint_sets(self, dead_cards_in_game, part_table, single_hint_sets, poss_card_table):
         """Return part_table mit gesetzen Partitionen 
         für single hint set"""
         
         max_rank = 4
-        part_idx_single_hint = 0 if len(dead_cards_in_game) == 0 else 1
+
+        num_dead_cards = self.get_num_dead_cards(poss_card_table, dead_cards_in_game)
+        part_idx_single_hint = 0 if num_dead_cards == 0 else 1
         
         # Iteriere über jeden Rank und jede Farbe
         for rank in range(max_rank + 1):
