@@ -90,6 +90,13 @@ class Table(list):
         # Setze zusätzliche (sieberer) hint sets
         part_table = self.set_seven_hint_sets(part_table, single_hint_sets)
 
+        # Debug Purpose 
+        values_table = list(part_table.values())
+        one_list_values = sum(values_table, [])
+        if 8 in one_list_values:
+            raise ValueError("8 in part_table")
+
+
         return part_table
     
     def get_deads_card(self, observation, poss_card_table)->dict:

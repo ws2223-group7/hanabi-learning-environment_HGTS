@@ -45,8 +45,10 @@ def info(agents, agent_id, action):
           print(poss_table4)
           print("\nPart Table Target Card")
           print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
+          
+          own_hat_cal_other_ply = agents[2].cal_hat_other_ply(1)
           print("\nOwn Hat")
-          print(agents[2].cal_hat_other_ply(1))
+          print(own_hat_cal_other_ply)
 
           if action['action_type'] == 'REVEAL_COLOR' or action['action_type'] == 'REVEAL_RANK':  
             idx_hinting_player = agents[0].observation['current_player_offset']
@@ -54,8 +56,11 @@ def info(agents, agent_id, action):
                                 % agents[0].observation['num_players']
 
             if idx_hinted_player == 0:
-                    print("\nOwn Hat hinted Player {}".format(
-                        agents[0].cal_hat_hinted_ply(action, 0)))  
+              own_hat_cal_hinted_ply = agents[0].cal_hat_hinted_ply(action, 0)
+              print("\nOwn Hat hinted Player {}".format(own_hat_cal_hinted_ply))  
+
+              if own_hat_cal_other_ply[0] not in own_hat_cal_hinted_ply:
+                  print("Own Hat hinted Player is wrong")
 
           print("-------------------------------------------------------------------------------------------------------------")
 
@@ -79,16 +84,23 @@ def info(agents, agent_id, action):
           print(poss_table4)
           print("\nPart Table Target Card")
           print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
-          print("\nOwn Hat {}".format(agents[0].cal_hat_other_ply(1)))
- 
+          
+          own_hat_cal_other_ply = agents[0].cal_hat_other_ply(1)
+          print("\nOwn Hat {}".format(own_hat_cal_other_ply))
+
+
           if action['action_type'] == 'REVEAL_COLOR' or action['action_type'] == 'REVEAL_RANK':  
             idx_hinting_player = agents[1].observation['current_player_offset']
             idx_hinted_player = (action['target_offset'] + idx_hinting_player) \
                                 % agents[1].observation['num_players']
 
             if idx_hinted_player == 0:
-                    print("\nOwn Hat hinted Player {}".format(
-                        agents[0].cal_hat_hinted_ply(action, 1)))  
+              own_hat_cal_hinted_ply = agents[0].cal_hat_hinted_ply(action, 1)
+              print("\nOwn Hat hinted Player {}".format(
+                  own_hat_cal_hinted_ply))
+
+              if own_hat_cal_other_ply[0] not in own_hat_cal_hinted_ply:
+                  print("Own Hat hinted Player is wrong")                   
 
           print("-------------------------------------------------------------------------------------------------------------")
 
@@ -113,8 +125,8 @@ def info(agents, agent_id, action):
           print("\nPart Table Target Card")
           print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
           
-          
-          print("\nOwn Hat {}".format(agents[0].cal_hat_other_ply(2)))
+          own_hat_cal_other_ply = agents[0].cal_hat_other_ply(2)
+          print("\nOwn Hat {}".format(own_hat_cal_other_ply))
 
           if action['action_type'] == 'REVEAL_COLOR' or action['action_type'] == 'REVEAL_RANK':
             idx_hinting_player = agents[2].observation['current_player_offset']
@@ -122,8 +134,11 @@ def info(agents, agent_id, action):
                                 % agents[2].observation['num_players']
 
             if idx_hinted_player == 0:
-                    print("\nOwn Hat hinted Player {}".format(
-                        agents[0].cal_hat_hinted_ply(action, 2)))     
+                    own_hat_cal_hinted_ply = agents[0].cal_hat_hinted_ply(action, 2)
+                    print("\nOwn Hat hinted Player {}".format(own_hat_cal_hinted_ply))   
+
+                    if own_hat_cal_other_ply[0] not in own_hat_cal_hinted_ply:
+                      print("cal_hat_hinted_ply falsch berechnet")
 
           print("-------------------------------------------------------------------------------------------------------------")
 
