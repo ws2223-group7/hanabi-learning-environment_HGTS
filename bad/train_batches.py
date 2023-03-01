@@ -70,7 +70,7 @@ class TrainBatches:
 
         for episode_result in calc_result.results:
             for action_index in range(len(episode_result.observation)):
-                current_observation = episode_result.observation[action_index].to_array()
+                current_observation = episode_result.observation[action_index].to_one_hot_vec()
                 observation_array_array.append(current_observation)
                 actions = np.append(actions, episode_result.actions[action_index])
                 logprob = np.append(logprob, episode_result.logprob[action_index])
