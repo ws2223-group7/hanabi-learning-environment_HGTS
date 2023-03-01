@@ -39,28 +39,24 @@ class CollectEpisodeData:
 
     def play_a_hanabi_game(self, buffer: Buffer, seo: SetExtraObservation, observation: Observation, number_of_actions:int, observation_converter: ObservationConverter):
         """play a hanabi game"""
+        print("play hanabi game")
+
         done = False
         while not done:
-
             bad = self.network.get_action(observation)
             bad_result = bad.sample_action(self.hanabi_environment.state.legal_moves_int())
             next_action = bad_result.sampled_action
             hanabi_move = self.hanabi_environment.game.get_move(next_action)
             reward_shape = self.get_reward_shape(hanabi_move)
-
             observation_after_step, reward, done, _ = self.hanabi_environment.step(next_action)
-
             buffer.append(self.hanabi_observation, observation, bad_result, reward, hanabi_move, reward_shape)
-
             seo.set_extra_observation(observation_after_step, next_action, number_of_actions, \
                 self.hanabi_environment.state.legal_moves_int())
-
             observation = observation_converter.convert(observation_after_step)
             self.hanabi_observation = observation_after_step
 
-    def collect(self) \
-            -> CollectEpisodeDataResult:
-        '''train within an environment'''
+    def collect(self) -> CollectEpisodeDataResult:
+        """train within an environment"""
 
         copied_state = self.hanabi_environment.state.copy()
 
