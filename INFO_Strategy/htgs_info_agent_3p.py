@@ -544,10 +544,8 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
 
         # Eindeutiger Spezial Fall aber unklar welcher
-        elif (highest_rank != sec_highest_rank
-              and lowest_rank != sec_lowest_rank
-              and sec_lowest_rank == sec_highest_rank
-              and hinted_rank == sec_lowest_rank):
+        elif (hinted_rank != highest_rank
+              and hinted_rank != lowest_rank):
 
             if act['target_offset'] == 1:
                 hat = [4, 5]
@@ -590,10 +588,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
 
         # Keinen high rank hint
-        elif (highest_rank != sec_highest_rank
-              and highest_rank != hinted_rank
-              and sec_highest_rank == sec_lowest_rank
-              and sec_lowest_rank == lowest_rank):
+        elif (hinted_rank != highest_rank):
 
             if act['target_offset'] == 1:
                 hat = [1, 4, 5]
@@ -606,10 +601,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
 
         # Kein low rank hint
-        elif (lowest_rank != sec_lowest_rank
-                and lowest_rank != hinted_rank
-                and sec_highest_rank == sec_lowest_rank
-                and sec_lowest_rank == highest_rank):
+        elif (hinted_rank != lowest_rank):
 
             if act['target_offset'] == 1:
                 hat = [0, 4, 5]
@@ -825,7 +817,7 @@ class HTGSAgent3P(Agent):
         # Eindeutig lowest color hint
         elif (lowest_color_value != sec_lowest_color_value
               and lowest_color_value == hinted_color_value
-              and (unknown_color == False or lowest_color_value == 0)):
+              and (unknown_color == False or lowest_color_value == 1)): 
             if act['target_offset'] == 1:
                 hat = [5]
             elif act['target_offset'] == 2:
@@ -867,10 +859,8 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
         
         # Eindeutig Speziel Fall von Rank Hint
-        elif (hinted_color_value == sec_highest_color_value
-              and highest_color_value != sec_highest_color_value
-              and lowest_color_value != sec_highest_color_value
-              and sec_lowest_color_value == sec_highest_color_value):
+        elif (hinted_color_value != highest_color_value
+              and hinted_color_value != lowest_color_value):
             
             if act['target_offset'] == 1:
                 hat = [0, 1]
@@ -915,8 +905,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
             
         # Kein high color hint 
-        elif(hinted_color_value != highest_color_value
-             and sec_highest_color_value != highest_color_value):
+        elif(hinted_color_value != highest_color_value):
 
             if act['target_offset'] == 1:
                 hat = [0, 1, 5]
@@ -929,8 +918,7 @@ class HTGSAgent3P(Agent):
                 raise Exception("target offset must be 1 or 2")
             
         # Kein low color hint
-        elif (hinted_color_value != lowest_color_value
-              and sec_lowest_color_value != lowest_color_value):
+        elif (hinted_color_value != lowest_color_value):
             
             if act['target_offset'] == 1:
                 hat = [0, 4, 5]
