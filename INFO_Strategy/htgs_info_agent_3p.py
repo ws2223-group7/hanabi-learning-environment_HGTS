@@ -514,6 +514,7 @@ class HTGSAgent3P(Agent):
         # Eindeutiger low Color Hint
         elif (lowest_rank != sec_lowest_rank
               and sec_lowest_rank != sec_highest_rank
+              and sec_lowest_rank != highest_rank
               and hinted_rank == sec_lowest_rank):
 
             if act['target_offset'] == 1:
@@ -529,6 +530,7 @@ class HTGSAgent3P(Agent):
         # Eindeutiger highest color hint
         elif (highest_rank != sec_highest_rank
               and sec_lowest_rank != sec_highest_rank
+              and sec_highest_rank != lowest_rank
               and hinted_rank == sec_highest_rank):
 
             if act['target_offset'] == 1:
@@ -867,7 +869,7 @@ class HTGSAgent3P(Agent):
         # Eindeutig Speziel Fall von Rank Hint
         elif (hinted_color_value == sec_highest_color_value
               and highest_color_value != sec_highest_color_value
-              and lowest_color_value != sec_lowest_color_value
+              and lowest_color_value != sec_highest_color_value
               and sec_lowest_color_value == sec_highest_color_value):
             
             if act['target_offset'] == 1:
@@ -882,8 +884,9 @@ class HTGSAgent3P(Agent):
             
         # Eindeutig High Color Hint oder High Rank Hint
         elif (hinted_color_value == highest_color_value
-              and highest_color_value == sec_highest_color_value
-              and sec_highest_color_value != sec_lowest_color_value):
+              and sec_highest_color_value == highest_color_value
+              and sec_lowest_color_value != highest_color_value
+              and lowest_color_value != highest_color_value):
             
             if act['target_offset'] == 1:
                 hat = [0, 4]
@@ -897,8 +900,9 @@ class HTGSAgent3P(Agent):
         
         # Eindeutig Low Color Hint oder Low Rank Hint
         elif (hinted_color_value == lowest_color_value
-                and lowest_color_value == sec_lowest_color_value
-                and sec_highest_color_value != sec_lowest_color_value):
+                and sec_lowest_color_value == lowest_color_value
+                and sec_highest_color_value != lowest_color_value
+                and highest_color_value != lowest_color_value):
             
             if act['target_offset'] == 1:
                 hat = [1, 5]
@@ -912,9 +916,7 @@ class HTGSAgent3P(Agent):
             
         # Kein high color hint 
         elif(hinted_color_value != highest_color_value
-             and highest_color_value != sec_highest_color_value
-             and sec_highest_color_value == sec_lowest_color_value
-             and sec_lowest_color_value == lowest_color_value):
+             and sec_highest_color_value != highest_color_value):
 
             if act['target_offset'] == 1:
                 hat = [0, 1, 5]
@@ -928,9 +930,7 @@ class HTGSAgent3P(Agent):
             
         # Kein low color hint
         elif (hinted_color_value != lowest_color_value
-              and lowest_color_value != sec_lowest_color_value
-              and sec_lowest_color_value == sec_highest_color_value
-              and sec_highest_color_value == highest_color_value):
+              and sec_lowest_color_value != lowest_color_value):
             
             if act['target_offset'] == 1:
                 hat = [0, 4, 5]
@@ -1412,6 +1412,7 @@ class HTGSAgent3P(Agent):
             return True
         
         return False
+
     def duplicate_card_in_hand(self, privat_poss_hand_table):
         """Return First duplicate Cards in hands
         if no card is duplicate return None"""
