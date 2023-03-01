@@ -10,7 +10,7 @@ from INFO_Strategy.color_enum import Color
 from hanabi_learning_environment.rl_env import Agent
 from INFO_Strategy.possibility_table import Table
 
-class HTGSAgent(Agent):
+class HTGSAgent3P(Agent):
     def __init__(self, config, *args, **kwargs):
         self.config = config
 
@@ -286,7 +286,14 @@ class HTGSAgent(Agent):
 
         for agent_idx in range(1, self.observation['num_players']):
             hat_player = self.cal_hat_player(agent_idx)
-            hat_sum_player += hat_player
+            
+            # hat_player should always just conatain one element,
+            # because it should calculate the hat based on hands which can be observed
+            # and not the own hand 
+            if len(hat_player) != 1:
+                raise Exception("Hat should only contain one element")
+            
+            hat_sum_player += hat_player[0]
 
         hat_sum_mod8 = hat_sum_player % 8
 
@@ -328,37 +335,41 @@ class HTGSAgent(Agent):
         # Calculate highst and lowest color in hand
         card_knowledge_hinted_ply = self.observation['observed_hands'][idx_hinted_player]
 
-        highst_rank = self.highest_rank_in_hand(card_knowledge_hinted_ply)
+        highest_rank = self.highest_rank_in_hand(card_knowledge_hinted_ply)
         sec_lowest_rank = self.sec_lowest_rank_in_hand(
             card_knowledge_hinted_ply)
         lowest_rank = self.lowest_rank_in_hand(card_knowledge_hinted_ply)
-        sec_highst_rank = self.sec_highst_rank_in_hand(
+        sec_highest_rank = self.sec_highest_rank_in_hand(
             card_knowledge_hinted_ply)
 
         highst_color = self.highest_color_in_hand(card_knowledge_hinted_ply)
-        highst_color_value = Color(highst_color).value
+        highst_color_value = Color[highst_color].value \
+                                if highst_color else None
 
         sec_highst_color = self.sec_highest_color_in_hand(
             card_knowledge_hinted_ply)
-        sec_highst_color_value = Color(sec_highst_color).value
+        sec_highst_color_value = Color[sec_highst_color].value \
+                                 if sec_highst_color else None
 
         lowest_color = self.lowest_color_in_hand(card_knowledge_hinted_ply)
-        lowest_color_value = Color(lowest_color).value
+        lowest_color_value = Color[lowest_color].value \
+                                if lowest_color else None 
 
         sec_lowest_color = self.sec_lowest_color_in_hand(
             card_knowledge_hinted_ply)
-        sec_lowest_color_value = Color(sec_lowest_color).value
+        sec_lowest_color_value = Color[sec_lowest_color].value \
+                                    if sec_lowest_color else None
 
         # Wenn der Hint eine Farbe ist
         if act['action_type'] == 'REVEAL_COLOR':
             hat_ply = self.decode_hat_hint_color(act,
-                highst_rank, lowest_rank,
+                highest_rank, lowest_rank,
                 highst_color_value, sec_highst_color_value,
                 lowest_color_value, sec_lowest_color_value)
 
         elif act['action_type'] == 'REVEAL_RANK':
             hat_ply = self.decode_hint_hint_rank(act,
-                highst_rank, sec_highst_rank,
+                highest_rank, sec_highest_rank,
                 lowest_rank, sec_lowest_rank,
                 highst_color_value, lowest_color_value)
 
@@ -386,8 +397,7 @@ class HTGSAgent(Agent):
         # Wenn höchste Karte == niedrigste Karte ist, dann kann es sich auch
         # um einen speziellen Fall von einem Rank Hint handeln
         else:
-
-            # Wenn mindestens eine Farbe auf der Hand bekannt ist
+            # Wenn mindestens ein Rank auf der Hand bekannt ist
             if highst_rank != None and lowest_rank != None:
                 hat = self.decode_hint_rank_special_case_I(act,
                                                                    hinted_rank,
@@ -473,9 +483,9 @@ class HTGSAgent(Agent):
                                                 hinted_rank,
                                                 highst_rank, sec_highst_rank,
                                                 lowest_rank, sec_lowest_rank):
-        """ Return hat vom hinted player hat wenn es sich um einen Color Hint handelt
+        """ Return hat vom hinted player hat wenn es sich um einen Rank Hint handelt
             und es sich um einen speziellen Fall von einem Rank Hint handel könnte, 
-            also highst_rank == lowst_rank"""
+            also highst_color == lowest_color"""
 
         # Prüfe ob es sich um ein spezieller Fall
         # von einem Rank Hint handeln kann
@@ -641,7 +651,7 @@ class HTGSAgent(Agent):
 
         # Wenn es eine Farbe auf der Hand gibt die einen höheren Wert
         # Dann handelt es sich um einen Color Hint für den niedriegsten Rank
-        if highst_color_value > hinted_color_value:
+        elif highst_color_value > hinted_color_value:
             if act['target_offset'] == 1:
                 hat = [5]
             elif act['target_offset'] == 2:
@@ -808,14 +818,15 @@ class HTGSAgent(Agent):
         # own_hat := ci (Paper Cox)
 
         idx_hinted_ply = (self.observation['current_player_offset'] + 
-                          act['target_offset']) % 8    
+                          act['target_offset']) % 3    
 
-        decode_hint = self.decode_hint(act, idx_hinted_ply)
+        decode_hint = self.decode_hint(act, idx_hinted_ply, for_hinted_player=False)
 
-        hat_other_ply = self.cal_other_hat(idx_hinted_ply)
+        hat_other_ply = self.cal_hat_other_ply(idx_hinted_ply)[0]
 
-        own_hat = (decode_hint - hat_other_ply) % 8
-
+        own_hat = [(pos_hint_hat - hat_other_ply) % 8
+                   for pos_hint_hat in decode_hint]
+        
         return own_hat
 
     def cal_hat_other_ply(self, agent_idx):
@@ -1049,23 +1060,44 @@ class HTGSAgent(Agent):
     def lowest_rank_in_hand(self, hand_ply):
         """Return lowest color in hand"""
         sorted_ranks_in_hand = self.sorted_ranks_in_hand(hand_ply)
+
+        if len(sorted_ranks_in_hand) == 0:
+            return None
+
         return sorted_ranks_in_hand[0]
 
     def highest_rank_in_hand(self, hand_ply):
         """Return second highest color in hand"""
         sorted_ranks_in_hand = self.sorted_ranks_in_hand(hand_ply)
+
+        if len(sorted_ranks_in_hand) == 0:
+            return None
+        
         return sorted_ranks_in_hand[-1]
 
     def sec_lowest_rank_in_hand(self, hand_ply):
         """Return second lowest rank in hand"""
-
         sorted_ranks_in_hand = self.sorted_ranks_in_hand(hand_ply)
+
+        if len(sorted_ranks_in_hand) == 0:
+            return None
+        
+        if len(sorted_ranks_in_hand) == 1:
+            return sorted_ranks_in_hand[0]
+        
         return sorted_ranks_in_hand[1]
 
     def sec_highest_rank_in_hand(self, hand_ply):
         """Return second highest rank in hand"""
 
         sorted_ranks_in_hand = self.sorted_ranks_in_hand(hand_ply)
+
+        if len(sorted_ranks_in_hand) == 0:
+            return None
+        
+        if len(sorted_ranks_in_hand) == 1:
+            return sorted_ranks_in_hand[0]
+
         return sorted_ranks_in_hand[-2]
 
     def sorted_color_in_hand(self, hand_ply):
@@ -1073,7 +1105,7 @@ class HTGSAgent(Agent):
 
         # Entfern None aus der Liste
         hand_ply = [card for card in hand_ply if card['color'] is not None]
-        color_values_in_hand = [Color(card['color']).value()
+        color_values_in_hand = [Color[card['color']].value
                                 for card in hand_ply]
         color_values_in_hand.sort()
         color_in_hand = [Color(value).name for value
@@ -1084,21 +1116,43 @@ class HTGSAgent(Agent):
     def lowest_color_in_hand(self, hand_ply):
         """Return lowest color in hand"""
         sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
+
+        if len(sorted_color_in_hand) == 0:
+            return None
+        
         return sorted_color_in_hand[0]
 
     def highest_color_in_hand(self, hand_ply):
         """Return second highest color in hand"""
         sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
+
+        if len(sorted_color_in_hand) == 0:
+            return None
+        
         return sorted_color_in_hand[-1]
 
     def sec_lowest_color_in_hand(self, hand_ply):
         """Return second lowest color in hand"""
         sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
+
+        if len(sorted_color_in_hand) == 0:
+            return None
+        
+        if len(sorted_color_in_hand) == 1:
+            return sorted_color_in_hand[0]
+
         return sorted_color_in_hand[1]
 
     def sec_highest_color_in_hand(self, hand_ply):
         """Return second highest color in hand"""
         sorted_color_in_hand = self.sorted_color_in_hand(hand_ply)
+
+        if len(sorted_color_in_hand) == 0:
+            return None
+        
+        if len(sorted_color_in_hand) == 1:
+            return sorted_color_in_hand[0]
+        
         return sorted_color_in_hand[-2]
 
     def duplicate_card_in_hand(self, privat_poss_hand_table):
@@ -1400,11 +1454,16 @@ class HTGSAgent(Agent):
         part_table = self.table.get_part_table(
             self.observation, poss_table_card)
 
-        for players_hat in players_hats:
-            for color in self.colors:
-                for rank in range(self.max_rank + 1):
-                    if part_table[color][rank] not in players_hat:
-                        self.table[agent_idx][target_card_idx][color][rank] = 0
+        for color in self.colors:
+            for rank in range(self.max_rank + 1):
+                if part_table[color][rank] not in players_hats:
+                    self.table[agent_idx][target_card_idx][color][rank] = 0
+        
+        # Ceck if phoss_table only contais 0 values / Bug purposes
+        values_table = list(self.table[agent_idx][target_card_idx].values())
+        one_list_values = sum(values_table, [])
+        if sum(one_list_values) == 0:      
+            raise Exception('Poss Table only contains 0 values')
 
     def players_hats(self, action):
         """Return list with hats off all Players"""
