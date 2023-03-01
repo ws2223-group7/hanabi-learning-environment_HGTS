@@ -1466,9 +1466,9 @@ class HTGSAgent(Agent):
                 raise Exception("Dieser Fall sollte nicht auftreten")
             
 
-        hat_other_ply = self.cal_hat_player(idx_other_player)[0]
+        hat_other_ply = self.cal_hat_player(idx_other_player, action)[0]
 
-        hat_hinted_ply = [(pos_hat + hat_other_ply) % 8 for pos_hat in given_hat]
+        hat_hinted_ply = [(pos_hat - hat_other_ply) % 8 for pos_hat in given_hat]
 
         return hat_hinted_ply
 
