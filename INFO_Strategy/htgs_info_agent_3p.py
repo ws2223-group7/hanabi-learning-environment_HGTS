@@ -832,6 +832,37 @@ class HTGSAgent3P(Agent):
                 # target off set muss 1 oder 2 sein
                 raise Exception("target offset must be 1 or 2")
 
+        # High Rank Hint 
+        elif (highest_color_value != sec_highest_color_value
+              and sec_lowest_color_value != sec_highest_color_value
+              and lowest_color_value != sec_highest_color_value
+              and hinted_color_value == sec_highest_color_value):
+
+            if act['target_offset'] == 1:
+                hat = [0]
+
+            elif act['target_offset'] == 2:
+                hat = [2]
+
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
+                
+        # Eindeutiger low Rank Hint
+        elif (lowest_color_value != sec_lowest_color_value
+              and sec_highest_color_value != sec_lowest_color_value
+              and highest_color_value != sec_lowest_color_value
+              and hinted_color_value == sec_lowest_color_value):
+
+            if act['target_offset'] == 1:
+                hat = [1]
+
+            elif act['target_offset'] == 2:
+                hat = [3]
+
+            else:
+                # target off set muss 1 oder 2 sein
+                raise Exception("target offset must be 1 or 2")
         
         # Eindeutig Speziel Fall von Rank Hint
         elif (hinted_color_value == sec_highest_color_value
