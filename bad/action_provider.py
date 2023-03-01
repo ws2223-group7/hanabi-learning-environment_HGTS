@@ -10,12 +10,11 @@ sys.path.append(parentPath)
 
 from bad.bayesian_action import BayesianAction
 from bad.encoding.observation import Observation
-from bad.encoding.public_belief_global_enc import PublicBeliefGlobalEnc
 
 
 class ActionProvider(ABC):
     """action provider"""
     def get_action(self, observation: Observation, \
-                   public_belief: PublicBeliefGlobalEnc = None) -> BayesianAction:
+                   public_belief = None) -> BayesianAction:
         """get action"""
         raise NotImplementedError("Please Implement this method")

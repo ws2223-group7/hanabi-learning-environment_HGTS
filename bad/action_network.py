@@ -9,7 +9,6 @@ sys.path.append(parentPath)
 
 from bad.encoding.observation import Observation
 from bad.bayesian_action import BayesianAction
-from bad.encoding.public_belief_global_enc import PublicBeliefGlobalEnc
 from bad.action_provider import ActionProvider
 
 class ActionNetwork(ActionProvider):
@@ -19,7 +18,7 @@ class ActionNetwork(ActionProvider):
         self.model = None
 
     def build(self, observation: Observation, max_action: int, \
-              public_belief: PublicBeliefGlobalEnc = None) -> None:
+              public_belief = None) -> None:
         '''build'''
         if self.model is None:
             shape = observation.to_one_hot_vec().shape
@@ -40,7 +39,7 @@ class ActionNetwork(ActionProvider):
         '''print summary'''
         self.model.summary()
 
-    def get_model_input(self, observation: Observation, publicBelief: PublicBeliefGlobalEnc = None):
+    def get_model_input(self, observation: Observation, publicBelief=None):
         '''get model input'''
         network_input = observation.to_one_hot_vec()
 
@@ -51,7 +50,7 @@ class ActionNetwork(ActionProvider):
         return reshaped
 
     def get_action(self, observation: Observation, \
-                   public_belief: PublicBeliefGlobalEnc = None) -> BayesianAction:
+                   public_belief = None) -> BayesianAction:
         '''get action'''
         result = self.model(self.get_model_input(observation, public_belief))
 

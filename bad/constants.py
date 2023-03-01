@@ -12,7 +12,7 @@ class Constants:
         self.num_cards_per_rank = None
         self.num_colors = None
         self.colors = None
-        self.environment_name = 'Hanabi-Group-7'
+        self.environment_name = 'Hanabi-Full'
 
     def update(self, hanabi_env) -> None:
         '''update'''
@@ -24,7 +24,7 @@ class Constants:
         self.num_ranks = hanabi_env.game.num_ranks()
         self.num_colors = hanabi_env.game.num_colors()
         self.colors = [all_colors[i] for i in range(self.num_colors)]
-        self.num_cards_per_rank = [hanabi_env.game.num_cards('R', rank)
+        self.num_cards_per_rank = [hanabi_env.game.num_cards(all_colors.index('R'), rank)
                                    for rank in range(self.num_ranks + 1)]
 
     def action_int_to_move_type(self, action: int):
