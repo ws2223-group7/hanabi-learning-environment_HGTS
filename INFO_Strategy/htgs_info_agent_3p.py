@@ -1229,7 +1229,7 @@ class HTGSAgent3P(Agent):
 
             hint = {'action_type': 'REVEAL_COLOR',
                     'color': sec_highest_color,
-                    'target_offset': 1}
+                    'target_offset': 2}
 
         elif hat_sum_mod8 == 1 or hat_sum_mod8 == 3:
             sec_lowest_color = self.sec_lowest_color_in_hand(hand_ply)
