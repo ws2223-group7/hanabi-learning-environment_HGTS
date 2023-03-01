@@ -50,7 +50,7 @@ class TrainBatches:
 
             collect_batch_episodes_result.add(episode_data_result)
 
-            # print(f"collected episoden aktionen: {collect_batch_episodes_result.get_batch_size()} von batch size {batch_size}")
+            print(f"collected episoden aktionen: {collect_batch_episodes_result.get_batch_size()} von batch size {batch_size}")
 
         return collect_batch_episodes_result
 

@@ -17,7 +17,7 @@ class Buffer:
     def __init__(self) -> None:
         self.hanabi_observation: list[dict] = []
         self.observation: list[Observation] = []
-        self.actions: list[BayesianActionResult] = []
+        self.bayesian_actions: list[BayesianActionResult] = []
         self.rewards: list[int] = []
         self.moves: list[HanabiMove] = []
         self.reward_shapes: list[RewardShape] =  []
@@ -27,7 +27,7 @@ class Buffer:
         '''add'''
         self.hanabi_observation.append(hanabi_observation)
         self.observation.append(observation)
-        self.actions.append(action_result)
+        self.bayesian_actions.append(action_result)
         self.rewards.append(reward)
         self.moves.append(move)
         self.reward_shapes.append(reward_shape)

@@ -25,6 +25,6 @@ class CollectEpisodesDataResults:
         batch_size: int = 0
 
         for ep in self.results:
-            batch_size += len(ep.buffer.actions)
+            batch_size += len(ep.buffer.bayesian_actions)
 
         return batch_size

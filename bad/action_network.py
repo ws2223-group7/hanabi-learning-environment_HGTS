@@ -35,9 +35,6 @@ class ActionNetwork(ActionProvider):
         if self.model is None:
             shape = observation.to_one_hot_vec().shape
 
-            #Hier müssen noch Anpassungen gemacht werden
-            #shape = public_belief.to_one_hot_vec().shape
-
             self.model = tf.keras.Sequential([
                 tf.keras.Input(shape=shape, name="input"),
                 tf.keras.layers.Dense(384, activation="relu", name="layer1"),
@@ -68,22 +65,22 @@ class ActionNetwork(ActionProvider):
         return BayesianAction(result.numpy()[0])
 
     def backpropagation(self, observation, actions: np.ndarray, logprob: np.ndarray, rewards_to_go: np.ndarray, baseline: Baseline) -> float:
-        '''train step'''
+        """train step"""
         model = self.model
-        #tf.reshape(network_input, [1, network_input.shape[0]])
         batch_size = len(observation)
         observation_length = len(observation[0])
-
         observation_tensor = tf.reshape(observation, [batch_size, observation_length])
         rewards_to_go_tensor = tf.convert_to_tensor(rewards_to_go, dtype=float)
 
-        baseline_mean = tf.subtract(rewards_to_go_tensor, baseline.mean)
-        baseline_result = baseline_mean / baseline.std
-
         with tf.GradientTape() as tape:
             logits = model(observation_tensor)
-            log_probs = tf.nn.log_softmax(logits, -1)
-            loss = -(tf.reduce_mean(log_probs * tf.reshape(baseline_result, [batch_size, 1])))
+            log_logprobs = tf.nn.log_softmax(logits)
+
+            row_indices= tf.range(len(actions))
+            indices = tf.transpose([row_indices, actions])
+            logprob = tf.gather_nd(log_logprobs, indices)
+
+            loss = -(tf.reduce_mean(logprob * rewards_to_go_tensor))
             print(f'current loss: {loss.numpy()}')
 
         grads = tape.gradient(loss, model.trainable_variables)

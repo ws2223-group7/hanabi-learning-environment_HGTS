@@ -24,18 +24,18 @@ class RewardToGoCalculation:
 
         reward_shape_converter = RewardShapeConverter()
 
-        for index in range(len(buffer.actions)): # über jede aktion (pro spiel)
+        for index in range(len(buffer.bayesian_actions)): # über jede aktion (pro spiel)
             reward_shape = reward_shape_converter.convert(buffer.reward_shapes[index])
             # hier rewards verändern
             reward_vom_hanabi_framework = float(np.sum(buffer.rewards[index:]))
-            reward_vom_reward_shaping = reward_shape.get_sum()
+            reward_vom_reward_shaping = 0.0 # reward_shape.get_sum()
 
             reward_to_go = reward_vom_hanabi_framework + reward_vom_reward_shaping
             discounted_reward_to_go = reward_to_go * np.power(self.gamma, index + 1)
             observation = buffer.observation[index]
-            action = buffer.actions[index]
+            bayesian_actions = buffer.bayesian_actions[index]
 
-            result.append(action.sampled_action, action.categorical.log_prob(action.sampled_action).numpy(), discounted_reward_to_go, observation)
+            result.append(bayesian_actions.sampled_action, bayesian_actions.categorical.log_prob(bayesian_actions.sampled_action).numpy(), discounted_reward_to_go, observation)
 
     def run(self,collected_episode_results: CollectEpisodesDataResults) -> RewardsToGoCalculationResult:
         '''run'''

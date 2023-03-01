@@ -25,13 +25,13 @@ class BayesianAction:
         if len(legal_actions_int) == len(all_action_probs):
             raise Exception('no legal moves left')
 
-        policy = tfp.distributions.Categorical(probs=all_action_probs)
+        all_action_probs_distribution = tfp.distributions.Categorical(probs=all_action_probs)
         done = False
         while not done:
-            sampled_action:int = int(policy.sample().numpy())
+            sampled_action:int = int(all_action_probs_distribution.sample().numpy())
             done: bool = legal_actions_int.count(sampled_action) > 0
 
-        return BayesianActionResult(sampled_action, policy)
+        return BayesianActionResult(sampled_action, all_action_probs_distribution)
 
     def get_action(self, legal_moves:np.ndarray) -> BayesianActionResult:
         '''returns a choice'''
