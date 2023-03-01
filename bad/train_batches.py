@@ -19,39 +19,40 @@ from bad.set_extra_observation import SetExtraObservation
 from bad.reward_to_go_calculation import RewardToGoCalculation
 from bad.train_batch_result import TrainBatchResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
+import gc
 
 class TrainBatches:
-    '''train batch'''
-    def __init__(self, network: ActionNetwork) -> None:
-        '''init'''
+    """train batch"""
+    def __init__(self, network: ActionNetwork, hanabi_environment: rl_env.HanabiEnv, players: int) -> None:
+        """init"""
         self.network = network
+        self.hanabi_environment = hanabi_environment
+        self.players = players
 
-    def collect_data(self, batch_size:int, players: int) -> CollectEpisodesDataResults:
-        '''collect data'''
+    def collect_data(self, batch_size:int) -> CollectEpisodesDataResults:
+        """collect data"""
         collect_batch_episodes_result = CollectEpisodesDataResults()
-        constants = Constants()
-        hanabi_environment = rl_env.make(constants.environment_name, players, \
-        pyhanabi.AgentObservationType.SEER)
 
         while collect_batch_episodes_result.get_batch_size() < batch_size:
 
-            hanabi_observation = hanabi_environment.reset()
-            max_moves: int = hanabi_environment.game.max_moves() + 1
+            hanabi_observation = self.hanabi_environment.reset()
+            max_moves: int = self.hanabi_environment.game.max_moves() + 1
             max_actions = max_moves + 1 # 0 index based
 
             seo = SetExtraObservation()
             seo.set_extra_observation(hanabi_observation, max_moves, max_actions, \
-                hanabi_environment.state.legal_moves_int())
+                self.hanabi_environment.state.legal_moves_int())
             observation_converter: ObservationConverter = ObservationConverter()
             self.network.build(observation_converter.convert(hanabi_observation), max_actions)
 
-            ce_data = CollectEpisodeData(hanabi_observation, hanabi_environment, self.network)
+            ce_data = CollectEpisodeData(hanabi_observation, self.hanabi_environment, self.network)
             episode_data_result: CollectEpisodeDataResult = ce_data.collect() # hier werden die Daten für eine episode gesammelt
 
             collect_batch_episodes_result.add(episode_data_result)
 
             print(f"collected episoden aktionen: {collect_batch_episodes_result.get_batch_size()} von batch size {batch_size}")
 
+        gc.collect()
         return collect_batch_episodes_result
 
     def calculation(self, collected_data: CollectEpisodesDataResults, \
@@ -84,7 +85,7 @@ class TrainBatches:
         players:int = 2
 
         print('collecting data')
-        collected_data = self.collect_data(batch_size, players)
+        collected_data = self.collect_data(batch_size)
 
         print('reward calculation')
         calculation_result = self.calculation(collected_data, gamma)
