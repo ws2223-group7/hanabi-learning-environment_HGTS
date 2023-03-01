@@ -307,21 +307,12 @@ class HTGSAgent3P(Agent):
                           muss die Action mit übergeben werden.
                           Hierbei muss es sich natürlich um ein Hint handeln 
         """
-
-        idx_hinting_player = self.observation['current_player_offset']
-        idx_hinted_player = (idx_hinting_player + act['target_offset']) \
-            % self.observation['num_players']
-
-        if agent_idx == idx_hinted_player:
-            raise ValueError("Der gehintete Spieler hat wird an einer anderen" 
-                             "stelle berechnet hier sollte man nie hin kommen")
-
         # Sonderfall wenn der eigene Hat berechnet werden soll
         # ! Hierfür muss der Hint übergeben werden
-        elif agent_idx == 0:
+        if agent_idx == 0:
             return self.cal_own_hat(act)
 
-        return self.cal_other_hat(agent_idx)
+        return self.cal_hat_other_ply(agent_idx)
 
     def decode_hint(self, act, idx_hinted_player):
         """Return hat vom Spieler der gehintet wird
