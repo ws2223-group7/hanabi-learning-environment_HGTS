@@ -3,6 +3,5 @@
 
 class BayesianActionResult:
     '''BayesianAction result'''
-    def __init__(self, sampled_action:int, categorical) -> None:
+    def __init__(self, sampled_action:int) -> None:
         self.sampled_action = sampled_action
-        self.categorical = categorical

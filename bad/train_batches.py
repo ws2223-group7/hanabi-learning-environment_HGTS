@@ -64,7 +64,6 @@ class TrainBatches:
     def backpropagation(self, calc_result: RewardsToGoCalculationResult) -> float:
         '''backpropagation'''
         actions = np.empty(0, int)
-        logprob = np.empty(0, float)
         rewards_to_go = np.empty(0, int)
         observation_array_array = []
         baseline =  calc_result.get_baseline()
@@ -74,10 +73,9 @@ class TrainBatches:
                 current_observation = episode_result.observation[action_index].to_one_hot_vec()
                 observation_array_array.append(current_observation)
                 actions = np.append(actions, episode_result.actions[action_index])
-                logprob = np.append(logprob, episode_result.logprob[action_index])
                 rewards_to_go = np.append(rewards_to_go, episode_result.rewards_to_go[action_index])
 
-        return self.network.backpropagation(observation_array_array, actions, logprob, rewards_to_go, baseline)
+        return self.network.backpropagation(observation_array_array, actions, rewards_to_go, baseline)
 
     def run(self, batch_size: int, gamma: float) -> TrainBatchResult:
         '''init'''

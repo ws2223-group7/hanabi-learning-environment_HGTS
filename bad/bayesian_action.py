@@ -31,7 +31,7 @@ class BayesianAction:
             sampled_action:int = int(all_action_probs_distribution.sample().numpy())
             done: bool = legal_actions_int.count(sampled_action) > 0
 
-        return BayesianActionResult(sampled_action, all_action_probs_distribution)
+        return BayesianActionResult(sampled_action)
 
     def get_action(self, legal_moves:np.ndarray) -> BayesianActionResult:
         '''returns a choice'''
@@ -50,4 +50,4 @@ class BayesianAction:
             if not done:
                 policy_as_numpy[sampled_action] = -float('inf')
 
-        return BayesianActionResult(sampled_action, policy)
+        return BayesianActionResult(sampled_action)

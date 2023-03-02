@@ -64,7 +64,7 @@ class ActionNetwork(ActionProvider):
 
         return BayesianAction(result.numpy()[0])
 
-    def backpropagation(self, observation, actions: np.ndarray, logprob: np.ndarray, rewards_to_go: np.ndarray, baseline: Baseline) -> float:
+    def backpropagation(self, observation, actions: np.ndarray, rewards_to_go: np.ndarray, baseline: Baseline) -> float:
         """train step"""
         model = self.model
         batch_size = len(observation)

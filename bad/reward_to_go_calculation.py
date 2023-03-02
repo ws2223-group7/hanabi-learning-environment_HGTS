@@ -35,7 +35,7 @@ class RewardToGoCalculation:
             observation = buffer.observation[index]
             bayesian_actions = buffer.bayesian_actions[index]
 
-            result.append(bayesian_actions.sampled_action, bayesian_actions.categorical.log_prob(bayesian_actions.sampled_action).numpy(), discounted_reward_to_go, observation)
+            result.append(bayesian_actions.sampled_action, discounted_reward_to_go, observation)
 
     def run(self,collected_episode_results: CollectEpisodesDataResults) -> RewardsToGoCalculationResult:
         '''run'''
