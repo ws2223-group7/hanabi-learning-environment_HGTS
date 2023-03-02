@@ -23,7 +23,7 @@ def main() -> None:
     tf.keras.utils.set_random_seed(seed)  # sets seeds for base-python, numpy and tf
     tf.config.experimental.enable_op_determinism()
 
-    batch_size: int = 50
+    batch_size: int = 1000
     epoch_size: int = 100
 
     episodes_running: int = 100

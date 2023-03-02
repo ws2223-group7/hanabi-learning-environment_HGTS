@@ -20,7 +20,8 @@ class BadAgent(Agent):
 
     def act(self, observation, public_belief=None) -> BadAgentActingResult:
         '''act'''
-        bad = self.policy.get_action(self.observation_converter.convert(observation))
+        legal_moves_as_int = self.hanabi_environment.state.legal_moves_int()
+        bad = self.policy.get_action(self.observation_converter.convert(observation), legal_moves_as_int)
         action_result = bad.get_action(self.hanabi_environment.state.legal_moves_int())
         observation_after_step, reward, done, _ = self.hanabi_environment.step(action_result.sampled_action)
         return BadAgentActingResult(observation_after_step, done, int(reward))

@@ -13,13 +13,14 @@ from bad.bayesian_action import BayesianAction
 from bad.action_provider import ActionProvider
 from bad.baseline import Baseline
 
+
 class ActionNetwork(ActionProvider):
     ''' action network '''
 
     def __init__(self, path) -> None:
         self.model = None
         self.path = path
-        self.optimizer = tf.keras.optimizers.Adam()
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
 
     def load(self, ) -> None:
         """load"""
@@ -57,12 +58,14 @@ class ActionNetwork(ActionProvider):
         reshaped = tf.reshape(network_input, [1, network_input.shape[0]])
         return reshaped
 
-    def get_action(self, observation: Observation, \
+    def get_action(self, observation: Observation, legal_moves_as_int: list, \
                    public_belief = None) -> BayesianAction:
         '''get action'''
         result = self.model(self.get_model_input(observation, public_belief))
-
-        return BayesianAction(result.numpy()[0])
+        result_list = result.numpy()[0].tolist()
+        result_filtered = [elem_in_res if (elem_idx in legal_moves_as_int) else 0 
+                           for elem_idx, elem_in_res in enumerate(result_list)]
+        return BayesianAction(np.array(result_filtered))
 
     def backpropagation(self, observation, actions: np.ndarray, rewards_to_go: np.ndarray, baseline: Baseline) -> float:
         """train step"""
