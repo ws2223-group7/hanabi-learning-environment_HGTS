@@ -2,26 +2,29 @@
 
 import sys
 import os
-import numpy as np
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.collect_episode_data_result import CollectEpisodeDataResult
+from bad.collect_episode_data_result import CollectGameResult
 
 
-class CollectEpisodesDataResults:
-    '''collect episode data results'''
+class CollectBatchResults:
+    """collect bactch data results"""
     def __init__(self) -> None:
-        self.results: list[CollectEpisodeDataResult] = []
+        self.results: list[CollectGameResult] = []
 
-    def add(self, result: CollectEpisodeDataResult) -> None:
+    def add(self, result: CollectGameResult) -> None:
         '''add'''
         self.results.append(result)
 
+    def games_played(self) -> int:
+        """games played"""
+        return self.results.count()
+
     def get_batch_size(self) -> int:
-        '''get n'''
+        """get batch size"""
         batch_size: int = 0
 
         for ep in self.results:

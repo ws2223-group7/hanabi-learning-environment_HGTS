@@ -2,6 +2,7 @@
 
 class TrainBatchResult:
     '''train batch result'''
-    def __init__(self, loss: float, reward: float) -> None:
+    def __init__(self, loss: float, game_reward: float, rewards_to_go:float) -> None:
         self.loss = loss
-        self.reward = reward
+        self.game_reward = game_reward
+        self.rewards_to_go = rewards_to_go

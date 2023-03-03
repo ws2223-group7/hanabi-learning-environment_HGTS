@@ -9,7 +9,7 @@ sys.path.append(parentPath)
 from bad.buffer import Buffer
 
 
-class CollectEpisodeDataResult:
+class CollectGameResult:
     '''collect episode data result'''
     def __init__(self, buffer: Buffer) -> None:
         ''''init'''

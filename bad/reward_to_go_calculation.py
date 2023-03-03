@@ -8,8 +8,8 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.collect_episodes_data_results import CollectEpisodesDataResults
-from bad.rewards_to_go_episode_calculation_result import RewardsToGoEpisodeCalculationResult
+from bad.collect_episodes_data_results import CollectBatchResults
+from bad.rewards_to_go_episode_calculation_result import RewardsCalculationResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
 from bad.reward_shape_converter import RewardShapeConverter
 from bad.buffer import Buffer
@@ -19,7 +19,7 @@ class RewardToGoCalculation:
     def __init__(self, gamma: float) -> None:
         self.gamma = gamma
 
-    def calculate(self, buffer: Buffer, result: RewardsToGoEpisodeCalculationResult) -> None:
+    def calculate(self, buffer: Buffer, result: RewardsCalculationResult) -> None:
         ''''calculate episode'''
 
         reward_shape_converter = RewardShapeConverter()
@@ -35,18 +35,18 @@ class RewardToGoCalculation:
             observation = buffer.observation[index]
             bayesian_actions = buffer.bayesian_actions[index]
 
-            result.append(bayesian_actions.sampled_action, discounted_reward_to_go, observation)
+            result.append(bayesian_actions.sampled_action, discounted_reward_to_go, reward_vom_hanabi_framework, observation)
 
-    def run(self,collected_episode_results: CollectEpisodesDataResults) -> RewardsToGoCalculationResult:
+    def run(self,collected_batch_results: CollectBatchResults) -> RewardsToGoCalculationResult:
         '''run'''
 
         episodes_result = RewardsToGoCalculationResult()
 
-        for episode_result in collected_episode_results.results:
-            ep_result = RewardsToGoEpisodeCalculationResult()
-            episodes_result.append(ep_result)
+        for batch_result in collected_batch_results.results:
+            reward_calculation_result = RewardsCalculationResult()
+            episodes_result.append(reward_calculation_result)
 
-            buffer = episode_result.buffer
-            self.calculate(buffer, ep_result)
+            buffer = batch_result.buffer
+            self.calculate(buffer, reward_calculation_result)
 
         return episodes_result

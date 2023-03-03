@@ -8,15 +8,15 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.rewards_to_go_episode_calculation_result import RewardsToGoEpisodeCalculationResult
+from bad.rewards_to_go_episode_calculation_result import RewardsCalculationResult
 from bad.baseline import Baseline
 
 class RewardsToGoCalculationResult:
     """RewardToGoCalculationResult"""
     def __init__(self) -> None:
-        self.results: list[RewardsToGoEpisodeCalculationResult] = []
+        self.results: list[RewardsCalculationResult] = []
 
-    def append(self, result: RewardsToGoEpisodeCalculationResult):
+    def append(self, result: RewardsCalculationResult):
         '''append'''
         self.results.append(result)
 
@@ -29,7 +29,7 @@ class RewardsToGoCalculationResult:
 
         return batch_size
 
-    def get_rewards(self) -> np.ndarray:
+    def get_rewards_to_go(self) -> np.ndarray:
         """get rewards"""
         total = np.empty(0, float)
 
@@ -40,11 +40,25 @@ class RewardsToGoCalculationResult:
 
     def get_baseline(self) -> Baseline:
         """get baseline"""
-        rewards = self.get_rewards()
+        rewards = self.get_rewards_to_go()
         return Baseline(rewards.mean(), rewards.std())
 
-    def get_reward_sum(self) -> float:
-        """get reward sum"""
-        rewards = self.get_rewards()
+    def get_rewards_to_go_sum(self) -> float:
+        """get rewards to go sum"""
+        rewards = self.get_rewards_to_go()
 
+        return rewards.sum()
+
+    def get_game_rewards(self) -> np.ndarray:
+        """get game rewards"""
+        total = np.empty(0, float)
+
+        for res in self.results:
+            total = np.append(total, res.game_rewards)
+
+        return total
+
+    def get_game_rewards_sum(self) -> float:
+        """get game reward"""
+        rewards = self.get_game_rewards()
         return rewards.sum()

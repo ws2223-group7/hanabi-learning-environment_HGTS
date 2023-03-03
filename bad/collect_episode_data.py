@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, no-member, no-name-in-module, too-few-public-methods, line-too-long, ungrouped-imports
 import sys
 import os
+from bad.collect_episodes_data_results import CollectBatchResults
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
@@ -12,12 +13,7 @@ from bad.action_network import ActionNetwork
 from bad.encoding.observationconverter import ObservationConverter
 from bad.set_extra_observation import SetExtraObservation
 from bad.buffer import Buffer
-from bad.collect_episode_data_result import CollectEpisodeDataResult
-from bad.buffer import Buffer
-from bad.set_extra_observation import SetExtraObservation
-from bad.encoding.observationconverter import ObservationConverter
-from bad.action_network import ActionNetwork
-from hanabi_learning_environment import rl_env
+from bad.collect_episode_data_result import CollectGameResult
 
 from bad.reward_shape import RewardShape
 from bad.encoding.observation import Observation
@@ -57,7 +53,7 @@ class CollectEpisodeData:
             observation = observation_converter.convert(observation_after_step)
             self.hanabi_observation = observation_after_step
 
-    def collect(self) -> CollectEpisodeDataResult:
+    def collect(self) -> CollectGameResult:
         """train within an environment"""
 
         copied_state = self.hanabi_environment.state.copy()
@@ -80,4 +76,4 @@ class CollectEpisodeData:
 
         self.play_a_hanabi_game(buffer, seo, observation, max_actions, observation_converter)
 
-        return CollectEpisodeDataResult(buffer)
+        return CollectGameResult(buffer)

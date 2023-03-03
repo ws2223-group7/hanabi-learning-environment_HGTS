@@ -22,4 +22,4 @@ class TrainEpoch:
     def train(self, batch_size: int, gamma: float) -> TrainEpochResult:
         """train"""
         result = self.train_batches.run(batch_size=batch_size, gamma=gamma)
-        return TrainEpochResult(result.loss, result.reward)
+        return TrainEpochResult(result.loss, result.game_reward)
