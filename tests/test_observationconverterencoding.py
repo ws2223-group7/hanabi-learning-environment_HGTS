@@ -27,6 +27,11 @@ class ObservationConverterEncodingTest(unittest.TestCase):
         observation['player_observations'][current_player]['life_tokens'] = 3
         observation['player_observations'][current_player]['information_tokens'] = 8
 
+        card1 = {'color': 'G', 'rank': 1}
+        cards = []
+        cards.append(card1)
+        observation['player_observations'][current_player]['observed_hands'] = []
+        observation['player_observations'][current_player]['observed_hands'].append(cards)
 
         observation['player_observations'][current_player]['fireworks'] = {}
         observation['player_observations'][current_player]['fireworks']['B'] = 5
@@ -99,6 +104,12 @@ class ObservationConverterEncodingTest(unittest.TestCase):
 
         observation['player_observations'][current_player]['life_tokens'] = 0
         observation['player_observations'][current_player]['information_tokens'] = 0
+
+        card1 = {'color': 'G', 'rank': 1}
+        cards = []
+        cards.append(card1)
+        observation['player_observations'][current_player]['observed_hands'] = []
+        observation['player_observations'][current_player]['observed_hands'].append(cards)
 
         observation['player_observations'][current_player]['fireworks'] = {}
         observation['player_observations'][current_player]['fireworks']['B'] = 0
