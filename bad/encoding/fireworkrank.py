@@ -6,7 +6,8 @@ import numpy as np
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
-sys.path.append(parentPath)
+parentPath2 = os.path.dirname(parentPath)
+sys.path.append(parentPath2)
 
 
 from bad.encoding.ranktointconverter import RankToIntConverter
