@@ -7,7 +7,7 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.collect_episode_data_result import CollectGameResult
+from bad.collect_game_result import CollectGameResult
 
 
 class CollectBatchResults:
