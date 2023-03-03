@@ -3,7 +3,7 @@ from skbuild import setup
 
 setup(
     name='ws2223-group7-hanabi-learning-environment_hgts',
-    version='0.0.8',    
+    version='0.0.9',    
     description='ws2223-group7 Learning environment for the game of hanabi hgts agent.',
     long_description='ws2223-group7 Learning environment for the game of hanabi hgts agent.',
     long_description_content_type="text/markdown",
@@ -17,7 +17,8 @@ setup(
     ],
     entry_points={
     'console_scripts': [
-        'ws2223-group7-hanabi-learning-environment-hgts = RCD_Strategy.Main:main',
+        'ws2223-group7-hanabi-learning-environment-hgts-rcd = RCD_Strategy.Main:main',
+        'ws2223-group7-hanabi-learning-environment-hgts-info = INFO_Strategy.main_info:main',
     ],
 }
 )

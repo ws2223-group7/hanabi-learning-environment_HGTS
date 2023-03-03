@@ -46,10 +46,10 @@ class Runner(object):
     def __init__(self, flags):
         """Initialize runner."""
         self.flags = flags
-        self.agent_config = {'players': flags['players']}
+        self.agent_config = {'players': self.flags['players']}
         self.environment = rl_env.make(
-            'Hanabi-Full', num_players=flags['players'])
-        self.agent_class = AGENT_CLASSES[flags['agent_class']]
+            'Hanabi-Full', num_players=self.flags['players'])
+        self.agent_class = AGENT_CLASSES[self.flags['agent_class']]
 
     def run(self):
         """Run episodes."""
@@ -57,7 +57,7 @@ class Runner(object):
         total_reward = 0
 
         # Loop over all Episodes / Rounds
-        for episode in range(flags['num_episodes']):
+        for episode in range(self.flags['num_episodes']):
             ### Begin Init Episodes / Rounds ###
 
             #  At the Beginning of every round reset environment
@@ -141,9 +141,7 @@ class Runner(object):
 
         return rewards
 
-
-if __name__ == "__main__":
-
+def main():
     flags = {'players': 5, 'num_episodes': 5, 'agent_class': 'HTGSAgent'}
 
     runner = Runner(flags)
@@ -152,3 +150,6 @@ if __name__ == "__main__":
         runner.run()
     else:
         sys.exit('Wrong Agent Class!\n')
+
+if __name__ == "__main__":
+    main()
