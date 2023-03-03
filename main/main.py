@@ -50,7 +50,7 @@ def main() -> None:
         print(f'running epoch: {epoch}')
 
         result = train_epoch.train(batch_size, gamma)
-        print(f"epoch reward: {result.reward}")
+        print(f"epoch reward: {result.reward / result.games_played}")
 
     #network.save()
 

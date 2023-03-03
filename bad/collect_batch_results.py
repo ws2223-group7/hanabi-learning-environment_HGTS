@@ -19,9 +19,9 @@ class CollectBatchResults:
         '''add'''
         self.results.append(result)
 
-    def games_played(self) -> int:
+    def get_games_played(self) -> int:
         """games played"""
-        return self.results.count()
+        return len(self.results)
 
     def get_batch_size(self) -> int:
         """get batch size"""

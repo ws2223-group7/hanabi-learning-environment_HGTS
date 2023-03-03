@@ -51,11 +51,10 @@ class TrainBatches:
 
         return collect_batch_result
 
-    def calculation(self, collected_data: CollectBatchResults, \
-        gamma: float) -> RewardsToGoCalculationResult:
+    def calculation(self, collected_data: CollectBatchResults, gamma: float) -> RewardsToGoCalculationResult:
         '''reward to go calculation'''
         reward_to_go_calculation = RewardToGoCalculation(gamma)
-        return reward_to_go_calculation.run(collected_data)
+        return reward_to_go_calculation.execute(collected_data)
 
     def backpropagation(self, calc_result: RewardsToGoCalculationResult) -> float:
         '''backpropagation'''
@@ -86,4 +85,4 @@ class TrainBatches:
         print('backpropagation')
         loss = self.backpropagation(calculation_result)
 
-        return TrainBatchResult(loss, calculation_result.get_game_rewards_sum(), calculation_result.get_rewards_to_go_sum())
+        return TrainBatchResult(loss, calculation_result.get_game_rewards_sum(), calculation_result.get_rewards_to_go_sum(), calculation_result.get_games_played())

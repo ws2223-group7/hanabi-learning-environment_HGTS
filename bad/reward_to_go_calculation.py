@@ -37,10 +37,9 @@ class RewardToGoCalculation:
 
             result.append(bayesian_actions.sampled_action, discounted_reward_to_go, reward_vom_hanabi_framework, observation)
 
-    def run(self,collected_batch_results: CollectBatchResults) -> RewardsToGoCalculationResult:
-        '''run'''
-
-        episodes_result = RewardsToGoCalculationResult()
+    def execute(self,collected_batch_results: CollectBatchResults) -> RewardsToGoCalculationResult:
+        """execute"""
+        episodes_result = RewardsToGoCalculationResult(collected_batch_results.get_games_played())
 
         for batch_result in collected_batch_results.results:
             reward_calculation_result = RewardsCalculationResult()

@@ -13,12 +13,17 @@ from bad.baseline import Baseline
 
 class RewardsToGoCalculationResult:
     """RewardToGoCalculationResult"""
-    def __init__(self) -> None:
+    def __init__(self, games_played) -> None:
         self.results: list[RewardsCalculationResult] = []
+        self.games_played = games_played
 
     def append(self, result: RewardsCalculationResult):
         '''append'''
         self.results.append(result)
+
+    def get_games_played(self) -> int:
+        """get games played"""
+        return self.games_played
 
     def get_batch_size(self) -> int:
         """get n"""

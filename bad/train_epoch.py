@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, consider-using-enumerate, line-too-long, line-too-long
+# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, consider-using-enumerate, line-too-long, line-too-long, too-many-function-args
 
 import sys
 import os
@@ -22,4 +22,4 @@ class TrainEpoch:
     def train(self, batch_size: int, gamma: float) -> TrainEpochResult:
         """train"""
         result = self.train_batches.run(batch_size=batch_size, gamma=gamma)
-        return TrainEpochResult(result.loss, result.game_reward)
+        return TrainEpochResult(result.loss, result.game_reward, result.games_played)
