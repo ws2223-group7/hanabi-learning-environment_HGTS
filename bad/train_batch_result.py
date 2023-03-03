@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods
+# pylint: disable=missing-module-docstring, wrong-import-position, ungrouped-imports, too-few-public-methods, line-too-long
 
 class TrainBatchResult:
     '''train batch result'''

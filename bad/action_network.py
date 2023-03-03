@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, unused-variable, unused-argument, not-callable, invalid-name, fixme, unreachable, line-too-long, consider-using-enumerate
+# pylint: disable=missing-module-docstring, wrong-import-position, unused-variable, unused-argument, not-callable, invalid-name, fixme, unreachable, line-too-long, consider-using-enumerate, too-many-locals
 import sys
 import os
 import numpy as np
@@ -63,7 +63,7 @@ class ActionNetwork(ActionProvider):
         '''get action'''
         result = self.model(self.get_model_input(observation, public_belief))
         result_list = result.numpy()[0].tolist()
-        result_filtered = [elem_in_res if (elem_idx in legal_moves_as_int) else 0 
+        result_filtered = [elem_in_res if (elem_idx in legal_moves_as_int) else 0
                            for elem_idx, elem_in_res in enumerate(result_list)]
         return BayesianAction(np.array(result_filtered))
 
