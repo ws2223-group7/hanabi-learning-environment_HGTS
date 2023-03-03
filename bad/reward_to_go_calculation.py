@@ -8,7 +8,7 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.collect_episodes_data_results import CollectBatchResults
+from bad.collect_batch_results import CollectBatchResults
 from bad.rewards_to_go_episode_calculation_result import RewardsCalculationResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
 from bad.reward_shape_converter import RewardShapeConverter

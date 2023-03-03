@@ -10,7 +10,7 @@ sys.path.append(parentPath)
 
 from bad.collect_episode_data import CollectEpisodeData
 from bad.collect_game_result import CollectGameResult
-from bad.collect_episodes_data_results import CollectBatchResults
+from bad.collect_batch_results import CollectBatchResults
 from hanabi_learning_environment import rl_env
 from bad.action_network import ActionNetwork
 from bad.encoding.observationconverter import ObservationConverter

@@ -1,7 +1,6 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, no-member, no-name-in-module, too-few-public-methods, line-too-long, ungrouped-imports
 import sys
 import os
-from bad.collect_episodes_data_results import CollectBatchResults
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
