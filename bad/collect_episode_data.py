@@ -32,7 +32,7 @@ class CollectEpisodeData:
         rewardshape.execute(next_move, self.hanabi_environment)
         return rewardshape
 
-    def play_a_hanabi_game(self, buffer: Buffer, seo: SetExtraObservation, observation: Observation,
+    def play_a_hanabi_game(self, buffer: GameBuffer, seo: SetExtraObservation, observation: Observation,
                            number_of_actions:int, observation_converter: ObservationConverter):
         """play a hanabi game"""
         #print("play hanabi game")
