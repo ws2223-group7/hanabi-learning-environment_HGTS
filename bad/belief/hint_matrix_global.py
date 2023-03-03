@@ -1,8 +1,17 @@
 # pylint: disable=missing-module-docstring, wrong-import-position, wrong-import-order, ungrouped-imports, too-few-public-methods, line-too-long, too-many-arguments, unused-variable, no-value-for-parameter
 
-from hint_matrix_player import HintMatrixPlayer
-from ftpubvec import RemaingCards
-from build_hanabi_env import get_hanabi_env
+import os
+import sys
+
+
+currentPath = os.path.dirname(os.path.realpath(__file__))
+parentPath = os.path.dirname(currentPath)
+parentPath2 = os.path.dirname(parentPath)
+sys.path.append(parentPath2)
+
+from bad.belief.hint_matrix_player import HintMatrixPlayer
+from bad.belief.ftpubvec import RemaingCards
+from bad.belief.build_hanabi_env import get_hanabi_env
 
 
 

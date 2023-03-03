@@ -11,10 +11,10 @@ sys.path.append(parentPath2)
 from hanabi_learning_environment.rl_env import HanabiEnv
 from bad.constants import Constants
 from bad.encoding.observation import Observation
-from public_belief_player import PublicBeliefPlayer
-from hint_matrix_global import HintMatrix
-from ftpubvec import RemaingCards
-from likelihood_global import Likelihood
+from bad.belief.public_belief_player import PublicBeliefPlayer
+from bad.belief.hint_matrix_global import HintMatrix
+from bad.belief.ftpubvec import RemaingCards
+from bad.belief.likelihood_global import Likelihood
 
 class PublicBelief(list):
     """Init"""
