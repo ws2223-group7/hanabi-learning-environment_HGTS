@@ -6,7 +6,7 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from bad.buffer import Buffer
+from bad.game_buffer import Buffer
 
 
 class CollectGameResult:

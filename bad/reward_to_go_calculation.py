@@ -12,7 +12,7 @@ from bad.collect_batch_results import CollectBatchResults
 from bad.rewards_to_go_episode_calculation_result import RewardsCalculationResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
 from bad.reward_shape_converter import RewardShapeConverter
-from bad.buffer import Buffer
+from bad.game_buffer import Buffer
 
 class RewardToGoCalculation:
     ''''calculate reward to go'''

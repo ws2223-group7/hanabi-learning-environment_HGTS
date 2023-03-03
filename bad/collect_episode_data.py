@@ -11,7 +11,7 @@ from hanabi_learning_environment.pyhanabi import HanabiMove
 from bad.action_network import ActionNetwork
 from bad.encoding.observationconverter import ObservationConverter
 from bad.set_extra_observation import SetExtraObservation
-from bad.buffer import Buffer
+from bad.game_buffer import Buffer
 from bad.collect_game_result import CollectGameResult
 
 from bad.reward_shape import RewardShape
