@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, no-name-in-module, unused-variable, unused-variable, line-too-long
+# pylint: disable=missing-module-docstring, wrong-import-position, no-name-in-module, unused-variable, unused-variable, line-too-long, ungrouped-imports
 import os
 import random
 import sys
@@ -11,6 +11,7 @@ sys.path.append(parentPath)
 
 from hanabi_learning_environment import pyhanabi, rl_env
 from bad.action_network import ActionNetwork
+from bad.self_play import SelfPlay
 from bad.train_epoch import TrainEpoch
 from bad.constants import Constants
 
@@ -24,9 +25,9 @@ def main() -> None:
     tf.config.experimental.enable_op_determinism()
 
     batch_size: int = 1000
-    epoch_size: int = 100
+    epoch_size: int = 1
 
-    episodes_running: int = 100
+    episodes_running: int = 10
     gamma: float = 1.0
 
     model_path = 'model'
@@ -54,8 +55,8 @@ def main() -> None:
 
     #network.save()
 
-    #self_play = SelfPlay(network)
-    #self_play.run(episodes_running)
+    self_play = SelfPlay(network)
+    self_play.run(episodes_running)
 
     print("finish with everything")
 
