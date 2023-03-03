@@ -12,7 +12,7 @@ from bad.encoding.observation import Observation
 from hanabi_learning_environment.pyhanabi import HanabiMove
 from bad.reward_shape import RewardShape
 
-class Buffer:
+class GameBuffer:
     '''buffer'''
     def __init__(self) -> None:
         self.hanabi_observation: list[dict] = []

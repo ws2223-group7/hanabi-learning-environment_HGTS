@@ -12,14 +12,14 @@ from bad.collect_batch_results import CollectBatchResults
 from bad.rewards_to_go_episode_calculation_result import RewardsCalculationResult
 from bad.rewards_to_go_calculation_result import RewardsToGoCalculationResult
 from bad.reward_shape_converter import RewardShapeConverter
-from bad.game_buffer import Buffer
+from bad.game_buffer import GameBuffer
 
 class RewardToGoCalculation:
     ''''calculate reward to go'''
     def __init__(self, gamma: float) -> None:
         self.gamma = gamma
 
-    def calculate(self, buffer: Buffer, result: RewardsCalculationResult) -> None:
+    def calculate(self, buffer: GameBuffer, result: RewardsCalculationResult) -> None:
         ''''calculate episode'''
 
         reward_shape_converter = RewardShapeConverter()
