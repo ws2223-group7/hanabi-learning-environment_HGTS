@@ -1,23 +1,20 @@
-# pylint: disable=missing-module-docstring, wrong-import-position, no-name-in-module, too-few-public-methods, too-many-instance-attributes, too-many-arguments, no-value-for-parameter
+# pylint: disable=missing-module-docstring, wrong-import-position, no-name-in-module, too-few-public-methods, too-many-instance-attributes, too-many-arguments, no-value-for-parameter, wrong-import-order
 
 import sys
 import os
-
-from public_belief_player import PublicBeliefPlayer
-from hint_matrix_global import HintMatrix
-from ftpubvec import RemaingCards
-from likelihood_global import Likelihood
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 parentPath2 = os.path.dirname(parentPath)
 sys.path.append(parentPath2)
 
-
 from hanabi_learning_environment.rl_env import HanabiEnv
 from bad.constants import Constants
 from bad.encoding.observation import Observation
-
+from public_belief_player import PublicBeliefPlayer
+from hint_matrix_global import HintMatrix
+from ftpubvec import RemaingCards
+from likelihood_global import Likelihood
 
 class PublicBelief(list):
     """Init"""
