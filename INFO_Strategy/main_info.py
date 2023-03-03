@@ -26,7 +26,7 @@ sys.path.append(parentPath)
 
 from hanabi_learning_environment.rl_env import Agent
 from INFO_Strategy import console
-from htgs_info_agent import HTGSAgent
+from INFO_Strategy.htgs_info_agent import HTGSAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment import rl_env

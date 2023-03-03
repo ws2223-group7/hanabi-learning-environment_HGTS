@@ -3,7 +3,7 @@ from skbuild import setup
 
 setup(
     name='ws2223-group7-hanabi-learning-environment_hgts',
-    version='0.0.9',    
+    version='0.0.10',    
     description='ws2223-group7 Learning environment for the game of hanabi hgts agent.',
     long_description='ws2223-group7 Learning environment for the game of hanabi hgts agent.',
     long_description_content_type="text/markdown",
