@@ -10,7 +10,7 @@ sys.path.append(parentPath2)
 
 from bad.action_network import ActionNetwork
 from bad.encoding.observation import Observation
-from likelihood_player import LikelihoodPlayer
+from bad.belief.likelihood_player import LikelihoodPlayer
 
 class Likelihood(list):
     '''likely hood'''
