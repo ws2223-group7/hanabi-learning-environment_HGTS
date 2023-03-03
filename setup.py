@@ -18,7 +18,7 @@ setup(
     entry_points={
     'console_scripts': [
         'ws2223-group7-hanabi-learning-environment-hgts-rcd = RCD_Strategy.Main:main',
-        'ws2223-group7-hanabi-learning-environment-hgts-info = INFO_Strategy.Main:main',
+        'ws2223-group7-hanabi-learning-environment-hgts-info = INFO_Strategy.main_info:main',
     ],
 }
 )
