@@ -27,11 +27,14 @@ class RewardToGoCalculation:
         for index in range(len(buffer.bayesian_actions)): # über jede aktion (pro spiel)
             reward_shape = reward_shape_converter.convert(buffer.reward_shapes[index])
             # hier rewards verändern
-            reward_vom_hanabi_framework = float(np.sum(buffer.rewards[index:]))
+            reward_to_go_vom_hanabi_framework = float(np.sum(buffer.rewards[index:]))
             reward_vom_reward_shaping = 0.0 # reward_shape.get_sum()
 
-            reward_to_go = reward_vom_hanabi_framework + reward_vom_reward_shaping
+            reward_to_go = reward_to_go_vom_hanabi_framework + reward_vom_reward_shaping
             discounted_reward_to_go = reward_to_go * np.power(self.gamma, index + 1)
+
+            reward_vom_hanabi_framework = buffer.rewards[index]
+            
             observation = buffer.observation[index]
             bayesian_actions = buffer.bayesian_actions[index]
 
