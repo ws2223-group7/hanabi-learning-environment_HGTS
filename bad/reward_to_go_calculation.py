@@ -34,7 +34,7 @@ class RewardToGoCalculation:
             discounted_reward_to_go = reward_to_go * np.power(self.gamma, index + 1)
 
             reward_vom_hanabi_framework = buffer.rewards[index]
-            
+
             observation = buffer.observation[index]
             bayesian_actions = buffer.bayesian_actions[index]
 
