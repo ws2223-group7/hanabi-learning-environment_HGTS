@@ -45,11 +45,17 @@ class ActionNetwork(ActionProvider):
         if not self.exists():
             return f"{self.basepath}/01"
 
-        networks = os.listdir(self.basepath)
-        networks_as_int = [int(i) for i in networks]
-        next_path = int(np.max(networks_as_int))+inkrement
+        next_path = self.get_last_epoch_number()+inkrement
         return f"{self.basepath}/{next_path:02d}"
 
+    def get_last_epoch_number(self) -> int:
+        """get last epoch number"""
+        if not self.exists():
+            return 0
+
+        networks_paths = os.listdir(self.basepath)
+        networks_path_as_int = [int(networks_path) for networks_path in networks_paths]
+        return int(np.max(networks_path_as_int))
 
     def save(self) -> None:
         """save"""
