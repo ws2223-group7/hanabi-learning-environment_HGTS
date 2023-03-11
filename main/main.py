@@ -41,12 +41,13 @@ def main() -> None:
 
     if network.exists():
         network.load()
+    last_epoch_number =  network.get_last_epoch_number()
 
     train_epoch = TrainEpoch(network, hanabi_environment, players)
 
     for epoch in range(bad_setting.epoch_size):
         print('')
-        print(f'running epoch: {epoch}')
+        print(f'running epoch: {epoch+last_epoch_number+1}')
 
         result = train_epoch.train(bad_setting)
 
