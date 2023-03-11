@@ -6,3 +6,5 @@ ws2223_group7_hanabi_learning_environment_bad.egg-info/*
 *.idea
 *.vscode
 model/*
+models_with_reward_shaping/*
+models_without_reward_shaping/*

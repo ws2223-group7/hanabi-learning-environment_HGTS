@@ -15,6 +15,7 @@ from bad.action_network import ActionNetwork
 from bad.self_play import SelfPlay
 from bad.train_epoch import TrainEpoch
 from bad.constants import Constants
+from bad.bad_setting import BadSetting
 from bad.plot_total_train import PlotTotalSelfPlay
 
 def main() -> None:
@@ -26,13 +27,10 @@ def main() -> None:
     tf.keras.utils.set_random_seed(seed)  # sets seeds for base-python, numpy and tf
     tf.config.experimental.enable_op_determinism()
 
-    batch_size: int = 1000
-    epoch_size: int = 5
+    bad_setting = BadSetting(batch_size= 1000, epoch_size= 100, gamma= 1.0, learning_rate=0.0001, with_reward_shaping= True)
 
-    episodes_running: int = 5
-    gamma: float = 1.0
-
-    model_path = 'model'
+    episodes_running: int = 100
+    model_path = 'models_with_reward_shaping' if bad_setting.with_reward_shaping is True else 'models_without_reward_shaping'
 
 
     print(f'welcome to bad agent with tf version: {tf.__version__}')
@@ -41,28 +39,29 @@ def main() -> None:
     constants = Constants()
     players = 2
     hanabi_environment = rl_env.make(constants.environment_name, players, pyhanabi.AgentObservationType.SEER)
-    network: ActionNetwork = ActionNetwork(model_path)
+    network: ActionNetwork = ActionNetwork(model_path, bad_setting.learning_rate)
 
-    if os.path.exists(model_path):
+    if network.exists():
         network.load()
 
     train_epoch = TrainEpoch(network, hanabi_environment, players)
-    
-    
+
     result_training = []
 
-    for epoch in range(epoch_size):
+    for epoch in range(bad_setting.epoch_size):
         print('')
         print(f'running epoch: {epoch}')
 
-        result = train_epoch.train(batch_size, gamma)
+        result = train_epoch.train(bad_setting)
         result_training.append(result)
-        print(f"epoch reward: {result.reward / result.games_played}")
-    
-    network.save()
+        
+        avg_reward = result.reward / result.games_played
+        print(f"epoch reward: {avg_reward}")
+        network.save()
 
     plot_train = PlotTotalSelfPlay(result_training)
     plot_train.plot()
+
 
     self_play = SelfPlay(network)
     self_play.run(episodes_running)
