@@ -37,8 +37,9 @@ class BayesianAction:
         all_action_probs_distribution = tfp.distributions.Categorical(probs=all_action_probs)
         probs_distribution_as_numpy = all_action_probs_distribution.probs.numpy()
         done = False
+        sampled_action:int = 0
         while not done:
-            sampled_action:int = int(np.argmax(probs_distribution_as_numpy, axis=0))
+            sampled_action = int(np.argmax(probs_distribution_as_numpy, axis=0))
             done: bool = legal_actions_int.count(sampled_action) > 0
             if not done:
                 probs_distribution_as_numpy[sampled_action] = -float('inf')
