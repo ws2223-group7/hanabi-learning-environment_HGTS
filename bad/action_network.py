@@ -17,18 +17,43 @@ from bad.baseline import Baseline
 class ActionNetwork(ActionProvider):
     ''' action network '''
 
-    def __init__(self, path) -> None:
+    def __init__(self, basepath, learning_rate) -> None:
         self.model = None
-        self.path = path
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+        self.basepath = basepath
 
-    def load(self, ) -> None:
+    def exists(self) -> bool:
+        """exists"""
+        return os.path.exists(self.basepath)
+
+    def load(self) -> None:
         """load"""
-        self.model = tf.keras.models.load_model(self.path)
+        path = self.get_current_model_path()
 
-    def save(self):
+        self.model = tf.keras.models.load_model(path)
+
+    def get_current_model_path(self):
+        """get current model path"""
+        return self.get_model_path(0)
+
+    def get_next_model_path(self):
+        """get next model path"""
+        return self.get_model_path(1)
+
+    def get_model_path(self, inkrement: int):
+        """gets next model path"""
+        if not self.exists():
+            return f"{self.basepath}/01"
+
+        networks = os.listdir(self.basepath)
+        networks_as_int = [int(i) for i in networks]
+        next_path = int(np.max(networks_as_int))+inkrement
+        return f"{self.basepath}/{next_path:02d}"
+
+
+    def save(self) -> None:
         """save"""
-        self.model.save(self.path)
+        self.model.save(self.get_next_model_path())
 
     def build(self, observation: Observation, max_action: int, \
               public_belief = None) -> None:
@@ -44,7 +69,7 @@ class ActionNetwork(ActionProvider):
             ])
             self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer)
 
-    def print_summary(self):
+    def print_summary(self) -> None:
         '''print summary'''
         self.model.summary()
 
