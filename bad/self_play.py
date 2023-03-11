@@ -7,9 +7,9 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from bad.run_eposiode import RunEpisode
-from bad.print_episode_selfplay import PrintEpisodeSelfPlay
-from bad.print_total_selfplay import PrintTotalSelfPlay
-from bad.plot_total_selfplay import PlotTotalSelfPlay
+from print_plot_log.print_episode_selfplay import PrintEpisodeSelfPlay
+from print_plot_log.print_total_selfplay import PrintTotalSelfPlay
+from print_plot_log.plot_total_selfplay import PlotTotalSelfPlay
 from bad.action_network import ActionNetwork
 
 class SelfPlay:

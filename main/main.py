@@ -16,7 +16,8 @@ from bad.self_play import SelfPlay
 from bad.train_epoch import TrainEpoch
 from bad.constants import Constants
 from bad.bad_setting import BadSetting
-from bad.plot_total_train import PlotTotalSelfPlay
+from print_plot_log.plot_total_train import PlotTraining
+from print_plot_log.Logger import Logger
 
 def main() -> None:
     '''main'''
@@ -27,7 +28,7 @@ def main() -> None:
     tf.keras.utils.set_random_seed(seed)  # sets seeds for base-python, numpy and tf
     tf.config.experimental.enable_op_determinism()
 
-    bad_setting = BadSetting(batch_size= 1000, epoch_size= 100, gamma= 1.0, learning_rate=0.0001, with_reward_shaping= True)
+    bad_setting = BadSetting(batch_size= 1000, epoch_size= 2, gamma= 1.0, learning_rate=0.0001, with_reward_shaping= True)
 
     episodes_running: int = 100
     model_path = 'models_with_reward_shaping' if bad_setting.with_reward_shaping is True else 'models_without_reward_shaping'
@@ -46,28 +47,30 @@ def main() -> None:
 
     train_epoch = TrainEpoch(network, hanabi_environment, players)
 
+    logger = Logger(model_path)
+    
     result_training = []
-
+ 
     for epoch in range(bad_setting.epoch_size):
         print('')
         print(f'running epoch: {epoch}')
 
         result = train_epoch.train(bad_setting)
-        result_training.append(result)
-        
         avg_reward = result.reward / result.games_played
+        logger.log_reward(avg_reward)
+        
         print(f"epoch reward: {avg_reward}")
         network.save()
 
-    plot_train = PlotTotalSelfPlay(result_training)
-    plot_train.plot()
 
+    train_plot = PlotTraining()
+    train_plot.plot_reward(bad_setting.with_reward_shaping)
 
     self_play = SelfPlay(network)
     self_play.run(episodes_running)
 
     print("finish with everything")
-    
+
 
 if __name__ == "__main__":
     main()
