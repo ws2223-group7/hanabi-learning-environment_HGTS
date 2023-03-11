@@ -9,6 +9,7 @@ sys.path.append(parentPath)
 from bad.run_eposiode import RunEpisode
 from bad.print_episode_selfplay import PrintEpisodeSelfPlay
 from bad.print_total_selfplay import PrintTotalSelfPlay
+from bad.plot_total_selfplay import PlotTotalSelfPlay
 from bad.action_network import ActionNetwork
 
 class SelfPlay:
@@ -23,11 +24,13 @@ class SelfPlay:
         total_reward = 0
         max_reward = 0
         perfect_games = 0
+        episodes_result = []
 
         for episode in range(episodes):
 
             run_episode = RunEpisode(self.network)
             episode_result = run_episode.run(episode)
+            episodes_result.append(episode_result)
 
             if episode_result.reward > max_reward:
                 max_reward = episode_result.reward
@@ -40,5 +43,11 @@ class SelfPlay:
             print_selfplay.print()
 
         print('')
-        print_total_selfplay = PrintTotalSelfPlay(episodes, total_reward, max_reward, perfect_games)
+        print_total_selfplay = PrintTotalSelfPlay(episodes, total_reward,
+                                                  max_reward, perfect_games)
         print_total_selfplay.print()
+
+        # Plot the results
+        plot_total_selfplay = PlotTotalSelfPlay(episodes_result, episodes,
+                                                total_reward,max_reward, perfect_games)
+        plot_total_selfplay.plot()

@@ -85,4 +85,5 @@ class TrainBatches:
         print('backpropagation')
         loss = self.backpropagation(calculation_result)
 
-        return TrainBatchResult(loss, calculation_result.get_game_rewards_sum(), calculation_result.get_rewards_to_go_sum(), calculation_result.get_games_played())
+        return TrainBatchResult(loss, calculation_result.get_game_rewards_sum(),
+                                calculation_result.get_rewards_to_go_sum(), calculation_result.get_games_played())
