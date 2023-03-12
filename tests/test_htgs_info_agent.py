@@ -7,7 +7,7 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 
-from Agents.htgs_info_agent import HTGSAgent
+from Agents.htgs_info_agent import HTGSAgentInfo
 
 from hanabi_learning_environment import rl_env
 
@@ -74,7 +74,7 @@ class TestHTGSAgent(unittest.TestCase):
         return observation
     
     def set_agent(self,observation):
-        agent = HTGSAgent({'players': 5})
+        agent = HTGSAgentInfo({'players': 5})
                                  
         
         agent.init_table(observation)

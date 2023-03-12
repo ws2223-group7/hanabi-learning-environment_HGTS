@@ -24,22 +24,15 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from hanabi_learning_environment.rl_env import Agent
 from print_result import console_info_agent
-from Agents.htgs_info_agent import HTGSAgent
-from Agents.htgs_own_agent import HTGSAgent3P
-from hanabi_learning_environment.agents.simple_agent import SimpleAgent
-from hanabi_learning_environment.agents.random_agent import RandomAgent
+from Agents.htgs_info_agent import HTGSAgentInfo
 from hanabi_learning_environment import rl_env
 
 # Import Error
 # from hanabi_learning_environment.agents.test_agent import HTGSAgent
 
 
-AGENT_CLASSES = {'SimpleAgent': SimpleAgent,
-                 'RandomAgent': RandomAgent,
-                 'HTGSAgent': HTGSAgent,
-                 'HTGSAgent3P': HTGSAgent3P}
+AGENT_CLASSES = {'HTGSAgent': HTGSAgentInfo}
 
 
 class Runner(object):
@@ -99,11 +92,11 @@ class Runner(object):
             rewards.append(episode_reward)
             total_reward += episode_reward
 
-            # Ausgabe der Ergebnisse der Runde
+            # Print Round Results
             console_info_agent.round_results(total_reward, episode,
                                   episode_reward, rewards)
 
-        # Ausgabe des Gesamt Ergebnisses
+        # Print Overall Results
         end_time = time.time()
         console_info_agent.overall_results(end_time, start_time,
                                 rewards, total_reward, episode)

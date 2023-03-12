@@ -1,19 +1,3 @@
-# Copyright 2018 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""A simple episode runner using the RL environment."""
-
-
 import sys
 import os
 import getopt
@@ -24,22 +8,12 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from hanabi_learning_environment.rl_env import Agent
 from print_result import console_own_agent
-from Agents.htgs_info_agent import HTGSAgent
-from Agents.htgs_own_agent import HTGSAgent3P
-from hanabi_learning_environment.agents.simple_agent import SimpleAgent
-from hanabi_learning_environment.agents.random_agent import RandomAgent
+from Agents.htgs_own_agent import HTGSAgentOwn
 from hanabi_learning_environment import rl_env
 
-# Import Error
-# from hanabi_learning_environment.agents.test_agent import HTGSAgent
 
-
-AGENT_CLASSES = {'SimpleAgent': SimpleAgent,
-                 'RandomAgent': RandomAgent,
-                 'HTGSAgent': HTGSAgent,
-                 'HTGSAgent3P': HTGSAgent3P}
+AGENT_CLASSES = {'HTGSAgent3P': HTGSAgentOwn}
 
 
 class Runner(object):
@@ -58,7 +32,7 @@ class Runner(object):
         rewards = []
         total_reward = 0
 
-        # Loop over all Episodes / Rounds
+        # Loop over all Episodes / Games
         for episode in range(flags['num_episodes']):
             ### Begin Init Episodes / Rounds ###
 
@@ -66,8 +40,6 @@ class Runner(object):
             observations = self.environment.reset()
 
             # Init all Agent with agent config
-            # Nacharbeit: Wenn in jedem spiel neue Agent erstellt werden muss
-            # die Policy wo anderes gespeichert werden
             agents = [self.agent_class(self.agent_config)
                       for _ in range(self.flags['players'])]
 
@@ -106,19 +78,17 @@ class Runner(object):
 
                     episode_reward += reward
 
-                
-
             rewards.append(episode_reward)
             total_reward += episode_reward
 
-            # Ausgabe der Ergebnisse der Runde
+            # Print Results of the Round
             console_own_agent.round_results(total_reward, episode,
-                                  episode_reward, rewards)
+                                            episode_reward, rewards)
 
-        # Ausgabe des Gesamt Ergebnisses
+        # Print Results over all Rounds
         end_time = time.time()
         console_own_agent.overall_results(end_time, start_time,
-                                rewards, total_reward, episode)
+                                          rewards, total_reward, episode)
 
         return rewards
 
@@ -130,12 +100,7 @@ class Runner(object):
             agent2.update_poss_tables_based_on_card_knowledge()
 
 
-
 if __name__ == "__main__":
-
     flags = {'players': 3, 'num_episodes': 100, 'agent_class': 'HTGSAgent3P'}
-
     runner = Runner(flags)
-
     runner.run()
-

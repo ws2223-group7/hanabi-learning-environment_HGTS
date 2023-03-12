@@ -12,6 +12,7 @@ class Table(list):
         self.num_players = observation['num_players']
     
     def init_table(self, observation):
+        """Init Table"""
 
         num_players = observation['num_players']
         num_cards_per_hand = len(observation['observed_hands'][0])
@@ -189,6 +190,7 @@ class Table(list):
         return num_pos_dead_cards
 
     def init_part_table(self, poss_card_table):
+        """Init part_tabel"""
         part_table = {}
 
         
@@ -240,7 +242,7 @@ class Table(list):
         return part_table
 
     def set_seven_hint_sets(self, part_table, single_hint_set):
-        
+        """Set seven hint sets"""
         max_rank = 4
         set_idx = single_hint_set if single_hint_set >= 0 else 0
         number_in_set = 0

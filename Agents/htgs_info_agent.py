@@ -10,7 +10,7 @@ sys.path.append(parentPath)
 from INFO_Strategy.possibility_table import Table
 from hanabi_learning_environment.rl_env import Agent
 
-class HTGSAgent(Agent):
+class HTGSAgentInfo(Agent):
     def __init__(self, config, *args, **kwargs):
         self.config = config
 

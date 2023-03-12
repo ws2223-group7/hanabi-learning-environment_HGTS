@@ -1,165 +1,128 @@
-# Copyright 2018 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""A simple episode runner using the RL environment."""
-
-from __future__ import print_function
-
 import sys
 import os
-import getopt
-
-import numpy as np 
-import time 
-
-import numpy as np 
-import time 
+import time
 
 currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
-from print_result import console_rec_agent 
+from print_result import console_rec_agent
+from Agents.htgs_rec_agent import HTGSAgent
 from hanabi_learning_environment import rl_env
 
+# from hanabi_learning_environment.agents.test_agent import HTGSAgent
 
-# from hanabi_learning_environment.agents.test_agent import HTGSAgent 
-from Agents.htgs_rec_agent import HTGSAgent
+AGENT_CLASSES = {'HTGSAgent': HTGSAgent}
 
-AGENT_CLASSES = {'HTGSAgent' : HTGSAgent}
-       
+
 class Runner(object):
-  """Runner class."""
+    """Runner class."""
 
-  def __init__(self, flags):
-    """Initialize runner."""
-    self.flags = flags
-    self.agent_config = {'players': flags['players']}
-    self.environment = rl_env.make('Hanabi-Full', num_players=flags['players'])
-    self.agent_class = AGENT_CLASSES[flags['agent_class']]
+    def __init__(self, flags):
+        """Initialize runner."""
+        self.flags = flags
+        self.agent_config = {'players': flags['players']}
+        self.environment = rl_env.make(
+            'Hanabi-Full', num_players=flags['players'])
+        self.agent_class = AGENT_CLASSES[flags['agent_class']]
 
-  def run(self):
-    """Run episodes."""
-    rewards = []
-    total_reward = 0
+    def run(self):
+        """Run episodes."""
+        rewards = []
+        total_reward = 0
 
-    output = False
+        action = None
+        legal_move = None
+        output = False
 
-    if output: datei = open('HAT_log.txt','w')
-    
-    # Loop over all Episodes / Rounds 
-    for episode in range(self.flags['num_episodes']):
+        # Play as many games as specified in flags
+        for episode in range(self.flags['num_episodes']):
 
-      ### Begin Init Episodes / Rounds ###
+            # Init Environment
+            observations = self.environment.reset()
 
-      #  At the Beginning of every round reset environment
-      observations = self.environment.reset() 
+            # Init all Agent
+            agents = [self.agent_class(self.agent_config)
+                      for _ in range(self.flags['players'])]
 
-      # Init all Agent with agent config 
-      # Nacharbeit: Wenn in jedem spiel neue Agent erstellt werden muss 
-      # die Policy wo anderes gespeichert werden 
-      agents = [self.agent_class(self.agent_config)
-                for _ in range(self.flags['players'])]
-      
-          
-      # done is bool for gameOver or Win
-      done = False
+            # done is bool for gameOver or Win
+            game_fished = False
 
-      episode_reward = 0
-      if output: self.env_out(datei,'S',agents,observations,0,None,episode_reward)
-      
+            episode_reward = 0
 
-            
-      start_time = time.time() 
-      
-      # Play one game
-      while not done:
+            start_time = time.time()
 
-        
+            # Play one game
+            while not game_fished:
 
-        # Play one round:
-        for agent_id, agent in enumerate(agents):
-          
-          # Update Observation for all Agents
-          self.update_observation(observations, agents)
+                # Play one round:
+                for agent_id, agent in enumerate(agents):
 
-          observation = observations['player_observations'][agent_id]
-          action, legal_move = agent.act(observation)
-          
-          
-          # If hint is given calculate the corresponding hat  
-          if ((action['action_type'] == 'REVEAL_COLOR' 
-             or action['action_type'] == 'REVEAL_RANK')
-             and legal_move):
-            
+                    # Update Observation for all Agents
+                    self.update_observation(
+                        observations, agents, action, agent_id, legal_move)
+
+                    observation = observations['player_observations'][agent_id]
+                    action, legal_move = agent.act(observation)
+
+                    self.update_action(observations, agents,
+                                       action, agent_id, legal_move)
+
+                    # Ausgabe des aktuellen Spiels vor Aktion:
+                    console_rec_agent.info(
+                        observations, agents, agent_id, action)
+
+                    # Make an environment step.
+                    observations, reward, game_fished, unused_info = self.environment.step(
+                        action)
+
+                    episode_reward += reward
+
+            rewards.append(episode_reward)
+            total_reward += episode_reward
+
+            # Ausgabe der Ergebnisse der Runde
+            console_rec_agent.round_results(total_reward, episode,
+                                            episode_reward, rewards)
+
+        # Ausgabe des Gesamt Ergebnisses
+        end_time = time.time()
+        console_rec_agent.overall_results(end_time, start_time,
+                                          rewards, total_reward, episode)
+        return rewards
+
+    def update_observation(self, observations, agents, action, agent_id, legal_move):
+        """Updates the agents based on new observation."""
+        for agent_id2, agent2 in enumerate(agents):
+            observation = observations['player_observations'][agent_id2]
+            agent2.update_observation(observation)
+
+    def update_action(self, observations, agents, action, agent_id, legal_move):
+        """Updates the agent's based on the action."""
+        if ((action['action_type'] == 'REVEAL_COLOR'
+            or action['action_type'] == 'REVEAL_RANK')
+                and legal_move):
+
             self.decode_hint(observations, agents, agent_id, action)
-             
 
-          
-          if (action['action_type'] == 'PLAY'):
+        if (action['action_type'] == 'PLAY'):
             for agent3 in agents:
-              agent3.nr_card_ply_since_hint += 1
+                agent3.nr_card_ply_since_hint += 1
 
-          
-          # Ausgabe des aktuellen Spiels vor Aktion:
-          console_rec_agent.info(observations, agents, agent_id, action)
+    def decode_hint(self, observations, agents, agent_id, action):
+        """Agent decode hint to recommanded action"""
+        for agent_id2, agent2 in enumerate(agents):
+            if agent_id == agent_id2:
+                continue
 
-          # Make an environment step.
-          observations, reward, done, unused_info = self.environment.step(
-              action)
-
-          episode_reward += reward
-          
-          
-      rewards.append(episode_reward)
-      total_reward += episode_reward
-
-      # Ausgabe der Ergebnisse der Runde
-      console_rec_agent.round_results(total_reward, episode,
-                                      episode_reward, rewards)
-
-    
-    # Ausgabe des Gesamt Ergebnisses
-    end_time = time.time()
-    console_rec_agent.overall_results(end_time, start_time,
-                                      rewards, total_reward, episode)
-    return rewards
-    
-  def decode_hint(self, observations, agents, agent_id, action):
-    """Agent decode hint to recommanded action"""
-    for agent_id2, agent2 in enumerate(agents):
-      if agent_id == agent_id2:
-        continue 
-
-      # Setze Observation von Spielern die hint bekommen    
-      agent2.observation = observations['player_observations'][agent_id2]
-      agent2_hand = observations['player_observations'][agent_id2-1]['observed_hands'][1]
-      agent2.decode_hint(action, agent2_hand)
-    
-  def update_observation(self, observations, agents):
-    """Updates the observation for all agents."""
-    for agent_id2, agent2 in enumerate(agents):
-      observation = observations['player_observations'][agent_id2]
-      agent2.update_observation(observation)
-
-def main():
-  flags = {'players': 5, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
-  runner = Runner(flags)
-
-  runner.run()
+            # Setze Observation von Spielern die hint bekommen
+            agent2.observation = observations['player_observations'][agent_id2]
+            agent2_hand = observations['player_observations'][agent_id2 -
+                                                              1]['observed_hands'][1]
+            agent2.decode_hint(action, agent2_hand)
 
 
 if __name__ == "__main__":
-  main()
-
-  
+    flags = {'players': 5, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
+    runner = Runner(flags)
+    runner.run()

@@ -11,7 +11,7 @@ from hanabi_learning_environment.rl_env import Agent
 from INFO_Strategy.color_enum import Color
 
 
-class HTGSAgent3P(Agent):
+class HTGSAgentOwn(Agent):
     def __init__(self, config, *args, **kwargs):
         self.config = config
 
