@@ -38,10 +38,8 @@ from RCD_Strategy.htgs_agent import HTGSAgent
 
 AGENT_CLASSES = {'SimpleAgent': SimpleAgent, 
                  'RandomAgent': RandomAgent, 
-### g7_BEGINN ###            
                  'HTGSAgent' : HTGSAgent}
-### g7_ENDE ###   
-#          
+       
 class Runner(object):
   """Runner class."""
 
@@ -230,7 +228,7 @@ class Runner(object):
     print("Durchschnitt")
     print(total_reward/(episode+1))
     return rewards
-    return rewards
+    
  
 
 def main():

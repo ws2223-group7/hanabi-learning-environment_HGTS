@@ -25,7 +25,7 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from hanabi_learning_environment.rl_env import Agent
-from INFO_Strategy import console3P
+from INFO_Strategy import console
 from htgs_info_agent import HTGSAgent
 from htgs_info_agent_3p import HTGSAgent3P
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
@@ -114,7 +114,7 @@ class Runner(object):
                             action = agent.observation['legal_moves'][act_idx]
 
                     # Ausgabe des aktuellen Spiels vor Aktion:
-                    # console3P.info(agents, agent_id, action)
+                    console.info(agents, agent_id, action)
 
                     # Update Table
                     if legal_move:
@@ -133,12 +133,12 @@ class Runner(object):
             total_reward += episode_reward
 
             # Ausgabe der Ergebnisse der Runde
-            console3P.round_results(total_reward, episode,
-                                  episode_reward, rewards)
+            #console3P.round_results(total_reward, episode,
+            #                      episode_reward, rewards)
 
         # Ausgabe des Gesamt Ergebnisses
         end_time = time.time()
-        console3P.overall_results(end_time, start_time,
+        console.overall_results(end_time, start_time,
                                 rewards, total_reward, episode)
 
         return rewards
@@ -146,11 +146,11 @@ class Runner(object):
 
 if __name__ == "__main__":
 
-    flags = {'players': 3, 'num_episodes': 150, 'agent_class': 'HTGSAgent3P'}
+    flags = {'players': 3, 'num_episodes': 20, 'agent_class': 'HTGSAgent'}
 
     runner = Runner(flags)
 
-    if runner.agent_class == HTGSAgent3P:
+    if runner.agent_class == HTGSAgent:
         runner.run()
     else:
         sys.exit('Wrong Agent Class!\n')
