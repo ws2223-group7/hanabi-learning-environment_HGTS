@@ -31,17 +31,6 @@ class HTGSAgent(Agent):
                                   6: {'action_type': 'DISCARD', 'card_index': 2},
                                   7: {'action_type': 'DISCARD', 'card_index': 3}}
 
-        self.decode_act_to_hat_sum_mod8 = {
-            ('REVEAL_RANK', 1): 0,
-            ('REVEAL_RANK', 2): 1,
-            ('REVEAL_RANK', 3): 2,
-            ('REVEAL_RANK', 4): 3,
-            ('REVEAL_COLOR', 1): 4,
-            ('REVEAL_COLOR', 2): 5,
-            ('REVEAL_COLOR', 3): 6,
-            ('REVEAL_COLOR', 4): 7
-        }
-
         self.num_colors_left = {'B':  10, 'G': 10, 'R': 10, 'W': 10, 'Y': 10}
 
         self.num_ranks_left = {0:  15, 1: 10, 2: 10, 3: 10, 4: 5}
@@ -62,6 +51,44 @@ class HTGSAgent(Agent):
 
         return mc
 
+    def decode_act_to_hat_sum(self, action):
+        key = (action['action_type'], action['target_offset'])
+
+        decode_act_to_hat_sum_P5 = {
+            ('REVEAL_RANK', 1): 0,
+            ('REVEAL_RANK', 2): 1,
+            ('REVEAL_RANK', 3): 2,
+            ('REVEAL_RANK', 4): 3,
+            ('REVEAL_COLOR', 1): 4,
+            ('REVEAL_COLOR', 2): 5,
+            ('REVEAL_COLOR', 3): 6,
+            ('REVEAL_COLOR', 4): 7
+        }
+
+        decode_act_to_hat_sum_P4 = {
+            ('REVEAL_RANK', 1): 0,
+            ('REVEAL_RANK', 2): 1,
+            ('REVEAL_RANK', 3): 2,
+            ('REVEAL_COLOR', 1): 3,
+            ('REVEAL_COLOR', 2): 4,
+            ('REVEAL_COLOR', 3): 5,
+        }
+
+        decode_act_to_hat_sum_P3 = {
+            ('REVEAL_RANK', 1): 0,
+            ('REVEAL_RANK', 2): 1,
+            ('REVEAL_COLOR', 1): 2,
+            ('REVEAL_COLOR', 2): 3,
+        }
+
+        if self.observation['num_players'] == 5:
+            return decode_act_to_hat_sum_P5[key]
+        elif self.observation['num_players'] == 4:
+            return decode_act_to_hat_sum_P4[key]
+        elif self.observation['num_players'] == 3:
+            return decode_act_to_hat_sum_P3[key]
+    
+   
     def act(self, round):
         """Return action"""
         poss_hand_table = self.table.get_poss_table_hand(0)
@@ -280,26 +307,28 @@ class HTGSAgent(Agent):
 
     def encode_hint(self):
         hatSumMod8 = self.cal_hat_sum_mod8()
+        bound_hint_rank = self.observation['num_players'] -1
 
         # if hatSumMod8 < 4 give hint rank (See Paper Cox)
-        if (hatSumMod8 < 4):
-            hint = self.get_hint_hat_sum_smaller_4(hatSumMod8)
+        if (hatSumMod8 < bound_hint_rank):
+            hint = self.get_rank_hint(hatSumMod8)
             return hint
 
         # if hatSumMod8 > 3 give hint color (See Paper Cox)
         else:
-            hint = self.get_hint_hat_sum_bigger_3(hatSumMod8)
+            hint = self.get_color_hint(hatSumMod8)
             return hint
 
     def cal_hat_sum_mod8(self):
-        """Returns the sum of hats from all other player mod 8"""
+        """Returns the sum of hats from all other player mod max_hats"""
         hat_sum_player = 0
+        max_hats = (self.observation['num_players'] - 1) * 2
 
         for agent_idx in range(1, self.observation['num_players']):
             hat_player = self.cal_hat_player(agent_idx)
             hat_sum_player += hat_player
 
-        hat_sum_mod8 = hat_sum_player % 8
+        hat_sum_mod8 = hat_sum_player % max_hats
 
         return hat_sum_mod8
 
@@ -317,7 +346,7 @@ class HTGSAgent(Agent):
         if agent_idx == 0:
             return self.cal_own_hat(act)
 
-        return self.cal_other_hat(agent_idx)
+        return self.cal_hat_other_ply(agent_idx)
 
     def cal_own_hat(self, act):
         """Returned eigenen hat
@@ -334,18 +363,21 @@ class HTGSAgent(Agent):
         # given_hat_sum_mod8 := r1 (Paper Cox)
         # hat_sum_mod8 := ri (Paper Cox)
         # own_hat := ci (Paper Cox)
-        given_hat_sum_mod8 = self.decode_act_to_hat_sum_mod8[(
-            act['action_type'], act['target_offset'])]
+        given_hat_sum_mod_max_hats = self.decode_act_to_hat_sum(act)
 
         idx_cur_ply = self.observation['current_player_offset']
 
+        max_hat = (self.observation['num_players'] - 1) * 2
         hat_sum = self.cal_hat_sum_mod8()
         hat_hinted_ply = self.cal_hat_player(idx_cur_ply)
-        own_hat = (given_hat_sum_mod8 - (hat_sum - hat_hinted_ply)) % 8
-
+        own_hat = (given_hat_sum_mod_max_hats - 
+                   (hat_sum - hat_hinted_ply)) % max_hat
+        if own_hat == -1:
+            print()
+            raise Exception("own_hat = -1")
         return own_hat
 
-    def cal_other_hat(self, agent_idx):
+    def cal_hat_other_ply(self, agent_idx):
         """Returned hat von anderen Agent nicht dem eigenen"""
 
         # Raise Expection wenn man den eigenen Hat berechnen will
@@ -447,7 +479,7 @@ class HTGSAgent(Agent):
 
         return pb_playable_cards
 
-    def get_hint_hat_sum_smaller_4(self, hat_sum_mod8):
+    def get_rank_hint(self, hat_sum_mod8):
         # Überprüftr
         # See Paper Cox for calculation
         idx_ply = hat_sum_mod8 + 1
@@ -468,10 +500,11 @@ class HTGSAgent(Agent):
 
         return hint
 
-    def get_hint_hat_sum_bigger_3(self, hatSumMod8):
+    def get_color_hint(self, hatSumMod8):
+
 
         # See Paper Cox for calculation
-        idx_ply = hatSumMod8 - 3
+        idx_ply = hatSumMod8 - (self.observation['num_players'] - 2)
 
         if idx_ply > (self.observation['num_players'] - 1):
             discard = {'action_type': 'DISCARD', 'card_index': 0}

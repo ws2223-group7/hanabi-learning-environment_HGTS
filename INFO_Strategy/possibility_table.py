@@ -9,6 +9,7 @@ class Table(list):
         super().__init__(self.init_table(observation))
 
         self.colors = ['B', 'G', 'R', 'W', 'Y']
+        self.num_players = observation['num_players']
     
     def init_table(self, observation):
 
@@ -93,9 +94,10 @@ class Table(list):
         # Debug Purpose 
         values_table = list(part_table.values())
         one_list_values = sum(values_table, [])
-        if 8 in one_list_values:
+        max_partition = (self.num_players -1) * 2
+        if max_partition in one_list_values:
             print()
-            raise ValueError("8 in part_table")
+            raise ValueError("max_partition in part_table max_partition")
 
 
         return part_table
@@ -149,6 +151,8 @@ class Table(list):
         """Return die Anzahl an single hint sets  
         und die Anzahl der hint sets mit größe sieben"""
 
+        max_partition = (self.num_players-1) * 2 
+
         ti = self.get_ti(poss_card_table)
 
         # Max Anzahl der Toten Karten in der Hand 
@@ -158,10 +162,10 @@ class Table(list):
         # ob eine Partition von Dead Cards belegt wird 
         # Und wie viel mögliche Karten es sind        
         if num_dead_cards > 0:
-            single_hint_set = min(7, ti - num_dead_cards)
+            single_hint_set = min(max_partition - 1, ti - num_dead_cards)
         
         else:
-            single_hint_set = min(8, ti)
+            single_hint_set = min(max_partition, ti)
  
 
         num_seven_hint_sets = 0 
@@ -238,7 +242,7 @@ class Table(list):
     def set_seven_hint_sets(self, part_table, single_hint_set):
         
         max_rank = 4
-        set_idx = single_hint_set
+        set_idx = single_hint_set if single_hint_set >= 0 else 0
         number_in_set = 0
 
         # Iteriere über jeden Rank und jede Farbe

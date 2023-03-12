@@ -284,6 +284,7 @@ class HTGSAgent3P(Agent):
     def cal_hat_sum_mod8(self):
         """Returns the sum of hats from all other player mod 8"""
         hat_sum_player = 0
+        max_hat = (self.observation['num_players'] - 1) * 8
 
         for agent_idx in range(1, self.observation['num_players']):
             hat_player = self.cal_hat_player(agent_idx)
@@ -296,9 +297,9 @@ class HTGSAgent3P(Agent):
 
             hat_sum_player += hat_player[0]
 
-        hat_sum_mod8 = hat_sum_player % 8
+        hat_sum_mod = hat_sum_player % max_hat
 
-        return hat_sum_mod8
+        return hat_sum_mod
 
     def cal_hat_player(self, agent_idx, act=None):
         """Return hat vom Spieler mit Index agent_idx
@@ -323,13 +324,13 @@ class HTGSAgent3P(Agent):
            jeder den selben hut bzw. die selben möglichen Hüte 
            für den hinted player berechnen"""
 
-        if for_hinted_player == False:
-            # Calculate highst and lowest color in hand
-            card_knowledge_hinted_ply = self.observation['observed_hands'][idx_hinted_player]
-
-        else:
+        if for_hinted_player == True:
             card_knowledge_hinted_ply = self.observation['card_knowledge'][idx_hinted_player]
 
+        else:
+            card_knowledge_hinted_ply = self.observation['observed_hands'][idx_hinted_player]
+
+        # Calculate highst and lowest color in hand
         highest_rank = self.highest_rank_in_hand(card_knowledge_hinted_ply)
         sec_lowest_rank = self.sec_lowest_rank_in_hand(
             card_knowledge_hinted_ply)
@@ -366,7 +367,7 @@ class HTGSAgent3P(Agent):
                                                  lowest_color_value, sec_lowest_color_value)
 
         elif act['action_type'] == 'REVEAL_RANK':
-            hat_ply = self.decode_hint_hint_rank(act, unknown_rank, 
+            hat_ply = self.decode_hint_rank(act, unknown_rank, 
                                                  highest_rank, sec_highest_rank,
                                                  lowest_rank, sec_lowest_rank,
                                                  highst_color_value, lowest_color_value)
@@ -377,7 +378,7 @@ class HTGSAgent3P(Agent):
 
         return hat_ply
 
-    def decode_hint_hint_rank(self, act, 
+    def decode_hint_rank(self, act, 
                               unknown_rank, 
                               highst_rank, sec_highst_rank,
                               lowest_rank, sec_lowest_rank,
@@ -1064,6 +1065,8 @@ class HTGSAgent3P(Agent):
             act, idx_hinted_ply, for_hinted_player=False)
 
         hat_other_ply = self.cal_hat_other_ply(idx_hinted_ply)[0]
+
+        max_hat = (self.observation['num_players'] - 1) * 2
 
         own_hat = [(pos_hint_hat - hat_other_ply) % 8
                    for pos_hint_hat in decode_hint]
