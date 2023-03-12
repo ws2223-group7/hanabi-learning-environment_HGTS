@@ -25,9 +25,9 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from hanabi_learning_environment.rl_env import Agent
-from print_result import console3P
+from print_result import console_own_agent
 from Agents.htgs_info_agent import HTGSAgent
-from Agents.htgs_info_agent_3p import HTGSAgent3P
+from Agents.htgs_own_agent import HTGSAgent3P
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment import rl_env
@@ -84,37 +84,17 @@ class Runner(object):
             # Play as long its not gameOver or Win
             round = 1
             start_time = time.time()
+
+            # Play one game
             while not done:
 
-                # Loop over all agents
+                # Play one round
                 for agent_id, agent in enumerate(agents):
 
                     # Update Observation
-                    for agent_id2, agent2 in enumerate(agents):
-                        observation = observations['player_observations'][agent_id2]
-                        agent2.update_observation(observation)
-                        agent2.update_mc()
-                        agent2.update_poss_tables_based_on_card_knowledge()
+                    self.update_agent(observations, agents)
 
-                    action = agent.act(round)
-
-                    # Prüfe ob es sich um eine Legale Aktion handelt
-                    # Es ist machmal (warum auch immer) nicht erlaubt zu discarden
-                    # Um einen absturtz zu vermeiden wird hier
-                    legal_move = True
-                    if (action not in agent.observation['legal_moves']):
-                        legal_move = False
-                        found = False
-                        for act_idx, act in enumerate(agent.observation['legal_moves']):
-                            if act['action_type'] == 'REVEAL_COLOR' or act['action_type'] == 'REVEAL_RANK':
-                                action = agent.observation['legal_moves'][act_idx]
-                                found = True
-
-                        if found == False:
-                            action = agent.observation['legal_moves'][act_idx]
-
-                    # Ausgabe des aktuellen Spiels vor Aktion:
-                    # console3P.info(agents, agent_id, action)
+                    action, legal_move = agent.act(round)
 
                     # Update Table
                     if legal_move:
@@ -127,21 +107,29 @@ class Runner(object):
 
                     episode_reward += reward
 
-                round += 1
+                
 
             rewards.append(episode_reward)
             total_reward += episode_reward
 
             # Ausgabe der Ergebnisse der Runde
-            console3P.round_results(total_reward, episode,
+            console_own_agent.round_results(total_reward, episode,
                                   episode_reward, rewards)
 
         # Ausgabe des Gesamt Ergebnisses
         end_time = time.time()
-        console3P.overall_results(end_time, start_time,
+        console_own_agent.overall_results(end_time, start_time,
                                 rewards, total_reward, episode)
 
         return rewards
+
+    def update_agent(self, observations, agents):
+        for agent_id2, agent2 in enumerate(agents):
+            observation = observations['player_observations'][agent_id2]
+            agent2.update_observation(observation)
+            agent2.update_mc()
+            agent2.update_poss_tables_based_on_card_knowledge()
+
 
 
 if __name__ == "__main__":
