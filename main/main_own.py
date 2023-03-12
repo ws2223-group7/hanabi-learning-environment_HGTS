@@ -101,7 +101,7 @@ class Runner(object):
 
 
 def main():
-    flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent3P'}
+    flags = {'players': 3, 'num_episodes': 100, 'agent_class': 'HTGSAgent3P'}
     runner = Runner(flags)
     runner.run()
 
