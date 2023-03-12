@@ -34,7 +34,7 @@ from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 
 # from hanabi_learning_environment.agents.test_agent import HTGSAgent 
-from RCD_Strategy.htgs_agent import HTGSAgent
+from Agents.htgs_agent import HTGSAgent
 
 AGENT_CLASSES = {'SimpleAgent': SimpleAgent, 
                  'RandomAgent': RandomAgent, 

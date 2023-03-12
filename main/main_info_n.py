@@ -25,9 +25,10 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from hanabi_learning_environment.rl_env import Agent
-from INFO_Strategy import console
-from htgs_info_agent import HTGSAgent
-from htgs_info_agent_3p import HTGSAgent3P
+from print_result import console
+from Agents.htgs_info_agent import HTGSAgent
+from Agents.htgs_info_agent_3p import HTGSAgent3P
+from adv_htgs_info_agent import AdvHTGSAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment import rl_env
