@@ -121,8 +121,10 @@ class Runner(object):
                                                               1]['observed_hands'][1]
             agent2.decode_hint(action, agent2_hand)
 
-
-if __name__ == "__main__":
+def main():
     flags = {'players': 5, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
     runner = Runner(flags)
     runner.run()
+
+if __name__ == "__main__":
+    main()
