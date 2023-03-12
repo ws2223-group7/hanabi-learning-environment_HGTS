@@ -33,7 +33,7 @@ class Runner(object):
         total_reward = 0
 
         # Loop over all Episodes / Games
-        for episode in range(flags['num_episodes']):
+        for episode in range(self.flags['num_episodes']):
             ### Begin Init Episodes / Rounds ###
 
             #  At the Beginning of every round reset environment
@@ -100,7 +100,10 @@ class Runner(object):
             agent2.update_poss_tables_based_on_card_knowledge()
 
 
-if __name__ == "__main__":
+def main():
     flags = {'players': 3, 'num_episodes': 100, 'agent_class': 'HTGSAgent3P'}
     runner = Runner(flags)
     runner.run()
+
+if __name__ == "__main__":
+    main()
