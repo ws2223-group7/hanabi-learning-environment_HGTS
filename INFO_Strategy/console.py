@@ -1,12 +1,22 @@
 import numpy as np
 
+
 def info(agents, agent_id, action):
+          
+          cardknowledge_agent = [agents[0].observation['card_knowledge'][idx] for idx in range(len(agents))]
+          poss_table_players = [agents[idx_agent].table[0] for idx_agent in range(len(agents))]
+          num_tokens = agents[0].observation['information_tokens']  
+          lifes = agents[0].observation['life_tokens']
+          deck_size = agents[0].observation['deck_size']
           print("\n---------------------------------------------------------------------------------------------------------")
           print("\n---------------------------------------------------------------------------------------------------------")
           print("\nRound {}".format(round))
           print("Current Player {}".format(agent_id))
-          num_tokens = agents[0].observation['information_tokens']
+          
           print("\n Information Tokens {}".format(num_tokens))
+          print("\n Life Tokens {}".format(lifes))
+          print("\n Deck Size {}".format(deck_size))
+
           print("\nAction Player {}".format(agent_id))
           print(action)
           print("\nFirework")
@@ -16,127 +26,61 @@ def info(agents, agent_id, action):
           print("\n Mc")
           print(agents[0].mc)
           print("\nCardknowledge")
-          cardknowledge_agent0 = agents[0].observation['card_knowledge'][0]
-          cardknowledge_agent1 = agents[0].observation['card_knowledge'][1]
-          cardknowledge_agent2 = agents[0].observation['card_knowledge'][2]
-          cardknowledge_agent3 = agents[0].observation['card_knowledge'][3]
-          cardknowledge_agent4 = agents[0].observation['card_knowledge'][4]
-          print(cardknowledge_agent0)
-          print(cardknowledge_agent1)
-          print(cardknowledge_agent2)
-          print(cardknowledge_agent3)
-          print(cardknowledge_agent4)
-          
+          for idx in range (len(agents)):
+              print(cardknowledge_agent[idx])  
 
-          print("---------------------------------------------------------------------------------------------------------")
-          print("\n\nPlayer 0")
-          print("\n Player Hand")
-          print(agents[4].observation['observed_hands'][1])
-          target_card, target_idx = agents[0].get_target_card(0)
-          print("\nTarget Index{}".format(target_idx))
-          print("\nPoss Table Target Card")
-          poss_table0 = agents[0].table[0][0]
-          poss_table1 = agents[0].table[0][1]
-          poss_table2 = agents[0].table[0][2]
-          poss_table3 = agents[0].table[0][3]
-          poss_tables = [poss_table0, poss_table1, poss_table2, poss_table3]
-          print(poss_table0)
-          print(poss_table1)
-          print(poss_table2)
-          print(poss_table3)
-          print("\nPart Table Target Card")
-          print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
-          print("\nOwn Hat")
-          print(agents[4].cal_other_hat(1))
+          for player_idx in range(len(agents)):
+            player_before = (player_idx - 1) if player_idx > 0 else len(agents)-1 
+            player_hand = agents[player_before].observation['observed_hands'][1]
+            target_card, target_idx = agents[player_idx].get_target_card(0)  
+            poss_table_player = poss_table_players[player_idx]
+            part_table_target_card = agents[player_idx].table.get_part_table(
+                agents[player_idx].observation, poss_table_player[target_idx])
+            current_player = agents[player_idx].observation['current_player_offset']
+            
+            
+            
+            # Agent himself this own hat 
+            if (current_player != 0 
+               and action['action_type'] != 'DISCARD'
+               and action['action_type'] != 'PLAY'):
+              own_hat = agents[player_idx].cal_own_hat(action)       
+            else:
+                own_hat = None 
 
-          print("-------------------------------------------------------------------------------------------------------------")
+            # Other agents hat current agent
+            own_hat_other_agents = agents[player_before].cal_hat_other_ply(1)
 
-          print("\n\nPlayer 1")
-          print("\n Player Hand")
-          print(agents[0].observation['observed_hands'][1])
-          print("\nTarget Index")
-          target_card, target_idx = agents[1].get_target_card(0)
-          print(target_idx)
-          print("\nPoss Table Target Card")
-          poss_table0 = agents[0].table[1][0]
-          poss_table1 = agents[0].table[1][1]
-          poss_table2 = agents[0].table[1][2]
-          poss_table3 = agents[0].table[1][3]
-          poss_tables = [poss_table0, poss_table1, poss_table2, poss_table3]
-          print(poss_table0)
-          print(poss_table1)
-          print(poss_table2)
-          print(poss_table3)
-          print("\nPart Table Target Card")
-          print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
-          print("\nOwn Hat {}".format(agents[0].cal_other_hat(1)))
 
-          print("-------------------------------------------------------------------------------------------------------------")
+            print("---------------------------------------------------------------------------------------------------------")
+            print("\n\nPlayer {}".format(player_idx))
+            print("\n Player Hand")
+            print(player_hand)
+            print("\nTarget Index{}".format(target_idx))
+            print("\nPoss Table Player")
+            for card_idx in range(len(poss_table_player)):
+                print(poss_table_player[card_idx])
+    
 
-          print("\n\nPlayer 2")
-          print("\n Player Hand")
-          print(agents[0].observation['observed_hands'][2])
-          print("\nTarget Index")
-          target_card, target_idx = agents[2].get_target_card(0)
-          print(target_idx)
-          print("\nPoss Table Target Card")
-          poss_table0 = agents[0].table[2][0]
-          poss_table1 = agents[0].table[2][1]
-          poss_table2 = agents[0].table[2][2]
-          poss_table3 = agents[0].table[2][3]
-          poss_tables = [poss_table0, poss_table1, poss_table2, poss_table3]
-          print(poss_table0)
-          print(poss_table1)
-          print(poss_table2)
-          print(poss_table3)
-          print("\nPart Table Target Card")
-          print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
-          print("\nOwn Hat {}".format(agents[0].cal_other_hat(2)))
+            print("\nPart Table Target Card")
+            print(part_table_target_card)
 
-          print("-------------------------------------------------------------------------------------------------------------")
+            if action['action_type'] == 'REVEAL_COLOR' or action['action_type'] == 'REVEAL_RANK':
+                
+              print("\nOwn Hat calculated by agent himslef")
+              print(own_hat)
 
-          print("\n\nPlayer 3")
-          print("\n Player Hand")
-          print(agents[0].observation['observed_hands'][3])
-          print("\nTarget Index")
-          target_card, target_idx = agents[3].get_target_card(0)
-          print(target_idx)
-          print("\nPoss Table Target Card")
-          poss_table0 = agents[0].table[3][0]
-          poss_table1 = agents[0].table[3][1]
-          poss_table2 = agents[0].table[3][2]
-          poss_table3 = agents[0].table[3][3]
-          poss_tables = [poss_table0, poss_table1, poss_table2, poss_table3]
-          print(poss_table0)
-          print(poss_table1)
-          print(poss_table2)
-          print(poss_table3)
-          print("\nPart Table Target Card")
-          print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
-          print("\nOwn Hat {}".format(agents[0].cal_other_hat(3)))
+              print("\n Own Hat calulated by other agents")
+              print(own_hat_other_agents)
 
-          print("-------------------------------------------------------------------------------------------------------------")
-
-          print("\n\nPlayer 4")
-          print("\n Player Hand")
-          print(agents[0].observation['observed_hands'][4])
-          print("\nTarget Index")
-          target_card, target_idx = agents[4].get_target_card(0)
-          print(target_idx)
-          print("\nPoss Table Target Card")
-          poss_table0 = agents[0].table[4][0]
-          poss_table1 = agents[0].table[4][1]
-          poss_table2 = agents[0].table[4][2]
-          poss_table3 = agents[0].table[4][3]
-          poss_tables = [poss_table0, poss_table1, poss_table2, poss_table3]
-          print(poss_table0)
-          print(poss_table1)
-          print(poss_table2)
-          print(poss_table3)
-          print("\nPart Table Target Card")
-          print(agents[0].table.get_part_table(agents[0].observation, poss_tables[target_idx]))
-          print("\nOwn Hat {}".format(agents[0].cal_other_hat(4)))
-
+              if own_hat != own_hat_other_agents and own_hat != None:
+                  decode_hint_hat = agents[player_idx].decode_act_to_hat_sum(action)
+                  hat_sum = agents[player_idx].cal_hat_sum_mod8()
+                  hat_hinted_ply = agents[player_idx].cal_hat_player(current_player)
+                  max_hat = (agents[player_idx].observation['num_players'] - 1) * 2
+                  own_hat = (decode_hint_hat - 
+                         (hat_sum - hat_hinted_ply)) % max_hat
+                  raise Exception("Own Hat is not the same")
 
 def round_results(total_reward, episode, episode_reward, rewards):
     print("\n------------------------------------")
@@ -157,3 +101,5 @@ def overall_results(end_time, start_time, rewards, total_reward, episode):
     print(st_dev)
     print("Durchschnitt")
     print(total_reward/(episode+1))
+
+
