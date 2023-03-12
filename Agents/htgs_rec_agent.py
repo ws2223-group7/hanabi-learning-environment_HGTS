@@ -41,6 +41,9 @@ class HTGSAgent(Agent):
                                       ('REVEAL_COLOR', 3) : 6,
                                       ('REVEAL_COLOR', 4) : 7
                                       }
+  def update_observation(self, observation):
+    """Update the observation."""
+    self.observation = observation
 
   def act(self, observation):
     """Act based on an observation."""
@@ -261,6 +264,8 @@ class HTGSAgent(Agent):
    
     self.rcd_card_plyd = False
     self.nr_card_ply_since_hint = 0
+
+    return self.rcd_act
     
 
   def cal_own_hat(self, given_hat_sum_mod8):
