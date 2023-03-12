@@ -108,7 +108,7 @@ class Runner(object):
             agent2.update_poss_tables_based_on_card_knowledge()
 
 def main():
-    flags = {'players': 3, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
+    flags = {'players': 5, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
     runner = Runner(flags)
     runner.run()
 
