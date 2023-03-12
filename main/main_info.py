@@ -25,7 +25,7 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from hanabi_learning_environment.rl_env import Agent
-from print_result import console_own_agent
+from print_result import console_info_agent
 from Agents.htgs_info_agent import HTGSAgent
 from Agents.htgs_own_agent import HTGSAgent3P
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
@@ -60,45 +60,35 @@ class Runner(object):
 
         # Loop over all Episodes / Rounds
         for episode in range(flags['num_episodes']):
-            ### Begin Init Episodes / Rounds ###
+            
+            episode_reward = 0
+            done = False
+            legal_move = None
+            action = None
+            
 
-            #  At the Beginning of every round reset environment
+            # Set Up new Game environment
             observations = self.environment.reset()
 
-            # Init all Agent with agent config
-            # Nacharbeit: Wenn in jedem spiel neue Agent erstellt werden muss
-            # die Policy wo anderes gespeichert werden
-            agents = [self.agent_class(self.agent_config)
-                      for _ in range(self.flags['players'])]
+            # Init all Agent 
+            agents = self.init_agents(observations)
 
-            # Init Possibility Table
-            for agent_id, agent in enumerate(agents):
-                observation = observations['player_observations'][agent_id]
-                agent.init_table(observation)
 
-            # done is bool for gameOver or Win
-            done = False
-            episode_reward = 0
-
-            ### End Init Episodes / Rounds ###
-            # Play as long its not gameOver or Win
+            # Play a Game
             start_time = time.time()
-
-            # Play one game
             while not done:
 
-                # Play one round
+                # Play a Round
                 for agent_id, agent in enumerate(agents):
 
-                    # Update Observation
-                    self.update_agent(observations, agents)
+                     # Update Agent Knowledge
+                    self.update_agent(observations, agents, legal_move, action)
 
+                    # Current Agent Action
                     action, legal_move = agent.act()
 
-                    # Update Table
-                    if legal_move:
-                        for agent3_idx, agent3 in enumerate(agents):
-                            agent3.update_tables(action)
+                    # Print Game Info:
+                    console_info_agent.info(agents, agent_id, action)
 
                     # Make an environment step.
                     observations, reward, done, unused_info = self.environment.step(
@@ -106,23 +96,39 @@ class Runner(object):
 
                     episode_reward += reward
 
-                
-
             rewards.append(episode_reward)
             total_reward += episode_reward
 
             # Ausgabe der Ergebnisse der Runde
-            console_own_agent.round_results(total_reward, episode,
+            console_info_agent.round_results(total_reward, episode,
                                   episode_reward, rewards)
 
         # Ausgabe des Gesamt Ergebnisses
         end_time = time.time()
-        console_own_agent.overall_results(end_time, start_time,
+        console_info_agent.overall_results(end_time, start_time,
                                 rewards, total_reward, episode)
 
         return rewards
+    
+    def init_agents(self, observations):
+        
+        # Init all Agent with agent config
+        agents = [self.agent_class(self.agent_config)
+                    for _ in range(self.flags['players'])]
 
-    def update_agent(self, observations, agents):
+        # Init Possibility Table
+        for agent_id, agent in enumerate(agents):
+            observation = observations['player_observations'][agent_id]
+            agent.init_table(observation)
+        
+        return agents
+    
+    def update_agent(self, observations, agents, legal_move, action):
+        # Update Observation
+        if legal_move:
+            for agent3_idx, agent3 in enumerate(agents):
+                agent3.update_tables(action)
+
         for agent_id2, agent2 in enumerate(agents):
             observation = observations['player_observations'][agent_id2]
             agent2.update_observation(observation)
@@ -130,12 +136,8 @@ class Runner(object):
             agent2.update_poss_tables_based_on_card_knowledge()
 
 
-
 if __name__ == "__main__":
-
-    flags = {'players': 3, 'num_episodes': 100, 'agent_class': 'HTGSAgent3P'}
-
+    flags = {'players': 3, 'num_episodes': 100, 'agent_class': 'HTGSAgent'}
     runner = Runner(flags)
-
     runner.run()
 

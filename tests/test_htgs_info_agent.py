@@ -7,7 +7,7 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 
-from INFO_Strategy.htgs_info_agent import HTGSAgent
+from Agents.htgs_info_agent import HTGSAgent
 
 from hanabi_learning_environment import rl_env
 

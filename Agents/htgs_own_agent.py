@@ -52,60 +52,74 @@ class HTGSAgent3P(Agent):
 
         return mc
 
-    def act(self, round):
+    def act(self):
         """Return action"""
         poss_hand_table = self.table.get_poss_table_hand(0)
         private_poss_hand_table = self.get_privat_poss_hand_table(
             poss_hand_table)
 
-        # Rule 1.
+        dead_card_idx = self.dead_card_in_hand(private_poss_hand_table)
         playable_card_idx = self.playable_card_in_hand(private_poss_hand_table)
+        duplicate_card_idx = self.duplicate_card_in_hand(
+            private_poss_hand_table)
+        dispensable_card_idx = self.dispensable_card_in_hand(
+            private_poss_hand_table)
+        
+        # Rule 1.
         if (playable_card_idx is not None):
             act = {'action_type': 'PLAY', 'card_index': playable_card_idx}
-            return act
 
         # Rule 2.
-        dead_card_idx = self.dead_card_in_hand(private_poss_hand_table)
         # In the first round it is not allowed to discard (why i dont know)
-        if (len(self.observation['discard_pile']) < 5
+        elif (len(self.observation['discard_pile']) < 5
             and dead_card_idx is not None
                 and round != 1):
             act = {'action_type': 'DISCARD', 'card_index': dead_card_idx}
-            return act
 
         # Rule 3.
-        if (self.observation['information_tokens'] > 0):
-
+        elif (self.observation['information_tokens'] > 0):
             act = self.give_hint()
             if act['action_type'] == 'DISCARD' and self.observation['information_tokens'] > 0:
                 print("Error")
 
-            return act
-
         # Rule 4.
-        if (dead_card_idx is not None):
+        elif (dead_card_idx is not None):
             act = {'action_type': 'DISCARD', 'card_index': dead_card_idx}
-            return act
 
         # Rule 5.
-        duplicate_card_idx = self.duplicate_card_in_hand(
-            private_poss_hand_table)
-        if (duplicate_card_idx is not None):
+        elif (duplicate_card_idx is not None):
             act = {'action_type': 'DISCARD', 'card_index': duplicate_card_idx}
-            return act
 
         # Rule 6.
-        dispensable_card_idx = self.dispensable_card_in_hand(
-            private_poss_hand_table)
-        if (dispensable_card_idx is not None):
+        elif (dispensable_card_idx is not None):
             act = {'action_type': 'DISCARD',
                    'card_index': dispensable_card_idx}
-            return act
 
         # Rule 7
         else:
             act = {'action_type': 'DISCARD', 'card_index': 0}
-            return act
+        
+        action, legal_move = self.filter_illigal_action(act)
+    
+        return action, legal_move
+
+    def filter_illigal_action(self, action):
+        """Filters illegal actions. Sometimes it is not allowed
+        to discard a card"""
+        legal_move = True
+        if (action not in self.observation['legal_moves']):
+            legal_move = False
+            found = False
+            for act_idx, act in enumerate (self.observation['legal_moves']): 
+                if act['action_type'] == 'REVEAL_COLOR' or act['action_type'] == 'REVEAL_RANK':
+                    action = self.observation['legal_moves'][act_idx]
+                    found = True 
+
+            if found == False:
+                action = self.observation['legal_moves'][act_idx] 
+                legal_move = False   
+            
+        return action, legal_move
 
     def get_privat_poss_hand_table(self, poss_hand_table):
         """Return privat_hand_table"""

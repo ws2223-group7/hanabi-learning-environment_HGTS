@@ -29,11 +29,12 @@ currentPath = os.path.dirname(os.path.realpath(__file__))
 parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
+from print_result import console_rec_agent 
 from hanabi_learning_environment import rl_env
 
 
 # from hanabi_learning_environment.agents.test_agent import HTGSAgent 
-from Agents.htgs_agent import HTGSAgent
+from Agents.htgs_rec_agent import HTGSAgent
 
 AGENT_CLASSES = {'HTGSAgent' : HTGSAgent}
        
@@ -78,16 +79,20 @@ class Runner(object):
       if output: self.env_out(datei,'S',agents,observations,0,None,episode_reward)
       
 
-      ### End Init Episodes / Rounds ###
-
-      # Play as long its not gameOver or Win
-      print("\n\n\n------------------------------ New Episode -------------------------")
+            
       start_time = time.time() 
-      start_time = time.time() 
+      
+      # Play one game
       while not done:
 
-        # Loop over all agents 
+        
+
+        # Play one round:
         for agent_id, agent in enumerate(agents):
+          
+          # Update Observation for all Agents
+          self.update_observation(observations, agents)
+
           observation = observations['player_observations'][agent_id]
           action, legal_move = agent.act(observation)
           
@@ -106,6 +111,9 @@ class Runner(object):
               agent3.nr_card_ply_since_hint += 1
 
           
+          # Ausgabe des aktuellen Spiels vor Aktion:
+          console_rec_agent.info(observations, agents, agent_id, action)
+
           # Make an environment step.
           observations, reward, done, unused_info = self.environment.step(
               action)
@@ -115,29 +123,16 @@ class Runner(object):
           
       rewards.append(episode_reward)
       total_reward += episode_reward
-      print("Total Reward ", total_reward)
-      print('Running episode: %d' % episode)
-      print('Max  Reward: %.3f' % max(rewards))
-      print('Avg. Reward: ', format(total_reward/(episode+1),'.3f'))
-      if output: datei.close()
+
+      # Ausgabe der Ergebnisse der Runde
+      console_rec_agent.round_results(total_reward, episode,
+                                      episode_reward, rewards)
+
     
+    # Ausgabe des Gesamt Ergebnisses
     end_time = time.time()
-    print("Laufzeit pro Runde")
-    print((end_time - start_time) / 100) 
-    st_dev = np.std(rewards)
-    print("Standardabweichung")
-    print(st_dev)
-    print("Durchschnitt")
-    print(total_reward/(episode+1))
-    
-    end_time = time.time()
-    print("Laufzeit pro Runde")
-    print((end_time - start_time) / 100) 
-    st_dev = np.std(rewards)
-    print("Standardabweichung")
-    print(st_dev)
-    print("Durchschnitt")
-    print(total_reward/(episode+1))
+    console_rec_agent.overall_results(end_time, start_time,
+                                      rewards, total_reward, episode)
     return rewards
     
   def decode_hint(self, observations, agents, agent_id, action):
@@ -150,9 +145,15 @@ class Runner(object):
       agent2.observation = observations['player_observations'][agent_id2]
       agent2_hand = observations['player_observations'][agent_id2-1]['observed_hands'][1]
       agent2.decode_hint(action, agent2_hand)
+    
+  def update_observation(self, observations, agents):
+    """Updates the observation for all agents."""
+    for agent_id2, agent2 in enumerate(agents):
+      observation = observations['player_observations'][agent_id2]
+      agent2.update_observation(observation)
 
 def main():
-  flags = {'players': 2, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
+  flags = {'players': 5, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
   runner = Runner(flags)
 
   runner.run()
