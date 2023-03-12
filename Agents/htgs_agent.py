@@ -50,16 +50,16 @@ class HTGSAgent(Agent):
     if self.rcd_act == None:
       if observation['information_tokens'] == 0:
         print("Try to give hint with 0 Token")
-      return self.give_hint()
+      action = self.give_hint()
 
     
     # PlayRule1 
-    if (self.rcd_act['action_type'] == 'PLAY' 
+    elif (self.rcd_act['action_type'] == 'PLAY' 
         and not self.rcd_card_plyd
         and (self.nr_card_ply_since_hint == 0)):
       
       self.rcd_card_plyd = True
-      return self.rcd_act
+      action = self.rcd_act
       
       
 
@@ -70,23 +70,45 @@ class HTGSAgent(Agent):
           and self.observation['life_tokens'] > 1):
       
       self.rcd_card_plyd = True
-      return self.rcd_act
+      action = self.rcd_act
   
       
     # PlayRule 3
     elif (observation['information_tokens'] != 0):
-      return self.give_hint()
+      action = self.give_hint()
 
     # PlayRule 4
     elif (self.rcd_act['action_type'] == 'DISCARD' and not self.rcd_card_plyd):
       self.rcd_card_plyd = True
-      return self.rcd_act
+      action = self.rcd_act
       
 
     # PlayRule 5
     else:
       dsc_c1 = {'action_type': 'DISCARD', 'card_index': 0}
-      return dsc_c1 
+      action = dsc_c1 
+    
+    action, legal_move = self.filter_illigal_action(action)
+    
+    return action, legal_move
+  
+  def filter_illigal_action(self, action):
+    """Filters illegal actions. Sometimes it is not allowed
+       to discard a card"""
+    legal_move = True
+    if (action not in self.observation['legal_moves']):
+      legal_move = False
+      found = False
+      for act_idx, act in enumerate (self.observation['legal_moves']): 
+          if act['action_type'] == 'REVEAL_COLOR' or act['action_type'] == 'REVEAL_RANK':
+            action = self.observation['legal_moves'][act_idx]
+            found = True 
+
+      if found == False:
+          action = self.observation['legal_moves'][act_idx] 
+          legal_move = False   
+        
+    return action, legal_move
 
   def give_hint(self):
     act_hint = self.encode_hint()

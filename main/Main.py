@@ -30,15 +30,12 @@ parentPath = os.path.dirname(currentPath)
 sys.path.append(parentPath)
 
 from hanabi_learning_environment import rl_env
-from hanabi_learning_environment.agents.random_agent import RandomAgent
-from hanabi_learning_environment.agents.simple_agent import SimpleAgent
+
 
 # from hanabi_learning_environment.agents.test_agent import HTGSAgent 
 from Agents.htgs_agent import HTGSAgent
 
-AGENT_CLASSES = {'SimpleAgent': SimpleAgent, 
-                 'RandomAgent': RandomAgent, 
-                 'HTGSAgent' : HTGSAgent}
+AGENT_CLASSES = {'HTGSAgent' : HTGSAgent}
        
 class Runner(object):
   """Runner class."""
@@ -50,62 +47,6 @@ class Runner(object):
     self.environment = rl_env.make('Hanabi-Full', num_players=flags['players'])
     self.agent_class = AGENT_CLASSES[flags['agent_class']]
 
-  def env_out(self,datei,st,agents, observations,e,action,reward):
-      #e = flags['num_episodes']
-      p = self.flags['players']
-      if self.flags['agent_class'] == "HTGSAgent":
-        c="HATG"
-
-      l = self.environment.state.life_tokens()
-      info = self.environment.state.information_tokens()
-
-      d = observations['player_observations'][0]['deck_size']
-
-      fd = observations['player_observations'][0]['fireworks']
-      fl_k = list(fd.keys())
-      fl_v = list(fd.values())
-
-      f=""
-      for i in range(len(fl_v)):
-        hilf = fl_k[i]+(str)(fl_v[i])
-        f+=hilf
-
-      h=""
-      cnt=0
-      j=0
-
-      cp = observations['player_observations'][0]['current_player']
-      hdl = observations['player_observations'][cp]['observed_hands']
-      for hd in hdl:
-        for m in hd:
-          if m['rank']!=-1:
-            color = m['color']
-            rank = m['rank']
-            h+=(color+str(rank))
-        if j>0 and j<p-1:
-          h+='_'  
-        j+=1
-
-      ato=''
-      if action != None:
-        ac = action['action_type']
-        if ac == 'REVEAL_RANK':
-          at = action['rank']
-          ato = action['target_offset']  
-        if ac == 'REVEAL_COLOR': 
-          at = action['color']
-          ato = action['target_offset']  
-        if ac == 'PLAY': 
-          at = action['card_index']
-        if ac == 'DISCARD': 
-          at = action['card_index']
-        datei.write('|{}|EP{:4d}|NP{:1d}|{:4s}|LT{}|IT{}|DS{:2d}|{}|REW{:2d}|CP{}|{}|ACT:{:12}|{:1}|{:1}|\n'.format(st,e,p,c,l,info,d,f,reward,cp,h,ac,at,ato))
-      else:    
-        datei.write('|{}|EP{:4d}|NP{:1d}|{:4s}|LT{}|IT{}|DS{:2d}|{}|REW{:2d}|CP{}|{}|\n'.format(st,e,p,c,l,info,d,f,reward,cp,h))
-      return
-
-  
-  
   def run(self):
     """Run episodes."""
     rewards = []
@@ -148,22 +89,8 @@ class Runner(object):
         # Loop over all agents 
         for agent_id, agent in enumerate(agents):
           observation = observations['player_observations'][agent_id]
-          action = agent.act(observation)
-
-          legal_move = True
-          if (action not in agent.observation['legal_moves']):
-            legal_move = False
-            found = False
-            for act_idx, act in enumerate (agent.observation['legal_moves']): 
-                if act['action_type'] == 'REVEAL_COLOR' or act['action_type'] == 'REVEAL_RANK':
-                  action = agent.observation['legal_moves'][act_idx]
-                  found = True 
-
-            if found == False:
-               action = agent.observation['legal_moves'][act_idx]               
-
-          #Ausgabe des aktuellen Spiels vor Aktion:
-          if output: self.env_out(datei,'V',agents,observations,episode,action,episode_reward)
+          action, legal_move = agent.act(observation)
+          
           
           # If hint is given calculate the corresponding hat  
           if (action['action_type'] == 'REVEAL_COLOR' 
@@ -199,8 +126,6 @@ class Runner(object):
 
           episode_reward += reward
           
-          if output: self.env_out(datei,'N',agents,observations,episode,current_player_action,episode_reward)
-      if output: datei.write('Running episode: {} Reward {}\n'.format(episode, episode_reward))
           
       rewards.append(episode_reward)
       total_reward += episode_reward
@@ -232,24 +157,11 @@ class Runner(object):
  
 
 def main():
-  flags = {'players': 5, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
-
-  options, arguments = getopt.getopt(sys.argv[1:], '',
-                                     ['players=',
-                                      'num_episodes=',
-                                      'agent_class='])
-  if arguments:
-    sys.exit('usage: rl_env_example.py [options]\n'
-             '--players       number of players in the game.\n'
-             '--num_episodes  number of game episodes to run.\n'
-             '--agent_class   {}'.format(' or '.join(AGENT_CLASSES.keys())))
-  for flag, value in options:
-    flag = flag[2:]  # Strip leading --.
-    flags[flag] = type(flags[flag])(value)
+  flags = {'players': 2, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
   runner = Runner(flags)
-  if runner.agent_class == HTGSAgent: 
-    runner.run()
-  else: sys.exit('Wrong Agent Class!\n')
+
+  runner.run()
+
 
 if __name__ == "__main__":
   main()
