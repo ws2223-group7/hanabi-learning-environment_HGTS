@@ -93,36 +93,22 @@ class Runner(object):
           
           
           # If hint is given calculate the corresponding hat  
-          if (action['action_type'] == 'REVEAL_COLOR' 
-             or action['action_type'] == 'REVEAL_RANK'):
+          if ((action['action_type'] == 'REVEAL_COLOR' 
+             or action['action_type'] == 'REVEAL_RANK')
+             and legal_move):
+            
+            self.decode_hint(observations, agents, agent_id, action)
              
-             for agent_id2, agent2 in enumerate(agents):
-              if agent_id == agent_id2:
-                continue 
 
-              # Setze Observation von Spielern die hint bekommen    
-              agent2.observation = observations['player_observations'][agent_id2]
-              agent2_hand = observations['player_observations'][agent_id2-1]['observed_hands'][1]
-              if legal_move:
-                agent2.decode_hint(action, agent2_hand)
           
           if (action['action_type'] == 'PLAY'):
             for agent3 in agents:
               agent3.nr_card_ply_since_hint += 1
 
           
-
-          if observation['current_player'] == agent_id:
-            assert action is not None
-            current_player_action = action
-          else:
-            assert action is None
-
-          
           # Make an environment step.
-          
           observations, reward, done, unused_info = self.environment.step(
-              current_player_action)
+              action)
 
           episode_reward += reward
           
@@ -154,7 +140,16 @@ class Runner(object):
     print(total_reward/(episode+1))
     return rewards
     
- 
+  def decode_hint(self, observations, agents, agent_id, action):
+    """Agent decode hint to recommanded action"""
+    for agent_id2, agent2 in enumerate(agents):
+      if agent_id == agent_id2:
+        continue 
+
+      # Setze Observation von Spielern die hint bekommen    
+      agent2.observation = observations['player_observations'][agent_id2]
+      agent2_hand = observations['player_observations'][agent_id2-1]['observed_hands'][1]
+      agent2.decode_hint(action, agent2_hand)
 
 def main():
   flags = {'players': 2, 'num_episodes': 10, 'agent_class': 'HTGSAgent'}
