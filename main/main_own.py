@@ -71,6 +71,9 @@ class Runner(object):
                     if legal_move:
                         for agent3_idx, agent3 in enumerate(agents):
                             agent3.update_tables(action)
+                    
+                    # Print Game State
+                    console_own_agent.info(agents, agent_id, action)
 
                     # Make an environment step.
                     observations, reward, done, unused_info = self.environment.step(
